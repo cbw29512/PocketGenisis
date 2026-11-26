@@ -29,3 +29,6 @@ Use universal data-driven work, recipe, invention and construction systems withi
 
 ## G3 multigeneration
 Re-read pinned ecosystem MIT license and CYD spawnHerb lines 192–225: bounded slot allocation and inherited mutation. Reused our existing two-parent mutation/lifespan primitive rather than importing single-parent floating-point spawning or slot identity loss. New deterministic pair selection and archive validation are original code. No new third-party code copied.
+
+## G3 dependent care
+Re-read LibColony pinned MIT license and header design lines 15–65 (needs/work priority, distance and autonomy). Reused the concept of priority-based task selection with bounded local parent requests; no optimal assignment engine or upstream code imported. All consumption routes through one authoritative resource transaction.

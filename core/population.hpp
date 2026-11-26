@@ -4,7 +4,7 @@
 namespace genesis {
 inline bool valid_agent(const Citizen& c) noexcept {
     if(c.x>=width || c.y>=height || c.hunger>100 || c.thirst>100 || c.health>100 ||
-       static_cast<unsigned>(c.action)>static_cast<unsigned>(Action::drink)) return false;
+       static_cast<unsigned>(c.action)>static_cast<unsigned>(Action::care)) return false;
     for(auto trait:c.personality) if(trait>100) return false;
     return static_cast<unsigned>(c.purpose)<=static_cast<unsigned>(Purpose::inventor);
 }

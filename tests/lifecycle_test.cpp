@@ -26,8 +26,9 @@ int main() {
         for(std::size_t i=1;i<c.personality.size();++i) check(c.personality[i]>=40&&c.personality[i]<=60,"mutation bounds");
         check(life_stage(c,a.tick)==LifeStage::infant&&c.purpose==Purpose::none,"child has no purpose");
         c.hunger=0;c.thirst=100;
+        for(auto& f:a.founders) { f.x=c.x;f.y=c.y;f.hunger=0;f.thirst=0; }
         auto& tile=a.tiles[static_cast<std::size_t>(c.y)*width+c.x];tile.water=100;
-        check(step_world(a,p)&&c.action==Action::drink,"child shares survival mechanic");
+        check(step_world(a,p)&&c.action==Action::drink,"parent provides dependent water");
         check(life_stage(c,c.birth_tick+2*ticks_per_year)==LifeStage::child,"child boundary");
         check(life_stage(c,c.birth_tick+12*ticks_per_year)==LifeStage::adolescent,"adolescent boundary");
         a.pregnancy={};

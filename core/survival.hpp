@@ -1,27 +1,16 @@
 #pragma once
-#include "population.hpp"
+#include "care.hpp"
 #include "resource_search.hpp"
 #include <algorithm>
 
 namespace genesis {
 // Shared authoritative survival transaction for every active citizen.
-inline void act_survival(World& w,Citizen& f) noexcept {
-    f.action=Action::idle;
-    f.hunger=static_cast<std::uint8_t>(std::min(100, f.hunger+1));
-    f.thirst=static_cast<std::uint8_t>(std::min(100, f.thirst+1));
-    const bool urgent=f.hunger>=12 || f.thirst>=12;
+inline void act_survival(World& w,Citizen& f,Citizen* dependent=nullptr) noexcept {
+    accrue_needs(f);
+    const bool urgent=urgent_need(f);
     const bool water=f.thirst>=f.hunger;
-    auto stock=[&](int x,int y)->std::uint16_t& {
-        auto& t=w.tiles[static_cast<std::size_t>(y)*width+static_cast<std::size_t>(x)];
-        return water?t.water:t.food;
-    };
-    if (urgent && stock(f.x,f.y)>0) {
-        --stock(f.x,f.y); // Transfer exactly one unit to consumption.
-        auto& need=water?f.thirst:f.hunger;
-        need=static_cast<std::uint8_t>(std::max(0,need-12));
-        f.action=water?Action::drink:Action::eat;
-        return;
-    }
+    if(urgent&&consume_need(w,f,f.x,f.y)) return;
+    if(!urgent&&give_care(w,f,dependent)) return;
     constexpr int dx[]={-1,1,0,0}, dy[]={0,0,-1,1};
     std::array<int,4> candidates{};
     std::size_t count=0;
@@ -53,8 +42,20 @@ inline void act_survival(World& w,Citizen& f) noexcept {
 }
 inline bool step_survival(World& w) noexcept {
     if(w.tick==std::numeric_limits<std::uint64_t>::max() || !valid_population(w)) return false;
-    for(auto& f:w.founders) act_survival(w,f);
-    for(std::size_t i=0;i<w.descendant_count;++i) act_survival(w,w.descendants[i]);
+    const auto requests=prepare_care(w);
+    auto act=[&](Citizen& c) {
+        const auto slot=requests[static_cast<std::size_t>(c.id)];
+        act_survival(w,c,slot?&w.descendants[slot-1]:nullptr);
+    };
+    for(auto& f:w.founders) act(f);
+    for(std::size_t i=0;i<w.descendant_count;++i) {
+        auto& c=w.descendants[i];
+        if(life_stage(c,w.tick)!=LifeStage::infant) act(c);
+    }
+    for(std::size_t i=0;i<w.descendant_count;++i) {
+        auto& c=w.descendants[i];
+        if(life_stage(c,w.tick)==LifeStage::infant) follow_parent(w,c);
+    }
     return advance_clock(w);
 }
 } // namespace genesis

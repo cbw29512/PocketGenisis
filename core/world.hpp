@@ -11,7 +11,7 @@ enum Stream : std::size_t { terrain, traits, environment, decisions, reproductio
 struct Tile {
     std::uint16_t food{}, wood{}, water{}, stone{};
 };
-enum class Action : std::uint8_t { idle, move, eat, drink };
+enum class Action : std::uint8_t { idle, move, eat, drink, care };
 enum class Purpose : std::uint8_t { none, gatherer, builder, inventor };
 enum class LifeStage : std::uint8_t { infant, child, adolescent, adult, elder };
 struct Citizen {
