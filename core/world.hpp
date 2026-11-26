@@ -48,6 +48,9 @@ inline LifeStage life_stage(const Citizen& c,std::uint64_t tick) noexcept {
     if(age<18) return LifeStage::adolescent;
     return age<55?LifeStage::adult:LifeStage::elder;
 }
+struct Pregnancy {
+    std::uint64_t parent1{}, parent2{}, due_tick{};
+};
 struct World {
     std::uint64_t seed{}, tick{};
     std::array<Rng, stream_count> streams{};
@@ -57,7 +60,8 @@ struct World {
     std::size_t descendant_count{};
     std::array<DeathRecord, history_capacity> archive{};
     std::size_t archive_count{};
-    std::uint64_t next_citizen_id{3}, founder_due_tick{};
+    std::uint64_t next_citizen_id{3}, lost_gestations{};
+    Pregnancy pregnancy{};
 };
 // Call only for explicit creation of a disposable world. Never on load failure.
 inline void initialize(World& w, std::uint64_t seed) noexcept {
@@ -67,7 +71,8 @@ inline void initialize(World& w, std::uint64_t seed) noexcept {
     w.archive_count=0;
     for(auto& d:w.archive) d=DeathRecord{};
     w.next_citizen_id=3;
-    w.founder_due_tick=0;
+    w.pregnancy={};
+    w.lost_gestations=0;
     for(auto& c:w.descendants) c=Citizen{};
     Rng root{seed};
     for (auto& s : w.streams) s.state = root.next();

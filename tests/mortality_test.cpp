@@ -29,7 +29,7 @@ int main() {
         check(w.next_citizen_id==6&&w.founders[0].health==1&&w.founders[1].health==1,"founders immortal");
         for(auto& f:w.founders) {f.hunger=0;f.thirst=0;f.personality[0]=0;}
         check(step_world(w,p)&&w.founders[0].health==2,"founder health recovery");
-        w.founder_due_tick=w.tick+1;
+        w.pregnancy={1,2,w.tick+1};
         check(step_world(w,p)&&w.descendant_count==2&&w.descendants[1].id==6&&w.next_citizen_id==7,"no ID reuse after death");
         check(w.descendants[1].lifespan_years>=60&&w.descendants[1].lifespan_years<=80,"seeded lifespan bounds");
         auto tick=w.tick;auto rng=w.streams[decisions].state;
@@ -41,7 +41,7 @@ int main() {
             auto c=person(i+3,1);c.health=0;c.thirst=100;
             w.archive[i]={c,2,DeathCause::dehydration};
         }
-        check(step_world(w,p)&&w.archive_count==history_capacity&&!w.founder_due_tick,"full history defers birth");
+        check(step_world(w,p)&&w.archive_count==history_capacity&&!w.pregnancy.due_tick,"full history defers birth");
         initialize(w,7);check(w.archive_count==0&&w.next_citizen_id==3,"explicit reset");
         std::cout<<"PASS: death causes, founder recovery, immutable IDs, genealogy, capacity and invalid archive rejection\n";
         return 0;

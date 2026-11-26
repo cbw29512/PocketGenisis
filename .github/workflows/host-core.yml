@@ -23,3 +23,5 @@ jobs:
           ./lifecycle-test
           g++ -std=c++17 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -Icore tests/mortality_test.cpp -o mortality-test
           ./mortality-test
+          g++ -std=c++17 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -Icore tests/generation_test.cpp -o generation-test
+          ./generation-test

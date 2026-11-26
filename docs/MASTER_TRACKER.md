@@ -4,7 +4,7 @@
 | G0 MVP/schema | Review | Owner approves baseline and finalized schema |
 | G1 hardware | Blocked | Exact PCB and safe USB backup/flash path verified |
 | G2 core | In progress | Initial RNG, seeded resource grid, founder traits and clock host-tested; full transition loop and state fixtures pending |
-| G3 citizens | In progress | Founder gestation, maturation, health, basic mortality and bounded RAM archive implemented; CI pending; durable archive, disease, accidents, descendant reproduction, care and recovery remain |
+| G3 citizens | In progress | Founder gestation, maturation, health, basic mortality and bounded RAM archive implemented; CI pending; durable archive, disease, accidents, multigeneration reproduction implemented but unverified; care and recovery remain |
 | G4 environment | In progress | Seasonal renewable stock slice CI passed; weather, terrain suitability and balance remain |
 | G5 technology | Pending | Prerequisites, failure, teaching and loss tests |
 | G6 saves | Pending | Corruption recovery and migration |
@@ -34,3 +34,5 @@ Increment 6: health depletion/recovery, old age and need-related death, stable d
 
 ## Owner-approved resilience and wonders
 G3/G4/G5: test actual capability-based disease, famine and weather impact mitigation and regression when infrastructure or knowledge is lost. Natural hazards must not become impossible with progress. G5/G8: after ordinary construction, implement minimal exceptional-project proposal/completion via existing construction, discovery and event records; no bespoke wonder engine. Additional wonder content and advanced hazards deferred. See MVP.md and DATA_SCHEMA.md. Requirements only; no implementation or new test claim in this update.
+
+Increment 7: founder or adult-descendant gestation, bounded seeded pair selection, actual two-parent inheritance, archived genealogy validation and gestation cancellation when a parent dies. Regression suite added. Prior lifecycle/mortality/MVP CI still queued at audit (45908278244, 45909440919, 45910659180); local clone unavailable (DNS). No merge or test-pass claim. One concurrent gestation is provisional; parallel family pregnancies, parental care, disease and founder recovery remain. Next verify all host tests, then parental care and health events. Resilience and wonders stay approved in MVP, not implemented ahead of prerequisites.

@@ -26,3 +26,6 @@ Re-read pinned ecosystem CYD source lines 529–570 and MIT license: depletion c
 - Widelands GPL-2.0: https://github.com/widelands/widelands/tree/ed17072e0203b0718e882dc2acc686db0dab3a4d — production/construction design reference only.
 - Open Mars Colony Simulator MIT: https://github.com/AdamCofala/Open-Mars-Colonization-Simulator/tree/b89152bd40e6561e2d93a29e720271e21bcbd2fa — candidate colonist mechanics.
 Use universal data-driven work, recipe, invention and construction systems within approved MVP. Proprietary games are conceptual references only.
+
+## G3 multigeneration
+Re-read pinned ecosystem MIT license and CYD spawnHerb lines 192–225: bounded slot allocation and inherited mutation. Reused our existing two-parent mutation/lifespan primitive rather than importing single-parent floating-point spawning or slot identity loss. New deterministic pair selection and archive validation are original code. No new third-party code copied.
