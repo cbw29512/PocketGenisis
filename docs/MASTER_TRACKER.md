@@ -5,7 +5,7 @@
 | G1 hardware | Blocked | Exact PCB and safe USB backup/flash path verified |
 | G2 core | In progress | Initial RNG, seeded resource grid, founder traits and clock host-tested; full transition loop and state fixtures pending |
 | G3 citizens | Pending | Lifecycle and founder recovery tests |
-| G4 environment | Pending | Weather/resource conservation/regeneration |
+| G4 environment | In progress | Seasonal renewable stock slice implemented; CI pending; weather, terrain suitability and balance remain |
 | G5 technology | Pending | Prerequisites, failure, teaching and loss tests |
 | G6 saves | Pending | Corruption recovery and migration |
 | G7 target | Pending | Board-specific CI, display/touch/storage |
@@ -20,6 +20,8 @@ No unverified merges or destructive flashes. Later eras and migration are roadma
 Development saves are disposable and may be explicitly reset; official saves must be isolated and preserved. No streaming implementation before civilization release.
 
 ## Development guardrail
-Work strictly from MVP and this tracker. Each increment closes a named acceptance condition or records the precise blocker; no new feature work or livestream work. Use development branches, regression tests, verified CI before merge. Hardware gate blocks drivers/flashing but not portable host work. Next: formalize citizen needs and local resource transactions, implement bounded action loop with conservation tests; then lifecycle and environmental mechanics. Initial core remote CI passed. Increment 2 adds founder needs, local movement and consumption; CI pending. Full emergence gate not certified.
+Work strictly from MVP and this tracker. Each increment closes a named acceptance condition or records the precise blocker; no new feature work or livestream work. Use development branches, regression tests, verified CI before merge. Hardware gate blocks drivers/flashing but not portable host work. Next: formalize citizen needs and local resource transactions, implement bounded action loop with conservation tests; then lifecycle and environmental mechanics. Initial core remote CI passed. Increment 2 adds founder needs, local movement and consumption; both remote CI runs passed. Full emergence gate not certified.
 
 Pinned upstream references: see UPSTREAM_TRACKER.md. Next after survival CI: renewable resource recovery and bounded search; then common citizen lifecycle, construction and inventions. Do not claim G2 complete from this slice.
+
+Increment 3 adds deterministic seasonal renewable production and resource accounting tests. Next: verify CI and implement bounded resource search beyond adjacent tiles; then common citizen lifecycle. No full ecological or emergence certification yet.

@@ -15,3 +15,5 @@ jobs:
           ./core-test
           g++ -std=c++17 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -Icore tests/survival_test.cpp -o survival-test
           ./survival-test
+          g++ -std=c++17 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -Icore tests/ecology_test.cpp -o ecology-test
+          ./ecology-test
