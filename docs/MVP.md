@@ -1,0 +1,18 @@
+# MVP v0.1 — Definition of Done
+## Mission
+Two immortal founders establish a procedurally generated resource-rich world. All descendants are mortal individuals with distinct personalities, relationships, knowledge, and one primary adult purpose. Birth, childbirth complications, accidents, disease, aging and death matter. Citizens may succeed spectacularly or fail. Founders may be incapacitated but recover; they can repopulate after collapse. Fictional inheritance introduces diversity without human inbreeding modeling. Civilization progresses autonomously, may regress, and has no victory screen. Target five years of operation before hardware migration, with open-ended continuity.
+## Scope
+Top-down pixel-art map, visible agents, terrain, shelters, weather, day/night, renewable food, wood and water; stone and mineral deposits with future extraction/recycling. Natural resources initially plentiful. Citizen inspection, historical journal and family tree. Initial technology: fire, stone tools, shelter, cooking, storage, farming, irrigation, pottery, sanitation, teaching and records. Experiments use effort, time, materials and prerequisites; success is not guaranteed. Knowledge can be taught, recorded or lost. Future industrial and space ages, diplomacy and advanced economies are roadmap.
+## Proposed tuning
+12 real hours per simulated year; four 3-hour seasons; independent visible day/night animation labeled as such. Target initial lifespan 60–80 simulated years, gestation 4.5 real hours, adulthood 9 real days. 100x60 terrain cells at assumed 800x480 display; target 256 active citizens subject to benchmarking. Fixed primary purpose after maturity; survival and emergency actions permitted. Capacity pressure defers births, never silently deletes citizens.
+## Acceptance gates
+1. New world explicitly initialized with exactly two permanent founders; same world, identities, RNG and history restored after reboot. Invalid save never silently creates a world.
+2. Seeded host tests demonstrate gathering, shelter, fire experiments, birth, maturation, roles, death, learning, knowledge loss and founder survival/recovery. At least one tested recovery scenario restores a viable population after collapse.
+3. Seasonal weather changes growth, water, work and health. No negative resource balances; depleted renewable resources can recover; founder survival and recovery cannot permanently deadlock due to exhausted resources.
+4. Display animates agents and environment; touch inspection shows individual identity, age, purpose, traits, family and accomplishments without pausing simulation.
+5. Versioned portable export/import preserves world identity, RNG, clock, genealogy, history, technology and state; recover from truncated/corrupt checkpoint or event log; cross-device restore tested on host.
+6. Deterministic replay and five real years equivalent accelerated simulation pass invariants; report memory, storage and runtime. This is not physical five-year proof.
+7. Exact device passes 72-hour unattended soak with memory, latency, frame rate, temperature, storage-write and power interruption evidence using a disposable test world; supported capacity set from results.
+8. Update/recovery procedure tested without replacing the world; original firmware backed up where supported before first flash.
+## Boundaries
+Offline core first. Streaming is an optional independent extension, not a prerequisite for survival. No external AI, cloud dependence or unlimited-memory promise. Numeric proposals require owner review and benchmarking.

@@ -1,0 +1,4 @@
+# Hardware and iPad
+User reports seven-inch ESP32 FCC ID 2BDNA-AP08 attached to iPad. Likely Elecrow CrowPanel family; exact PCB revision, panel/touch, flash/PSRAM, storage, USB interface, boot mode and pin mapping unverified. No guessed offsets or destructive flash. Identify board, verify power source and original flash backup/recovery path first.
+iPad Safari lacks standard Web Serial for common ESP32 browser flashers. USB attachment alone does not establish flashing ability. Use iPad for GitHub/review and CI builds; initial install may require desktop or SSH Linux host physically attached to board, or verified iPad-native flashing. Later authenticated local OTA with rollback subject to partition capacity; retain world separately. Offline operation after install.
+References: https://docs.espressif.com/projects/esptool/en/latest/esp32/ and https://espressif.github.io/esp-launchpad/
