@@ -21,3 +21,6 @@ Exactly two immortal founder identities. No reused IDs, negative resources, inva
 
 ## Seed and replay contract
 Persist canonical seed, RNG algorithm/version, complete state for each named random stream, generator version, initial settings, rules version and tick. Derive independent streams using a documented stable algorithm (terrain, traits, environment, decisions, reproduction, research); no wall clock or device ID in simulation RNG after initialization. Generate a fresh seed on new-world initialization unless explicitly supplied for testing. Save/reload preserves streams exactly. Canonical state comparison excludes external metadata but includes all simulation-relevant state and event payloads; stable iteration and fixed-point units prevent platform drift. Stream algorithm and fixtures must be finalized before implementation.
+
+### Increment 5 implementation subset
+Citizen adds parent_ids, birth_tick and stable purpose enum (0 none, 1 gatherer, 2 builder, 3 inventor); life stage derived from age at current tick, founders always adult. World holds founder-pair due_tick (0 means no gestation), descendant_count and next_citizen_id. This bounded active population is not yet an archive or portable save representation; later death handling must decouple next ID from active count and preserve parent references. See CORE_CONTRACT.md for provisional rules.

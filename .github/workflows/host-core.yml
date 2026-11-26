@@ -19,3 +19,5 @@ jobs:
           ./ecology-test
           g++ -std=c++17 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -Icore tests/resource_search_test.cpp -o resource-search-test
           ./resource-search-test
+          g++ -std=c++17 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -Icore tests/lifecycle_test.cpp -o lifecycle-test
+          ./lifecycle-test

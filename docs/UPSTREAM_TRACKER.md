@@ -13,3 +13,6 @@ Inspected CYD ecosystem source cyd-version/cyd-ecosystem-sim.ino: entities have 
 Read pinned ecosystem CYD source around lines 473–504: bounded nearest active plant selection and movement toward target. Adapted the general nearest-resource mechanic to Manhattan tile rings, deterministic integer movement and authoritative stock; no ecosystem code copied.
 ## G7 actual selected upstream copy
 Copied ESPLAY32 LGFX_Config.h, build settings (inert .reference file) and MIT LICENSE into reference/esplay32, exact pinned revision. This is isolated from builds until board identification, dependency audit and verification. No other upstream code imported yet.
+
+## G3 lifecycle
+Read pinned ecosystem MIT LICENSE and CYD source lines 192–225, 549–567 (spawn with inherited variation, energy-driven reproduction and death). Adapted conceptual bounded mutation and condition-driven reproduction into two-parent integer traits, explicit gestation and monotonic identities. Upstream reuses inactive slots and debits energy before confirming allocation; not suitable for permanent genealogy/capacity safety without changes. No upstream ecosystem source copied. Existing ESPLAY32 reference untouched.

@@ -12,24 +12,51 @@ struct Tile {
     std::uint16_t food{}, wood{}, water{}, stone{};
 };
 enum class Action : std::uint8_t { idle, move, eat, drink };
-struct Founder {
+enum class Purpose : std::uint8_t { none, gatherer, builder, inventor };
+enum class LifeStage : std::uint8_t { infant, child, adolescent, adult, elder };
+struct Citizen {
     std::uint64_t id{};
     std::uint16_t x{}, y{};
     std::array<std::uint8_t, 6> personality{};
     std::uint8_t hunger{}, thirst{};
     Action action{Action::idle};
-    // Founder type is intrinsically immortal; mortal agents are a later gate.
+    std::uint64_t parent1{}, parent2{}, birth_tick{};
+    Purpose purpose{Purpose::none};
 };
+using Founder = Citizen;
+inline constexpr std::size_t descendant_capacity=254;
+inline constexpr std::uint64_t gestation_ticks=16200;
+inline Purpose choose_purpose(const Citizen& c) noexcept {
+    // Fixed tie ordering makes assignment reproducible.
+    if(c.personality[0]>=c.personality[1] && c.personality[0]>=c.personality[2])
+        return Purpose::inventor;
+    return c.personality[1]>=c.personality[2]?Purpose::builder:Purpose::gatherer;
+}
+inline LifeStage life_stage(const Citizen& c,std::uint64_t tick) noexcept {
+    if(c.id==1 || c.id==2) return LifeStage::adult;
+    const auto age=(tick>=c.birth_tick?tick-c.birth_tick:0)/ticks_per_year;
+    if(age<2) return LifeStage::infant;
+    if(age<12) return LifeStage::child;
+    if(age<18) return LifeStage::adolescent;
+    return age<55?LifeStage::adult:LifeStage::elder;
+}
 struct World {
     std::uint64_t seed{}, tick{};
     std::array<Rng, stream_count> streams{};
     std::array<Tile, width * height> tiles{};
     std::array<Founder, 2> founders{};
+    std::array<Citizen, descendant_capacity> descendants{};
+    std::size_t descendant_count{};
+    std::uint64_t next_citizen_id{3}, founder_due_tick{};
 };
 // Call only for explicit creation of a disposable world. Never on load failure.
 inline void initialize(World& w, std::uint64_t seed) noexcept {
     w.seed = seed;
     w.tick = 0;
+    w.descendant_count=0;
+    w.next_citizen_id=3;
+    w.founder_due_tick=0;
+    for(auto& c:w.descendants) c=Citizen{};
     Rng root{seed};
     for (auto& s : w.streams) s.state = root.next();
     auto& map = w.streams[terrain];
@@ -51,6 +78,7 @@ inline void initialize(World& w, std::uint64_t seed) noexcept {
             w.streams[traits].bounded(101, v);
             trait = static_cast<std::uint8_t>(v);
         }
+        f.purpose=choose_purpose(f);
     }
 }
 // Clock only in this increment. No weather, survival or action transitions yet.
