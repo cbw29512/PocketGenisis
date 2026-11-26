@@ -1,5 +1,6 @@
 #pragma once
 #include "world.hpp"
+#include "resource_search.hpp"
 #include <algorithm>
 
 namespace genesis {
@@ -39,11 +40,10 @@ inline bool step_survival(World& w) noexcept {
         }
         int chosen=-1;
         if (urgent) {
-            auto best=stock(f.x,f.y);
-            for(std::size_t k=0;k<count;++k) {
-                const int i=candidates[k];
-                const auto amount=stock(f.x+dx[i],f.y+dy[i]);
-                if(amount>best) { best=amount; chosen=i; }
+            const auto target=find_resource(w,f.x,f.y,water);
+            if(target.found) {
+                // One cardinal step toward nearest stock; horizontal first.
+                chosen=target.x<f.x?0:target.x>f.x?1:target.y<f.y?2:3;
             }
         } else if (count>0) {
             std::uint32_t roll{};

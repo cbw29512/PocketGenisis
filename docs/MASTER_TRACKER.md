@@ -5,7 +5,7 @@
 | G1 hardware | Blocked | Exact PCB and safe USB backup/flash path verified |
 | G2 core | In progress | Initial RNG, seeded resource grid, founder traits and clock host-tested; full transition loop and state fixtures pending |
 | G3 citizens | Pending | Lifecycle and founder recovery tests |
-| G4 environment | In progress | Seasonal renewable stock slice implemented; CI pending; weather, terrain suitability and balance remain |
+| G4 environment | In progress | Seasonal renewable stock slice CI passed; weather, terrain suitability and balance remain |
 | G5 technology | Pending | Prerequisites, failure, teaching and loss tests |
 | G6 saves | Pending | Corruption recovery and migration |
 | G7 target | Pending | Board-specific CI, display/touch/storage |
@@ -25,3 +25,5 @@ Work strictly from MVP and this tracker. Each increment closes a named acceptanc
 Pinned upstream references: see UPSTREAM_TRACKER.md. Next after survival CI: renewable resource recovery and bounded search; then common citizen lifecycle, construction and inventions. Do not claim G2 complete from this slice.
 
 Increment 3 adds deterministic seasonal renewable production and resource accounting tests. Next: verify CI and implement bounded resource search beyond adjacent tiles; then common citizen lifecycle. No full ecological or emergence certification yet.
+
+Increment 4 adds bounded resource search and an isolated MIT upstream hardware reference; CI pending. Next after CI: common citizen lifecycle state and tests. G9 wall-mounted acceptance: unattended boot/recovery, power, ventilation and temperature, dimming without pausing world, accessible service ports; exact device and final enclosure tests required. Do not certify permanent founder recovery from bounded search alone.
