@@ -34,3 +34,6 @@ Exceptional projects extend Building (not a separate construction engine): proje
 
 ### Increment 7 implementation subset
 Replace founder_due_tick with Pregnancy {parent1, parent2, due_tick} (all zero when idle); lost_gestations is a saturating cumulative counter, not a substitute for the eventual event journal. Genealogy permits any valid pair of mortal parents (or the founder pair). Parent identity precedes child ID, birth chronology is validated, and death archives retain references. One concurrent gestation is a provisional host implementation limit.
+
+### Exceptional encounter pacing (design only)
+Encounter catalog: stable type ID, rarity tier, contextual eligibility and candidate weights, effects, rules version; opportunity state: simulation-tick cadence, last evaluated opportunity, last generated rare-or-higher encounter tick (nullable), dedicated versioned RNG stream/state or explicitly isolated substream. Persist any active instance and its event identity. Use integer weights and bounded probability draws, stable order, no elapsed-wall-time catch-up, and no retries on render/reboot. No guarantee of rare events. Generated encounter pacing is distinct from the physical discovery of preexisting deposits, historical milestones, normal hazards and earned achievements. Final IDs, rates and cooldowns require tests and approval.
