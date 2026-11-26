@@ -11,10 +11,13 @@ enum Stream : std::size_t { terrain, traits, environment, decisions, reproductio
 struct Tile {
     std::uint16_t food{}, wood{}, water{}, stone{};
 };
+enum class Action : std::uint8_t { idle, move, eat, drink };
 struct Founder {
     std::uint64_t id{};
     std::uint16_t x{}, y{};
     std::array<std::uint8_t, 6> personality{};
+    std::uint8_t hunger{}, thirst{};
+    Action action{Action::idle};
     // Founder type is intrinsically immortal; mortal agents are a later gate.
 };
 struct World {
@@ -39,6 +42,7 @@ inline void initialize(World& w, std::uint64_t seed) noexcept {
     }
     for (std::size_t i = 0; i < w.founders.size(); ++i) {
         auto& f = w.founders[i];
+        f = Founder{}; // Clear transient state on explicit disposable initialization.
         f.id = i + 1;
         f.x = static_cast<std::uint16_t>(width / 2 + i);
         f.y = height / 2;
