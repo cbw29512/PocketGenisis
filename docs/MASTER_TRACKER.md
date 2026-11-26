@@ -10,6 +10,7 @@
 | G6 saves | Pending | Corruption recovery and migration |
 | G7 target | Pending | Board-specific CI, display/touch/storage |
 | G8 integration | Pending | Render and inspect citizens, measured capacity |
+| G8a seeded emergence | Pending | Reproducibility, save/reload and multi-seed divergence suite with controlled same-map cohort; thresholds agreed before release tests |
 | G9 reliability | Pending | Five-year equivalent accelerated test and 72-hour hardware soak |
 | G10 release | Pending | All gates passed; owner confirms hardware and foundational ruleset |
 | G11 official founding | Pending | Explicit owner approval; initialize new official world, record ID and creation date; verify backup |
