@@ -16,3 +16,7 @@ Top-down pixel-art map, visible agents, terrain, shelters, weather, day/night, r
 8. Update/recovery procedure tested without replacing the world; original firmware backed up where supported before first flash.
 ## Boundaries
 Offline core first. Streaming is an optional independent extension, not a prerequisite for survival. No external AI, cloud dependence or unlimited-memory promise. Numeric proposals require owner review and benchmarking.
+
+## Development worlds and official launch
+Owner decision: finish and validate the autonomous civilization before implementing livestreaming. Development worlds are disposable and may be explicitly restarted while tuning rules, balancing resources, and testing failures. Test worlds must be clearly labeled and isolated from the official world.
+Before official launch, freeze a versioned foundational ruleset, pass the release gates, review the hardware results with the owner, and obtain explicit approval to initialize the official world with two immortal founders. Record its creation date and world ID. Thereafter, normal boot, firmware updates, migrations, and civilization collapse must preserve that world; never silently reset it. Destructive development resets must not target an official save. Future rule changes require versioned migration and regression tests. Livestream implementation is deferred until the civilization is ready and the owner revisits the feature.
