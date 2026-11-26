@@ -16,3 +16,13 @@ Copied ESPLAY32 LGFX_Config.h, build settings (inert .reference file) and MIT LI
 
 ## G3 lifecycle
 Read pinned ecosystem MIT LICENSE and CYD source lines 192–225, 549–567 (spawn with inherited variation, energy-driven reproduction and death). Adapted conceptual bounded mutation and condition-driven reproduction into two-parent integer traits, explicit gestation and monotonic identities. Upstream reuses inactive slots and debits energy before confirming allocation; not suitable for permanent genealogy/capacity safety without changes. No upstream ecosystem source copied. Existing ESPLAY32 reference untouched.
+
+## G3 mortality
+Re-read pinned ecosystem CYD source lines 529–570 and MIT license: depletion causes death but upstream discards identity. Adapted depletion concept with deterministic health and retained genealogy; no source copied.
+## Additional game references (pinned, not imported)
+- LibColony MIT: https://github.com/mafik/libcolony/tree/7406bd9fbb00e53273ea9da84eeba5aa26af382f — inspected README, license and header; candidate task scoring, benchmark stack use and complexity; global optimal assignment must not override fixed citizen roles or entropy.
+- Unciv MPL-2.0: https://github.com/yairm210/Unciv/tree/af2bdcf467ac325979f95eacf221846874b93472 — technology dependencies, design reference until file-level license review.
+- Freeciv GPL-2.0: https://github.com/freeciv/freeciv/tree/4d15f07706d5f6a0c6dd60a1337b4ef9eedd61a1 — design reference only, no source import.
+- Widelands GPL-2.0: https://github.com/widelands/widelands/tree/ed17072e0203b0718e882dc2acc686db0dab3a4d — production/construction design reference only.
+- Open Mars Colony Simulator MIT: https://github.com/AdamCofala/Open-Mars-Colonization-Simulator/tree/b89152bd40e6561e2d93a29e720271e21bcbd2fa — candidate colonist mechanics.
+Use universal data-driven work, recipe, invention and construction systems within approved MVP. Proprietary games are conceptual references only.

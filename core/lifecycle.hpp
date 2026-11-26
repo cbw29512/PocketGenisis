@@ -25,13 +25,17 @@ inline void update_lifecycle(World& w) noexcept {
             const int mean=(w.founders[0].personality[i]+w.founders[1].personality[i])/2;
             child.personality[i]=static_cast<std::uint8_t>(std::clamp(mean+static_cast<int>(roll)-10,0,100));
         }
+        std::uint32_t lifespan_roll{};
+        w.streams[reproduction].bounded(21,lifespan_roll);
+        child.lifespan_years=static_cast<std::uint8_t>(60+lifespan_roll);
         w.founder_due_tick=0;
         return; // Do not conceive again on the same tick.
     }
     if(w.tick%600 || w.descendant_count>=descendant_capacity ||
+       w.descendant_count+w.archive_count>=history_capacity ||
        w.tick>std::numeric_limits<std::uint64_t>::max()-gestation_ticks) return;
     const auto& a=w.founders[0]; const auto& b=w.founders[1];
-    if(a.hunger>24||a.thirst>24||b.hunger>24||b.thirst>24 ||
+    if(a.health<50||b.health<50||a.hunger>24||a.thirst>24||b.hunger>24||b.thirst>24 ||
        std::abs(int(a.x)-int(b.x))+std::abs(int(a.y)-int(b.y))>2) return;
     std::uint32_t roll{};
     w.streams[reproduction].bounded(4,roll);

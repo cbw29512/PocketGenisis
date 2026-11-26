@@ -1,6 +1,7 @@
 #pragma once
 #include "survival.hpp"
 #include "lifecycle.hpp"
+#include "mortality.hpp"
 
 namespace genesis {
 struct Production {
@@ -18,6 +19,7 @@ inline unsigned renew_stock(std::uint16_t& stock, unsigned amount) noexcept {
 inline bool step_world(World& w, Production& produced) noexcept {
     produced={};
     if(!step_survival(w)) return false;
+    update_mortality(w);
     update_lifecycle(w);
     if(w.tick%60!=0) return true;
     constexpr unsigned food[]={2,2,1,0};

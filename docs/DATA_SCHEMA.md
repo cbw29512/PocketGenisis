@@ -24,3 +24,6 @@ Persist canonical seed, RNG algorithm/version, complete state for each named ran
 
 ### Increment 5 implementation subset
 Citizen adds parent_ids, birth_tick and stable purpose enum (0 none, 1 gatherer, 2 builder, 3 inventor); life stage derived from age at current tick, founders always adult. World holds founder-pair due_tick (0 means no gestation), descendant_count and next_citizen_id. This bounded active population is not yet an archive or portable save representation; later death handling must decouple next ID from active count and preserve parent references. See CORE_CONTRACT.md for provisional rules.
+
+### Increment 6 implementation subset
+Citizen health (0–100), lifespan_years (60–80 for descendants, provisional fixture default 70; ignored for founders). Death record stores the complete citizen snapshot, death_tick and stable cause enum (1 starvation, 2 dehydration, 3 old_age). Active descendants and archive are disjoint; monotonically issued IDs, with no gaps or reuse. Fixed provisional lifetime capacity 512 reserves archival space before conception; permanent on-disk archive remains a release blocker.

@@ -22,9 +22,17 @@ struct Citizen {
     Action action{Action::idle};
     std::uint64_t parent1{}, parent2{}, birth_tick{};
     Purpose purpose{Purpose::none};
+    std::uint8_t health{100}, lifespan_years{70};
 };
 using Founder = Citizen;
 inline constexpr std::size_t descendant_capacity=254;
+inline constexpr std::size_t history_capacity=512;
+enum class DeathCause : std::uint8_t { starvation=1, dehydration=2, old_age=3 };
+struct DeathRecord {
+    Citizen citizen{};
+    std::uint64_t death_tick{};
+    DeathCause cause{DeathCause::old_age};
+};
 inline constexpr std::uint64_t gestation_ticks=16200;
 inline Purpose choose_purpose(const Citizen& c) noexcept {
     // Fixed tie ordering makes assignment reproducible.
@@ -47,6 +55,8 @@ struct World {
     std::array<Founder, 2> founders{};
     std::array<Citizen, descendant_capacity> descendants{};
     std::size_t descendant_count{};
+    std::array<DeathRecord, history_capacity> archive{};
+    std::size_t archive_count{};
     std::uint64_t next_citizen_id{3}, founder_due_tick{};
 };
 // Call only for explicit creation of a disposable world. Never on load failure.
@@ -54,6 +64,8 @@ inline void initialize(World& w, std::uint64_t seed) noexcept {
     w.seed = seed;
     w.tick = 0;
     w.descendant_count=0;
+    w.archive_count=0;
+    for(auto& d:w.archive) d=DeathRecord{};
     w.next_citizen_id=3;
     w.founder_due_tick=0;
     for(auto& c:w.descendants) c=Citizen{};
@@ -81,7 +93,7 @@ inline void initialize(World& w, std::uint64_t seed) noexcept {
         f.purpose=choose_purpose(f);
     }
 }
-// Clock only in this increment. No weather, survival or action transitions yet.
+// Low-level clock primitive. Use step_world for complete simulation ticks.
 inline bool advance_clock(World& w) noexcept {
     if (w.tick == std::numeric_limits<std::uint64_t>::max()) return false;
     ++w.tick;
