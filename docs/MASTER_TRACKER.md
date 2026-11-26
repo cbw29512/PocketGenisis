@@ -45,3 +45,6 @@ G2/G6/G8a: exactly one deterministic origin event applied atomically on explicit
 
 ## Exceptional milestone impact and presentation
 G5/G8/G8a: rare/epic/legendary catalog entries require meaningful causal world impact or opportunity; test distinct tier styling, unique durable event IDs, journal links, replay of missed events, quiet mode and no observer-induced simulation changes. Legendary is a major historical milestone, not guaranteed beneficial or a scripted outcome. Use shared read-only presentation path; no separate cinematic engine. Requirements only; no implementation/test-pass claim; current G3 priorities unchanged.
+
+## Shared consequential world effects
+G3/G4/G5/G6/G8a: implement reusable beneficial/adverse effects alongside existing health, ecology, work and knowledge primitives, not one resolver per event. Verify source-linked scope, deterministic stacking and caps, temporary/conditional expiration, resource conservation, founder invariants, one-shot application and replay. Genesis and later exceptional events use the same primitives; rarity itself is not a modifier. Documented design extension only; no code or test-pass claim; preserve current G3 priority and pending CI verification.
