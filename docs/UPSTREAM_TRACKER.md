@@ -62,3 +62,6 @@ Reuse our existing field visitor, CRC, validation and host file primitives. Orig
 
 ## G6 historical identity reference index
 Reuse original shared genealogy checks, canonical death codec and validated immutable host publication. C++17 standard map is a host reference only; no imported source/dependency or claim of embedded performance.
+
+## G6 checkpoint-bound retirement
+Reuse original canonical field visitor, CRC, immutable batch publication, historical identity index and POSIX alternating checkpoint publication. No new third-party dependency or source imported.

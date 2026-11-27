@@ -32,6 +32,41 @@ inline const Citizen* live_citizen(const World& w,std::uint64_t id) noexcept {
     if(slot==live_capacity) return nullptr;
     return slot<2?&w.founders[slot]:&w.descendants[slot-2];
 }
+inline bool valid_founders(const World& w) noexcept {
+    for(std::size_t i=0;i<w.founders.size();++i) {
+        const auto& c=w.founders[i];
+        if(!valid_agent(c)||c.id!=i+1||c.parent1||c.parent2||c.birth_tick||
+           c.purpose==Purpose::none||c.health==0||c.guardian_id||c.guardian_since_tick||
+           c.birth_outcome!=BirthOutcome::normal) return false;
+    }
+    return true;
+}
+inline bool valid_gestations(const World& w) noexcept {
+    if(w.descendant_count>descendant_capacity||w.archive_count>history_capacity) return false;
+    // Each gestation reserves an active slot and a future archive identity.
+    if(w.pregnancy_count>pregnancy_capacity||
+       w.descendant_count+w.pregnancy_count>descendant_capacity||
+       w.descendant_count+w.archive_count+w.pregnancy_count>history_capacity) return false;
+    std::array<bool,live_capacity> participating{};
+    std::uint64_t previous_due=0;
+    for(std::size_t i=0;i<w.pregnancy_count;++i) {
+        const auto& p=w.pregnancies[i];
+        if(!valid_pair(p.parent1,p.parent2)||p.due_tick<=w.tick||
+           p.due_tick-w.tick>gestation_ticks||p.due_tick<previous_due) return false;
+        const auto* a=live_citizen(w,p.parent1);
+        const auto* b=live_citizen(w,p.parent2);
+        if(!a||!b||life_stage(*a,w.tick)<LifeStage::adult||life_stage(*b,w.tick)<LifeStage::adult) return false;
+        const auto sa=live_slot(w,p.parent1),sb=live_slot(w,p.parent2);
+        if(participating[sa]||participating[sb]) return false;
+        participating[sa]=participating[sb]=true;
+        previous_due=p.due_tick;
+    }
+    for(std::size_t i=w.pregnancy_count;i<pregnancy_capacity;++i) {
+        const auto& p=w.pregnancies[i];
+        if(p.parent1||p.parent2||p.due_tick) return false;
+    }
+    return true;
+}
 inline bool valid_population(const World& w) noexcept {
     if(w.descendant_count>descendant_capacity || w.archive_count>history_capacity ||
        w.descendant_count+w.archive_count>history_capacity ||
@@ -47,12 +82,7 @@ inline bool valid_population(const World& w) noexcept {
         if(slot) return false;
         slot=entry; return true;
     };
-    for(std::size_t i=0;i<w.founders.size();++i) {
-        const auto& c=w.founders[i];
-        if(!valid_agent(c)||c.id!=i+1||c.parent1||c.parent2||c.birth_tick||
-           c.purpose==Purpose::none||c.health==0||c.guardian_id||c.guardian_since_tick||
-           c.birth_outcome!=BirthOutcome::normal) return false;
-    }
+    if(!valid_founders(w)) return false;
     std::uint64_t last_id=2;
     for(std::size_t i=0;i<w.descendant_count;++i) {
         const auto& c=w.descendants[i];
@@ -88,28 +118,6 @@ inline bool valid_population(const World& w) noexcept {
         if(!valid_genealogy(w.descendants[i],w.tick,w.next_citizen_id,lookup)) return false;
     for(std::size_t i=0;i<w.archive_count;++i)
         if(!valid_genealogy(w.archive[i].citizen,w.archive[i].death_tick,w.next_citizen_id,lookup)) return false;
-    // Each gestation reserves an active slot and a future archive identity.
-    if(w.pregnancy_count>pregnancy_capacity||
-       w.descendant_count+w.pregnancy_count>descendant_capacity||
-       w.descendant_count+w.archive_count+w.pregnancy_count>history_capacity) return false;
-    std::array<bool,live_capacity> participating{};
-    std::uint64_t previous_due=0;
-    for(std::size_t i=0;i<w.pregnancy_count;++i) {
-        const auto& p=w.pregnancies[i];
-        if(!valid_pair(p.parent1,p.parent2)||p.due_tick<=w.tick||
-           p.due_tick-w.tick>gestation_ticks||p.due_tick<previous_due) return false;
-        const auto* a=live_citizen(w,p.parent1);
-        const auto* b=live_citizen(w,p.parent2);
-        if(!a||!b||life_stage(*a,w.tick)<LifeStage::adult||life_stage(*b,w.tick)<LifeStage::adult) return false;
-        const auto sa=live_slot(w,p.parent1),sb=live_slot(w,p.parent2);
-        if(participating[sa]||participating[sb]) return false;
-        participating[sa]=participating[sb]=true;
-        previous_due=p.due_tick;
-    }
-    for(std::size_t i=w.pregnancy_count;i<pregnancy_capacity;++i) {
-        const auto& p=w.pregnancies[i];
-        if(p.parent1||p.parent2||p.due_tick) return false;
-    }
-    return true;
+    return valid_gestations(w);
 }
 } // namespace genesis

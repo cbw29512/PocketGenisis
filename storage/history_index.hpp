@@ -40,12 +40,13 @@ public:
         const auto it=records_.find(id);return it==records_.end()?nullptr:&it->second;
     }
 };
-// Validate a hypothetical combined historical view, not a complete runnable World.
-// World still uses its original RAM-only validation until transactional handoff exists.
+// Validate the combined checkpoint view. The ordinary tick entry point still
+// uses its original RAM-only validator; external simulation admission is pending.
 inline bool valid_history_view(const World& w,const HistoryIndex& index) noexcept {
     if(w.seed!=index.seed()||w.descendant_count>descendant_capacity||w.archive_count>history_capacity||
        w.next_citizen_id<3||index.count()>w.next_citizen_id-3||
-       w.next_citizen_id-3-index.count()!=w.descendant_count+w.archive_count) return false;
+       w.next_citizen_id-3-index.count()!=w.descendant_count+w.archive_count||
+       !valid_founders(w)) return false;
     // All identities in range + no duplicates + exact count imply no missing IDs.
     auto mortal=[&](const Citizen& c) {
         return c.id>=3&&c.id<w.next_citizen_id&&valid_pair(c.parent1,c.parent2)&&c.parent2<c.id&&
@@ -58,6 +59,7 @@ inline bool valid_history_view(const World& w,const HistoryIndex& index) noexcep
     for(std::size_t i=0;i<w.descendant_count;++i) {
         const auto& c=w.descendants[i];
         if(!mortal(c)||c.id<=previous||!c.health||c.birth_outcome==BirthOutcome::fatal||index.find(c.id)) return false;
+        if(life_stage(c,w.tick)<LifeStage::adult&&c.purpose!=Purpose::none) return false;
         previous=c.id;
     }
     const auto* last=index.last();
@@ -91,6 +93,6 @@ inline bool valid_history_view(const World& w,const HistoryIndex& index) noexcep
     }
     for(std::size_t i=0;i<w.descendant_count;++i)
         if(!valid_genealogy(w.descendants[i],w.tick,w.next_citizen_id,lookup)) return false;
-    return true;
+    return valid_gestations(w);
 }
 } // namespace genesis::storage

@@ -84,3 +84,23 @@ Added bounded PGHS death segment codec, host create-only synced publication, exa
 
 ## Increment 20 — shared genealogy and external history identity verification
 Confirmed increment 19 at c5e0f617d53fc92aa27cdf4f390c7fa41a7e68cb; baseline core/storage/maintenance/test/script blobs matched GitHub tree. Added shared genealogy resolver and host reference identity index, checked continuous ordinal coverage, global chronology, duplicate IDs, exact identity coverage across external prefix/RAM tail/living population, parent age/death chronology and guardian references. Synthetic 576-record fixture spans nine immutable files; tests include valid and invalid cross-segment parent links, missing segments and resident/live conflicts. All 21 regression executables passed locally using bash scripts/test-host.sh, GNU g++ 14.2.0, strict C++17 warnings and fatal UBSan. New/changed four source blobs verified against tested copies. Remote run 45931213284 queued at start; no CI pass claimed. No simulation rules or formats changed. Host index uses memory proportional to history and is not the embedded implementation. P0 still open: checkpoint-bound committed watermark, interrupted handoff recovery, retirement and actual births above 512, bounded-memory index, UUID. Next integrate transactional handoff rather than more standalone export features. No official founding or flash.
+
+## Increment 21 — checkpoint-bound archive retirement
+Baseline 55510b0 remote [CI 45931720560](https://github.com/cbw29512/PocketGenisis/actions/runs/45931720560) completed successfully; portable simulation test step passed. Added storage/archive_checkpoint.hpp, storage/host_archive_checkpoint.hpp, tests/archive_handoff_test.cpp; shared validation helpers in core/population.hpp and strengthened storage/history_index.hpp. New test covers 512 synthetic retired records, exact identity and byte preservation, interrupted batch publication retry, stale session rejection, missing committed segment and torn latest checkpoint read-only fallback. Implementation staged on draft PR for CI; local clone failed DNS and previous local source workspace unavailable. New tests NOT claimed passed until exact new head CI evidence. Next integrate external-history-aware ticking/admission and demonstrate actual births beyond 512. No official migration, hardware or reset.
+
+## Sequential acceptance checklist (owner-required)
+- [x] PG-G3-01 Seeded core, basic survival, renewable resources, reproduction, mortality, care and immunity regression foundation — verified baseline portable CI 45931720560 (not full biological gate).
+- [x] PG-G6-01 Legacy field-wise checkpoints and host fallback — verified baseline portable CI 45931720560 (not power-cut certification).
+- [x] PG-G6-02 Bounded live-slot care and gestation tables — verified baseline portable CI 45931720560.
+- [x] PG-G6-03 Immutable host death segment storage — verified baseline portable CI 45931720560.
+- [x] PG-G6-04 Combined historical identity and genealogy reference validation — verified baseline portable CI 45931720560.
+- [ ] PG-G6-05 Checkpoint-bound archive retirement — implemented, pending new head CI and review; test interrupted handoff, exact record preservation and fail-closed recovery.
+- [ ] PG-G6-06 Actual external-history-aware simulation and births above 512 — next; must not drop identities or bypass validation.
+- [ ] PG-G6-07 Automatic checkpoint/retirement cadence, bounded-memory index, UUID, independent backup and portable migration — pending.
+- [ ] PG-G3-02 Complete biological acceptance (founder incapacitation/recovery, parental injury/accidents, calibrated long-run density/age/cause results) — pending.
+- [ ] PG-G4-01 Weather, terrain, construction, agriculture and conserved production — pending.
+- [ ] PG-G5-01 Knowledge, teaching, discoveries, Genesis, rarity, culture and effects — pending.
+- [ ] PG-G7-01 Full-screen observer renderer and read-only inspection — pending.
+- [ ] PG-G7-02 Exact ESP32 identification, safe backup/install and authenticated USB maintenance — blocked on physical board verification.
+- [ ] PG-G8-01 Long-run deterministic replay/divergence, memory and physical power-cut/72h soak — pending.
+- [ ] PG-G9-01 Release acceptance and explicit owner-authorized official founding — pending.

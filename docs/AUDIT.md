@@ -34,3 +34,6 @@ Stop feature expansion. Finish biological acceptance and prioritize storage arch
 
 ## Follow-up — increment 17
 Natural density/resource regulation explicitly approved. First local crowding and acute stress mechanics implemented, 18 host regression executables passed. See POPULATION_EVIDENCE.md for research anchors and remaining calibration requirements. Does not close the P0 lifetime cap or P1 long-run balance findings.
+
+## Follow-up — increment 21
+Baseline remote portable CI 45931720560 passed. Added host checkpoint-bound archive retirement candidate and regression test, pending new-head CI verification. Lifetime population admission still blocked; no closure claimed until actual simulation above 512 and recovery verified. See ordered checklist in MASTER_TRACKER.md.
