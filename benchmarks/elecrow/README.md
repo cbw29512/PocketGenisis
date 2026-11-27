@@ -57,3 +57,5 @@ Default CI runs 16 seeds x 3600 ticks via tests/civilization_diversity_test.cpp.
 
 ## Functional food store probe
 `elecrow_s3_storage_probe` extends construction for 43200 ticks with actual local deposits, shortage fallback and spoilage. `STORAGE_RESULT` reports balance, deposits, withdrawals, spoiled and bytes. Controlled host tests demonstrate scarcity; no forced shortage in hardware probe. No official world or save. CI/device pending.
+
+`elecrow_s3_cooking_probe` extends storage with local campfire cooking. COOKING_RESULT reports meals, fuel, extra hunger relief and bytes; absence of actual cooking in an unforced world is reported. Controlled host tests exercise benefit. CI/device pending.

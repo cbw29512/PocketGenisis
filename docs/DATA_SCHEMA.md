@@ -123,3 +123,5 @@ Three prototype blueprint records (stage, tile index, owner slot, work, started/
 Separate state: bounded balance (unsigned, 0..64), deposited/withdrawn/spoiled uint64 counters. Conservation as documented in STORAGE_CONTRACT.md. No canonical World layout changes. Existing food and hunger units shared. No persistent reserve yet.
 
 Storage prototype adds uint64 assisted counter (subset of withdrawn). Recipient and provider share existing hunger consumption logic; no new canonical saved fields.
+
+Disposable cooking state: uint64 meals, wood consumed, additional hunger relief counters. No canonical World fields. See COOKING_CONTRACT.md.

@@ -1,5 +1,7 @@
 #pragma once
-#ifdef PG_STORAGE_PROBE
+#ifdef PG_COOKING_PROBE
+#include "../../core/cooking.hpp"
+#elif defined(PG_STORAGE_PROBE)
 #include "../../core/food_store.hpp"
 #else
 #include "../../core/construction_work.hpp"
@@ -9,6 +11,10 @@ namespace genesis::benchmark {
 inline bool construction_probe(World& w) {
     initialize(w,42);discovery::State knowledge{};construction::State sites{};Production p{};
     unsigned births=0;
+#ifdef PG_COOKING_PROBE
+    cooking::State cooked{};
+    Serial.println("FUNCTIONAL CAMPFIRE PROBE");
+#endif
 #ifdef PG_STORAGE_PROBE
     storage::State reserve{};
     Serial.println("FUNCTIONAL FOOD STORAGE PROBE");
@@ -17,7 +23,9 @@ inline bool construction_probe(World& w) {
     constexpr const char* events[]={"none","started","completed","abandoned"};
     for(unsigned i=0;i<43200;++i) {
         discovery::Event re{};construction::Event ce{};
-#ifdef PG_STORAGE_PROBE
+#ifdef PG_COOKING_PROBE
+        if(!cooking::step(w,knowledge,sites,reserve,cooked,p,re,ce,discovery::probe_cadence)) {
+#elif defined(PG_STORAGE_PROBE)
         if(!storage::step(w,knowledge,sites,reserve,p,re,ce,discovery::probe_cadence)) {
 #else
         if(!construction::step(w,knowledge,sites,p,re,ce,discovery::probe_cadence)) {
@@ -45,6 +53,12 @@ inline bool construction_probe(World& w) {
         reserve.balance,static_cast<unsigned long long>(reserve.deposited),static_cast<unsigned long long>(reserve.withdrawn),
         static_cast<unsigned long long>(reserve.spoiled),static_cast<unsigned long long>(reserve.assisted),unsigned(sizeof(reserve)));
     if(!storage::valid(reserve)||!reserve.deposited) {Serial.println("ERROR food reserve demonstration");return false;}
+#endif
+#ifdef PG_COOKING_PROBE
+    Serial.printf("COOKING_RESULT meals=%llu fuel_wood=%llu extra_hunger_relief=%llu state_bytes=%u\n",
+        static_cast<unsigned long long>(cooked.meals),static_cast<unsigned long long>(cooked.wood),
+        static_cast<unsigned long long>(cooked.relief),unsigned(sizeof(cooked)));
+    if(!cooking::valid(cooked)) {Serial.println("ERROR cooking accounting");return false;}
 #endif
     return valid_population(w)&&construction::completed(sites)>0&&births>0;
 }

@@ -37,6 +37,7 @@ struct ReserveFood {
         if(recipient.id!=provider.id) ++reserve.assisted;
         satisfy_need(recipient,false);return true;
     }
+    void after_food(World&,Citizen&,const Citizen&) const noexcept {}
     bool operator()(World& w,Citizen& c) const noexcept {
         return (*this)(w,c,c);
     }
@@ -55,16 +56,21 @@ struct ReserveWork {
         return can_deposit(w,sites,reserve,c);
     }
 };
-inline bool step(World& w,discovery::State& research,construction::State& sites,State& reserve,
-                 Production& p,discovery::Event& re,construction::Event& ce,std::uint64_t cadence) noexcept {
+template<class Food>
+inline bool step_with_food(World& w,discovery::State& research,construction::State& sites,State& reserve,
+                 Production& p,discovery::Event& re,construction::Event& ce,std::uint64_t cadence,const Food& food) noexcept {
     const bool busy=research.job.active||construction::active(sites)>=0;
     if(!construction::step_with_policy(w,research,sites,p,re,ce,cadence,
-            ReserveWork{research,sites,reserve,cadence},ReserveFood{sites,reserve})) return false;
+            ReserveWork{research,sites,reserve,cadence},food)) return false;
     if(!busy&&!research.job.active&&construction::active(sites)<0&&
         re.kind==discovery::EventKind::none&&ce.kind==construction::EventKind::none) {
         // One discretionary deposit per world tick; no overlapping research/build work.
         for(auto& c:w.founders) if(deposit(w,sites,reserve,c)) break;
     }
     spoil(w.tick,reserve);return true;
+}
+inline bool step(World& w,discovery::State& research,construction::State& sites,State& reserve,
+                 Production& p,discovery::Event& re,construction::Event& ce,std::uint64_t cadence) noexcept {
+    return step_with_food(w,research,sites,reserve,p,re,ce,cadence,ReserveFood{sites,reserve});
 }
 }

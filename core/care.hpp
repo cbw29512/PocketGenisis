@@ -39,12 +39,16 @@ inline bool consume_need(World& w,Citizen& recipient,int x,int y) noexcept {
 // Optional local food reserve policy; default paths have identical behavior.
 struct NoReserveFood {
     bool operator()(World&,Citizen&,const Citizen&) const noexcept {return false;}
+    void after_food(World&,Citizen&,const Citizen&) const noexcept {}
 };
 template<class Food>
 inline bool consume_with_reserve(World& w,Citizen& recipient,const Citizen& provider,
                                  bool water,const Food& reserve) noexcept {
-    if(consume_resource(w,recipient,provider.x,provider.y,water)) return true;
-    return !water&&reserve(w,recipient,provider);
+    if(!consume_resource(w,recipient,provider.x,provider.y,water)&&
+       (water||!reserve(w,recipient,provider))) return false;
+    // Exactly one successful food debit precedes any optional cooking benefit.
+    if(!water) reserve.after_food(w,recipient,provider);
+    return true;
 }
 using CareRequests=std::array<std::uint16_t,live_capacity>;
 // Temporary local care, never a change to biological genealogy.
