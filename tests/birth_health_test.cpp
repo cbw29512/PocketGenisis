@@ -18,6 +18,8 @@ static void setup(World& w,std::uint64_t state) {
     w.pregnancies[0]={1,2,11};w.pregnancy_count=1;
     for(auto& f:w.founders) f.personality[0]=0;
     w.streams[health_events].state=state;
+    // Isolate newborn outcomes from the new independent parental event stream.
+    w.streams[parental_health_events].state=fixture(750,10000);
 }
 int main() {
     try {

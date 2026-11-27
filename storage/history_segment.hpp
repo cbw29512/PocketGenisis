@@ -18,11 +18,7 @@ inline bool valid_segment(const HistorySegment& s) noexcept {
         if(c.id<3||!valid_pair(c.parent1,c.parent2)||c.parent2>=c.id||
            !c.birth_tick||c.birth_tick>d.death_tick||c.lifespan_years<60||
            c.lifespan_years>80||!valid_agent(c)||
-           static_cast<unsigned>(d.cause)<1||static_cast<unsigned>(d.cause)>5||
-           (d.cause==DeathCause::old_age?c.health==0:c.health!=0)||
-           (d.cause==DeathCause::disease&&!is_ill(c))||
-           ((d.cause==DeathCause::childbirth)!=(c.birth_outcome==BirthOutcome::fatal))||
-           (d.cause==DeathCause::childbirth&&d.death_tick!=c.birth_tick)) return false;
+           !valid_death_outcome(d)) return false;
         if(i) {
             const auto& prev=s.records[i-1];
             if(d.death_tick<prev.death_tick||(d.death_tick==prev.death_tick&&c.id<=prev.citizen.id)) return false;

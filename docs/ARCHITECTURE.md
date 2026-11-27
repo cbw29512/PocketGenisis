@@ -46,3 +46,6 @@ Read statvfs available blocks for the actual directory. Before scratch allocatio
 
 ## Founder recovery
 Shared founder_recovery.hpp derives incapacitation and travel eligibility from existing health/clock. Independent survival retains resource consumption, restricts incapacitated movement and exploration, then healthy founder may approach and assist a weakened partner. After both founder actions, an idle healthy nonurgent partner may consume one nearby unit for the idle urgent patient. Existing resource transactions and ordinary mortality/disease/healing remain authoritative. No invented resources, guaranteed birth or reset. Future work/teaching must honor incapacitation.
+
+## Parental complications
+Reuse existing birth risk proxy, separate appended RNG stream and health floor. Resolve child outcome using pre-injury parents, then apply one parental event per delivery. All due pregnancies resolve before compaction; fatal parental records append through existing archive primitive and current tick suffix sorts by ID. Shared death_validation.hpp reused by RAM and history validators. No new resource, timer or storage architecture.

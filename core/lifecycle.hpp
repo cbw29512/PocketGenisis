@@ -1,6 +1,6 @@
 #pragma once
 #include "population.hpp"
-#include "birth_health.hpp"
+#include "parental_health.hpp"
 #include <algorithm>
 #include <cstdlib>
 
@@ -44,7 +44,7 @@ inline void attempt_conception(World& w) noexcept {
     if(count&&w.streams[reproduction].bounded(4,roll)&&roll==0)
         w.pregnancies[w.pregnancy_count++]=selected;
 }
-inline void deliver(World& w,const Citizen& a,const Citizen& b) noexcept {
+inline void deliver(World& w,Citizen& a,Citizen& b) noexcept {
     // Parents are read from existing slots; fixed array never reallocates.
     auto& child=w.descendants[w.descendant_count++];
     child=Citizen{};
@@ -62,6 +62,8 @@ inline void deliver(World& w,const Citizen& a,const Citizen& b) noexcept {
     child.lifespan_years=static_cast<std::uint8_t>(60+roll);
     inherit_resistance(w,child,a,b);
     apply_birth_health(w,child,a,b);
+    // Child outcome uses pre-injury parental health; independent RNG afterward.
+    apply_parental_health(w,a,b);
     if(child.birth_outcome==BirthOutcome::fatal) {
         archive_death(w,child,DeathCause::childbirth);
         child=Citizen{};
@@ -76,23 +78,25 @@ inline void update_lifecycle(World& w) noexcept {
     }
     // Preserve due-tick order while resolving births/losses after mortality.
     std::size_t write=0;
-    bool resolved=false;
+    bool resolved=false,delivered=false;
     for(std::size_t i=0;i<w.pregnancy_count;++i) {
         const auto p=w.pregnancies[i];
-        const auto* a=live_citizen(w,p.parent1);
-        const auto* b=live_citizen(w,p.parent2);
-        if(!a||!b) {
+        const auto sa=live_slot(w,p.parent1),sb=live_slot(w,p.parent2);
+        if(sa==live_capacity||sb==live_capacity) {
             if(w.lost_gestations<std::numeric_limits<std::uint64_t>::max()) ++w.lost_gestations;
             resolved=true;
         } else if(w.tick==p.due_tick) {
-            deliver(w,*a,*b);
-            resolved=true;
+            auto& a=sa<2?w.founders[sa]:w.descendants[sa-2];
+            auto& b=sb<2?w.founders[sb]:w.descendants[sb-2];
+            deliver(w,a,b);
+            delivered=true;resolved=true;
         } else {
             w.pregnancies[write++]=p;
         }
     }
     for(std::size_t i=write;i<w.pregnancy_count;++i) w.pregnancies[i]={};
     w.pregnancy_count=write;
+    if(delivered) retire_parental_deaths(w);
     // Keep the existing one-roll-per-opportunity budget, even with many families.
     if(!resolved) attempt_conception(w);
 }

@@ -109,3 +109,6 @@ No persisted schema changes. Host StorageBudget ceiling, available bytes and fil
 
 ### Increment 27 — founder incapacitation
 No added fields; status derived from founder ID and existing health <=20. Crawl window derived from tick modulo 4. Existing Action idle/move/eat/drink/care covers recovery and assistance; no second health state. Rules revision 16, same binary layout; older disposable rules rejected until explicit migration.
+
+### Increment 28 — parental health
+Append parental_health_events RNG stream (index 9), preserving all existing stream indices and initial states. DeathCause parental_childbirth=6 (adult or elder mortal parent); newborn childbirth=4 unchanged. No new citizen fields or gestational sex assignment. Rules revision 17; serialized world gains one uint64 RNG state. Shared validation enforces health, age and newborn provenance; not a durable record of nonfatal injuries, which awaits event journal.

@@ -1,5 +1,5 @@
 #pragma once
-#include "disease.hpp"
+#include "death_validation.hpp"
 #include "genealogy.hpp"
 
 namespace genesis {
@@ -95,12 +95,7 @@ inline bool valid_population(const World& w) noexcept {
     for(std::size_t i=0;i<w.archive_count;++i) {
         const auto& d=w.archive[i]; const auto& c=d.citizen;
         if(!identity(c,static_cast<std::uint16_t>(archived|(i+1)))||
-           d.death_tick<c.birth_tick||d.death_tick>w.tick||
-           static_cast<unsigned>(d.cause)<1||static_cast<unsigned>(d.cause)>5||
-           (d.cause==DeathCause::old_age?c.health==0:c.health!=0)) return false;
-        if(d.cause==DeathCause::disease&&!is_ill(c)) return false;
-        if((d.cause==DeathCause::childbirth)!=(c.birth_outcome==BirthOutcome::fatal)||
-           (d.cause==DeathCause::childbirth&&d.death_tick!=c.birth_tick)) return false;
+           d.death_tick>w.tick||!valid_death_outcome(d)) return false;
         if(i) {
             const auto& previous=w.archive[i-1];
             if(d.death_tick<previous.death_tick ||

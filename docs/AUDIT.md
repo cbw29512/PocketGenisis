@@ -52,3 +52,6 @@ Integrated bounded disk replay CI 46020782461 passed. Host storage capacity pref
 
 ## Follow-up — increment 27
 Storage capacity preflight CI 46022080219 passed at host scope. Owner requested focus on program mechanics; added founder recovery candidate with collapse/repopulation regression, pending CI. Physical SD/battery, independent backup and migration, population calibration remain open release gates.
+
+## Follow-up — increment 28
+Founder incapacitation and post-collapse controlled birth CI 46022759322 passed. Parental childbirth complication candidate and shared death provenance validation committed; CI pending. Full demographic calibration, accidental injury/death and hardware acceptance open.

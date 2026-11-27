@@ -66,11 +66,7 @@ template<class Index> inline bool valid_resident_history(const World& w,const In
     for(std::size_t i=0;i<w.archive_count;++i) {
         const auto& d=w.archive[i];const auto& c=d.citizen;
         if(!mortal(c)||d.death_tick<c.birth_tick||d.death_tick>w.tick||index.find(c.id)||live_citizen(w,c.id)||
-           static_cast<unsigned>(d.cause)<1||static_cast<unsigned>(d.cause)>5||
-           (d.cause==DeathCause::old_age?c.health==0:c.health!=0)||
-           (d.cause==DeathCause::disease&&!is_ill(c))||
-           ((d.cause==DeathCause::childbirth)!=(c.birth_outcome==BirthOutcome::fatal))||
-           (d.cause==DeathCause::childbirth&&d.death_tick!=c.birth_tick)) return false;
+           !valid_death_outcome(d)) return false;
         if(last&&(d.death_tick<last->death_tick||(d.death_tick==last->death_tick&&c.id<=last->citizen.id))) return false;
         for(std::size_t j=0;j<i;++j) if(w.archive[j].citizen.id==c.id) return false;
         last=&d;

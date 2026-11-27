@@ -74,3 +74,6 @@ Reuse canonical field codec, immutable segment loader, shared genealogy and comb
 
 ## G3 founder recovery
 Reuse original health floor/healing, conserved need consumption, cardinal movement, founder reunion and reproduction eligibility. No imported code or new dependency.
+
+## G3 parental complications
+Original simulation risk adjustment reuses birth risk proxy, seeded RNG, mortality archival and stable identity validation. No imported dependency or source.
