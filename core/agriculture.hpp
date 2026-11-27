@@ -14,10 +14,21 @@ inline constexpr int tending_radius=3;
 struct State {
     std::uint8_t stage{};
     std::uint64_t last_work{},plants{},tended{},water{},harvests{},food{};
+#ifdef PG_CROP_LOSS_PROBE
+    std::uint64_t drought_losses{},spoilage_losses{},lost_water{},dry_since{};
+#endif
 };
 inline bool valid(const State& s) noexcept {
-    return s.stage<=4&&s.plants==s.harvests+(s.stage!=0)&&
-        s.water==s.harvests*4+s.stage&&s.tended==s.harvests*3+(s.stage?s.stage-1:0)&&
+#ifdef PG_CROP_LOSS_PROBE
+    const auto losses=s.drought_losses+s.spoilage_losses;
+    const auto lost=s.lost_water;
+    if(lost<losses||lost>4*losses||
+       (s.dry_since&&(!s.stage||s.stage>=4))) return false;
+#else
+    constexpr std::uint64_t losses=0,lost=0;
+#endif
+    return s.stage<=4&&s.plants==s.harvests+(s.stage!=0)+losses&&
+        s.water==s.harvests*4+s.stage+lost&&s.tended==s.harvests*3+(s.stage?s.stage-1:0)+lost-losses&&
         s.food==s.harvests*harvest_yield;
 }
 enum class Task : std::uint8_t { none,plant,tend,harvest };
@@ -54,6 +65,11 @@ inline Task work(World& w,const discovery::State& knowledge,const construction::
     } else {
         stock.food+=harvest_yield;s.stage=0;++s.harvests;s.food+=harvest_yield;
     }
+#ifdef PG_CROP_LOSS_PROBE
+    // Successful work consumes actual water or harvests the crop; drought
+    // tracking must not leak from a previous growth stage into a new crop.
+    s.dry_since=0;
+#endif
     s.last_work=w.tick;return action;
 }
 // A prepared field replaces wild food growth on exactly its own tile.

@@ -1,5 +1,7 @@
 #pragma once
-#ifdef PG_MULTI_FIELD_PROBE
+#ifdef PG_CROP_LOSS_PROBE
+#include "../../core/crop_loss.hpp"
+#elif defined(PG_MULTI_FIELD_PROBE)
 #include "../../core/multi_field.hpp"
 #elif defined(PG_IRRIGATION_PROBE)
 #include "../../core/irrigation.hpp"
@@ -54,7 +56,9 @@ inline bool construction_probe(World& w) {
     constexpr const char* events[]={"none","started","completed","abandoned"};
     for(unsigned i=0;i<43200;++i) {
         discovery::Event re{};construction::Event ce{};
-#ifdef PG_MULTI_FIELD_PROBE
+#ifdef PG_CROP_LOSS_PROBE
+        if(!crop_loss::step(w,knowledge,sites,reserve,cooked,sheltered,home,farms,irrigation_water,p,re,ce,discovery::probe_cadence)) {
+#elif defined(PG_MULTI_FIELD_PROBE)
         if(!multi_field::step(w,knowledge,sites,reserve,cooked,sheltered,home,farms,irrigation_water,p,re,ce,discovery::probe_cadence)) {
 #elif defined(PG_IRRIGATION_PROBE)
         if(!irrigation::step(w,knowledge,sites,reserve,cooked,sheltered,home,crops,irrigation_water,p,re,ce,discovery::probe_cadence)) {
@@ -139,6 +143,15 @@ inline bool construction_probe(World& w) {
     Serial.printf("MULTI_FIELD_RESULT fields=%u harvests=%llu state_bytes=%u\n",
         multi_field::completed(sites),static_cast<unsigned long long>(multi_field::harvests(farms)),unsigned(sizeof(farms)));
     if(!multi_field::valid(farms)) {Serial.println("ERROR multi field accounting");return false;}
+#endif
+#ifdef PG_CROP_LOSS_PROBE
+    std::uint64_t drought=0,spoilage=0,lost_water=0;
+    for(const auto& crop:farms.crops) {
+        drought+=crop.drought_losses;spoilage+=crop.spoilage_losses;lost_water+=crop.lost_water;
+    }
+    Serial.printf("CROP_LOSS_RESULT drought=%llu spoilage=%llu lost_water=%llu\n",
+        static_cast<unsigned long long>(drought),static_cast<unsigned long long>(spoilage),
+        static_cast<unsigned long long>(lost_water));
 #endif
     return valid_population(w)&&construction::completed(sites)>0&&births>0;
 }

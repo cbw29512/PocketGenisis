@@ -137,3 +137,5 @@ Agriculture profile only: append Farming research catalog entry and prepared fie
 Irrigation profile only: appended Irrigation technology and channel blueprint/site, uint64 last transfer tick, successful transfers and cumulative water moved. Water remains in ordinary tile stocks. See IRRIGATION_CONTRACT.md.
 
 Multi-field profile only: three additional Site slots after extra huts; array of four existing agriculture::State records indexed by field ordinal. No canonical saved fields. See MULTI_FIELD_CONTRACT.md.
+
+Crop-loss profile only: per-field uint64 drought_losses, spoilage_losses, lost_water, dry_since. Lost water is a cumulative record of already spent water, not an additional debit. See CROP_LOSS_CONTRACT.md. Earlier profiles unchanged.
