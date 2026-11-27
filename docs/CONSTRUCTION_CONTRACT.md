@@ -5,3 +5,5 @@ Scheduling: reuse existing optional discretionary work hook. Active research get
 Verification: unit tests for prerequisite, resources, single tile occupancy, actual work, survival interruption, no refund, no duplicate admission, completion; separate device probe uses real research and lifecycle from seed42 for 43200 ticks, emits actual construction start/completion/abandonment, discovered counts, population and actual birth count. No official world; no SD/display integration. Later functionality must be tested independently before claiming a deployed civilization capability.
 
 Physical seed42 pass at 2ee9132: 3/3 structures complete at ticks343/413/618, five discoveries, two healthy-surviving births observed, four living and no deaths after43200 ticks, construction state96 bytes. Host CI passed. Multi-seed smoke test added separately. Three one-tile records are prototype only; no actual storage, shelter protection or cooking effects yet.
+
+Next functional increment: food store only, see STORAGE_CONTRACT.md. Campfire/shelter benefits remain pending. Existing construction probe unchanged.

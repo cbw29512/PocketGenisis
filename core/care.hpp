@@ -19,14 +19,18 @@ inline std::uint16_t& resource_stock(World& w,int x,int y,bool water) noexcept {
     auto& t=w.tiles[static_cast<std::size_t>(y)*width+static_cast<std::size_t>(x)];
     return water?t.water:t.food;
 }
+// Shared need satisfaction after a real food/water unit has been debited.
+inline void satisfy_need(Citizen& recipient,bool water) noexcept {
+    auto& need=water?recipient.thirst:recipient.hunger;
+    need=static_cast<std::uint8_t>(std::max(0,need-12));
+    recipient.action=water?Action::drink:Action::eat;
+}
 // Authoritative consumption, shared by independent survival and dependent care.
 inline bool consume_resource(World& w,Citizen& recipient,int x,int y,bool water) noexcept {
     auto& stock=resource_stock(w,x,y,water);
     if(!stock) return false;
     --stock;
-    auto& need=water?recipient.thirst:recipient.hunger;
-    need=static_cast<std::uint8_t>(std::max(0,need-12));
-    recipient.action=water?Action::drink:Action::eat;
+    satisfy_need(recipient,water);
     return true;
 }
 inline bool consume_need(World& w,Citizen& recipient,int x,int y) noexcept {

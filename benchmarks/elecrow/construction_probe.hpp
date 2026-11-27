@@ -1,15 +1,27 @@
 #pragma once
+#ifdef PG_STORAGE_PROBE
+#include "../../core/food_store.hpp"
+#else
 #include "../../core/construction_work.hpp"
+#endif
 #include <Arduino.h>
 namespace genesis::benchmark {
 inline bool construction_probe(World& w) {
     initialize(w,42);discovery::State knowledge{};construction::State sites{};Production p{};
     unsigned births=0;
+#ifdef PG_STORAGE_PROBE
+    storage::State reserve{};
+    Serial.println("FUNCTIONAL FOOD STORAGE PROBE");
+#endif
     Serial.println("CONSTRUCTION PROBE TEST ONLY: 43200 ticks; accelerated research; normal lifecycle; no save");
     constexpr const char* events[]={"none","started","completed","abandoned"};
     for(unsigned i=0;i<43200;++i) {
         discovery::Event re{};construction::Event ce{};
+#ifdef PG_STORAGE_PROBE
+        if(!storage::step(w,knowledge,sites,reserve,p,re,ce,discovery::probe_cadence)) {
+#else
         if(!construction::step(w,knowledge,sites,p,re,ce,discovery::probe_cadence)) {
+#endif
             Serial.println("ERROR construction world tick");return false;
         }
         if(ce.kind!=construction::EventKind::none)
@@ -28,6 +40,12 @@ inline bool construction_probe(World& w) {
     Serial.printf("CONSTRUCTION_RESULT complete=%u discoveries=%u births=%u living=%u deaths=%u state_bytes=%u\n",
         construction::completed(sites),discovery::discovered(knowledge),births,unsigned(w.descendant_count+2),
         unsigned(w.archive_count),unsigned(sizeof(sites)));
+#ifdef PG_STORAGE_PROBE
+    Serial.printf("STORAGE_RESULT balance=%u deposits=%llu withdrawals=%llu spoiled=%llu state_bytes=%u\n",
+        reserve.balance,static_cast<unsigned long long>(reserve.deposited),static_cast<unsigned long long>(reserve.withdrawn),
+        static_cast<unsigned long long>(reserve.spoiled),unsigned(sizeof(reserve)));
+    if(!storage::valid(reserve)||!reserve.deposited) {Serial.println("ERROR food reserve demonstration");return false;}
+#endif
     return valid_population(w)&&construction::completed(sites)>0&&births>0;
 }
 }

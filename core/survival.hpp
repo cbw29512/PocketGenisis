@@ -14,8 +14,11 @@ inline void move_toward(Citizen& c,int x,int y) noexcept {
 struct NoDiscretionaryWork {
     bool operator()(const World&,const Citizen&) const noexcept {return false;}
 };
-template<class Work>
-inline void act_survival_with_work(World& w,Citizen& f,Citizen* dependent,const Work& work) noexcept {
+struct NoReserveFood {
+    bool operator()(World&,Citizen&) const noexcept {return false;}
+};
+template<class Work,class Food=NoReserveFood>
+inline void act_survival_with_work(World& w,Citizen& f,Citizen* dependent,const Work& work,const Food& reserve_food={}) noexcept {
     accrue_needs(f);
     const bool urgent=urgent_need(f);
     const bool water=f.thirst>=f.hunger;
@@ -23,6 +26,7 @@ inline void act_survival_with_work(World& w,Citizen& f,Citizen* dependent,const 
     const bool travel=founder_can_travel(f,w.tick);
     if(urgent) {
         if(consume_need(w,f,f.x,f.y)) return;
+        if(!water&&reserve_food(w,f)) return;
         auto target=find_resource(w,f.x,f.y,water);
         if(target.found&&travel) { move_toward(f,target.x,target.y);return; }
         // A missing primary resource must not prevent meeting another urgent need.
@@ -80,13 +84,13 @@ inline void act_survival(World& w,Citizen& f,Citizen* dependent=nullptr) noexcep
 }
 namespace detail {
 // Shared phases; storage mode supplies its authoritative validator.
-template<class Validate,class Work=NoDiscretionaryWork>
-inline bool step_survival_checked(World& w,const Validate& validate,const Work& work={}) noexcept {
+template<class Validate,class Work=NoDiscretionaryWork,class Food=NoReserveFood>
+inline bool step_survival_checked(World& w,const Validate& validate,const Work& work={},const Food& reserve_food={}) noexcept {
     if(w.tick==std::numeric_limits<std::uint64_t>::max()||!validate(w)) return false;
     const auto requests=prepare_care(w);
     auto act=[&](Citizen& c,std::size_t live_index) {
         const auto slot=requests[live_index];
-        act_survival_with_work(w,c,slot?&w.descendants[slot-1]:nullptr,work);
+        act_survival_with_work(w,c,slot?&w.descendants[slot-1]:nullptr,work,reserve_food);
     };
     for(std::size_t i=0;i<w.founders.size();++i) act(w.founders[i],i);
     assist_founder(w,w.founders[0],w.founders[1]);

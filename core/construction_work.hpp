@@ -18,12 +18,13 @@ struct ReserveWork {
         return false;
     }
 };
-inline bool step(World& w,discovery::State& research,State& sites,Production& p,
-                 discovery::Event& re,Event& ce,std::uint64_t cadence) noexcept {
+template<class Work=ReserveWork,class Food=NoReserveFood>
+inline bool step_with_policy(World& w,discovery::State& research,State& sites,Production& p,
+                 discovery::Event& re,Event& ce,std::uint64_t cadence,const Work& work,const Food& reserve_food={}) noexcept {
     re={};ce={};
     const bool building=active(sites)>=0;
     if(!detail::step_world_observed(w,p,valid_population,[](TickPhase) noexcept {},
-                                  ReserveWork{research,sites,cadence})) return false;
+                                  work,reserve_food)) return false;
     if(building) ce=advance(w,research,sites);
     else {
         const bool researching=research.job.active;
@@ -32,5 +33,9 @@ inline bool step(World& w,discovery::State& research,State& sites,Production& p,
             ce=advance(w,research,sites);
     }
     return true;
+}
+inline bool step(World& w,discovery::State& research,State& sites,Production& p,
+                 discovery::Event& re,Event& ce,std::uint64_t cadence) noexcept {
+    return step_with_policy(w,research,sites,p,re,ce,cadence,ReserveWork{research,sites,cadence});
 }
 }

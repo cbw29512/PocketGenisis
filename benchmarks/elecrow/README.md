@@ -54,3 +54,6 @@ Build `pio run -d benchmarks/elecrow -e elecrow_s3_discovery_probe`. Runs 3600 a
 
 ## Host world diversity study
 Default CI runs 16 seeds x 3600 ticks via tests/civilization_diversity_test.cpp. A larger optional study on a C++17 host: `g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/civilization_diversity_test.cpp -o diversity` then `./diversity 1000 43200 > diversity.csv`. This can take substantial CPU time; begin with 16 seeds. CSV includes actual discovery order (A fire, B stone tools, C shelter, D cooking, E storage), completed structure tile layout, births, living count and timing. Final DIVERSITY line summarizes distinct observed outcomes, stalled worlds and first birth range; zero means not observed, not a guaranteed future outcome. Uses accelerated research, ordinary lifecycle, no production saves. Smoke test is not a full long-term calibration. No ESP32 flash needed for host study.
+
+## Functional food store probe
+`elecrow_s3_storage_probe` extends construction for 43200 ticks with actual local deposits, shortage fallback and spoilage. `STORAGE_RESULT` reports balance, deposits, withdrawals, spoiled and bytes. Controlled host tests demonstrate scarcity; no forced shortage in hardware probe. No official world or save. CI/device pending.

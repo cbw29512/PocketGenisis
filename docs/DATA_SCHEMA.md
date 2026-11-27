@@ -118,3 +118,6 @@ See DISCOVERY_CONTRACT.md for nonpersistent founder masks, first discovery recor
 
 ### Disposable construction state
 Three prototype blueprint records (stage, tile index, owner slot, work, started/finished/last work ticks). No canonical save changes. See CONSTRUCTION_CONTRACT.md. Future production requires unique structure IDs, durable history and variable capacity; no assumption of a three-building world.
+
+### Disposable food store
+Separate state: bounded balance (unsigned, 0..64), deposited/withdrawn/spoiled uint64 counters. Conservation as documented in STORAGE_CONTRACT.md. No canonical World layout changes. Existing food and hunger units shared. No persistent reserve yet.
