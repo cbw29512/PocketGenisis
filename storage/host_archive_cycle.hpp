@@ -11,7 +11,7 @@ struct CycleResult {
     CycleAction action;
     std::size_t retired{};
 };
-inline CycleResult run_archive_cycle(const std::string& dir,std::uint64_t ticks=cycle_tick_limit) {
+inline CycleResult run_archive_cycle(const std::string& dir,std::uint64_t ticks=cycle_tick_limit,StorageBudget budget={}) {
     if(!ticks||ticks>cycle_tick_limit) throw std::runtime_error("invalid archive cycle tick budget");
     auto current=load_archive_host(dir);
     if(current.degraded) throw std::runtime_error("degraded checkpoint; automatic cycle refused");
@@ -25,13 +25,13 @@ inline CycleResult run_archive_cycle(const std::string& dir,std::uint64_t ticks=
            batch.records.size()>current.world->archive_count)
             throw std::runtime_error("uncommitted segment conflicts with resident history");
         const auto count=batch.records.size();
-        return {retire_archive_host(dir,current,count),CycleAction::resumed_retirement,count};
+        return {retire_archive_host(dir,current,count,budget),CycleAction::resumed_retirement,count};
     }
     // Drain a full batch before admitting more ticks. With fewer than 64
     // resident deaths, the existing live+gestation bound leaves ample space
     // for every reserved death and at most one conception in a 600-tick window.
     if(current.world->archive_count>=segment_capacity)
-        return {retire_archive_host(dir,current,segment_capacity),CycleAction::retired,segment_capacity};
-    return {advance_archive_host(dir,current,ticks),CycleAction::advanced,0};
+        return {retire_archive_host(dir,current,segment_capacity,budget),CycleAction::retired,segment_capacity};
+    return {advance_archive_host(dir,current,ticks,budget),CycleAction::advanced,0};
 }
 } // namespace genesis::storage

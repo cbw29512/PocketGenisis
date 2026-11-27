@@ -46,3 +46,6 @@ Automatic host archive cycle CI 46011367029 passed. Disk-backed fixed-row index 
 
 ## Follow-up — increment 25
 Standalone disk lookup CI 46017540348 passed. Integrated disk checkpoint reader and bounded replay lineage candidate added; exact new-head CI pending. Full history scans moved to replay boundaries, but scratch rebuild and capacity, persistent FAT32 index, UUID, backup and physical operation remain open.
+
+## Follow-up — increment 26
+Integrated bounded disk replay CI 46020782461 passed. Host storage capacity preflight candidate added, including deterministic lower-budget refusal tests; new-head CI pending. Remaining P0 release concerns: real FAT32/SD implementation and measured performance, independent backup/UUID, physical interruption tests and full long-run population validation. No physical hardware gate closed.

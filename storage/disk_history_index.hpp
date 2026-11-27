@@ -1,5 +1,5 @@
 #pragma once
-#include "disk_history_rows.hpp"
+#include "host_storage_budget.hpp"
 #include "history_index.hpp"
 
 namespace genesis::storage {
@@ -19,6 +19,7 @@ public:
                                  std::uint64_t count,std::uint64_t next_id) {
         if(next_id<3||count>next_id-3||next_id-3-count>history_capacity)
             throw std::runtime_error("invalid disk history identity bounds");
+        require_scratch_storage(dir,next_id);
         DiskHistoryIndex index;index.seed_=seed;index.next_id_=next_id;
         std::string path=dir+"/.history-index-XXXXXX";
         // Allocate the owning wrapper before creating a file to avoid leaking fd.

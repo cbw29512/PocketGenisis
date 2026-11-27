@@ -22,10 +22,11 @@ inline ArchiveState load_archive_host(const std::string& dir) {
     if(x.world) {x.degraded=!(x.generation==1&&b.missing);return x;}
     y.degraded=!(y.generation==1&&a.missing);return y;
 }
-inline ArchiveState create_archive_host(const std::string& dir,const World& original) {
+inline ArchiveState create_archive_host(const std::string& dir,const World& original,StorageBudget budget={}) {
     if(!valid_population(original)) throw std::runtime_error("legacy world invalid");
     if(!read_file(slot_path(dir,0)).missing||!read_file(slot_path(dir,1)).missing)
         throw std::runtime_error("archive destination already contains a checkpoint");
+    require_storage(dir,original.next_citizen_id,0,budget);
     auto index=DiskHistoryIndex::load(dir,original.seed,0,original.next_citizen_id);
     publish_file(dir,0,encode_archive_checkpoint(original,index,1));
     return load_archive_host(dir);
@@ -45,10 +46,11 @@ inline ArchiveState require_current_archive(const std::string& dir,const Archive
 // Publish immutable segments first. Publish the new checkpoint second. Return
 // the replacement state only after disk recovery verifies it. The caller's old
 // state and previous slot are untouched even if a write throws.
-inline ArchiveState retire_archive_host(const std::string& dir,const ArchiveState& current,std::size_t count) {
+inline ArchiveState retire_archive_host(const std::string& dir,const ArchiveState& current,std::size_t count,StorageBudget budget={}) {
     auto disk=require_current_archive(dir,current);
     if(!count||count>disk.world->archive_count)
         throw std::runtime_error("invalid retirement count");
+    require_storage(dir,disk.world->next_citizen_id,count,budget);
     const auto prefix=disk.history->count();
     for(std::size_t offset=0;offset<count;) {
         const auto n=std::min(segment_capacity,count-offset);
@@ -68,11 +70,12 @@ inline ArchiveState retire_archive_host(const std::string& dir,const ArchiveStat
     return verified;
 }
 // Advance only from exact disk state; no arbitrary candidate accepted.
-inline ArchiveState advance_archive_host(const std::string& dir,const ArchiveState& current,std::uint64_t ticks) {
+inline ArchiveState advance_archive_host(const std::string& dir,const ArchiveState& current,std::uint64_t ticks,StorageBudget budget={}) {
     if(!ticks||ticks>archive_replay_limit) throw std::runtime_error("invalid archive replay window");
     auto disk=require_current_archive(dir,current);
     if(!read_file(history_path(dir,disk.history->count())).missing)
         throw std::runtime_error("uncommitted history batch; complete retirement first");
+    require_storage(dir,disk.world->next_citizen_id,0,budget);
     auto candidate=std::make_unique<World>(*disk.world);
     if(!replay_archive(*candidate,*disk.history,ticks)) throw std::runtime_error("archive replay rejected");
     const auto bytes=encode_archive_checkpoint(*candidate,*disk.history,disk.generation+1);

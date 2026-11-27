@@ -103,3 +103,6 @@ No authoritative schema/version changes. Scratch file has fixed canonical death-
 
 ### Increment 25 — transient replay lineage
 No persisted field changes. ArchiveState uses disk-derived history instead of lifetime RAM map. ReplayLineage stores initial next ID, seed, committed prefix count, last death record, up to history_capacity resident IDs, and at most three external references per resident identity. Direct references only; new parents and guardians originate from living citizens. Cache scoped to one closed replay and discarded at end. Full checkpoint audits remain authoritative.
+
+### Increment 26 — storage budget
+No persisted schema changes. Host StorageBudget ceiling, available bytes and filesystem block size are transient operational metadata, never simulation inputs. Checked arithmetic estimates four simultaneous derived scratch files (allow up to history_capacity future IDs), two max checkpoints, one max segment allowance per batch, metadata slack and 1 MiB emergency margin. Caller ceiling only lowers actual reported available bytes.
