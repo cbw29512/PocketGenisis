@@ -20,8 +20,7 @@ inline std::uint16_t& resource_stock(World& w,int x,int y,bool water) noexcept {
     return water?t.water:t.food;
 }
 // Authoritative consumption, shared by independent survival and dependent care.
-inline bool consume_need(World& w,Citizen& recipient,int x,int y) noexcept {
-    const bool water=recipient.thirst>=recipient.hunger;
+inline bool consume_resource(World& w,Citizen& recipient,int x,int y,bool water) noexcept {
     auto& stock=resource_stock(w,x,y,water);
     if(!stock) return false;
     --stock;
@@ -29,6 +28,9 @@ inline bool consume_need(World& w,Citizen& recipient,int x,int y) noexcept {
     need=static_cast<std::uint8_t>(std::max(0,need-12));
     recipient.action=water?Action::drink:Action::eat;
     return true;
+}
+inline bool consume_need(World& w,Citizen& recipient,int x,int y) noexcept {
+    return consume_resource(w,recipient,x,y,recipient.thirst>=recipient.hunger);
 }
 using CareRequests=std::array<std::uint16_t,history_capacity+3>;
 inline CareRequests prepare_care(World& w) noexcept {

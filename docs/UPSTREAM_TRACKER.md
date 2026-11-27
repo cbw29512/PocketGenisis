@@ -32,3 +32,6 @@ Re-read pinned ecosystem MIT license and CYD spawnHerb lines 192–225: bounded 
 
 ## G3 dependent care
 Re-read LibColony pinned MIT license and header design lines 15–65 (needs/work priority, distance and autonomy). Reused the concept of priority-based task selection with bounded local parent requests; no optimal assignment engine or upstream code imported. All consumption routes through one authoritative resource transaction.
+
+## G3 recovery
+Re-read pinned ecosystem MIT license and CYD source lines 473–504, including nearest-resource search and random wandering when none found. Retain deterministic bounded local search; original founder-only full-map fallback and reunion rule avoid indefinite local starvation or isolation without importing upstream floating-point behavior. No code copied.

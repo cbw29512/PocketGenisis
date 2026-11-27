@@ -29,4 +29,21 @@ inline ResourceTarget find_resource(const World& w, int x, int y, bool water) no
     }
     return {};
 }
+// Only desperate founders use this bounded fallback after local search fails.
+inline ResourceTarget find_distant_resource(const World& w,int x,int y,bool water) noexcept {
+    if(x<0||x>=width||y<0||y>=height) return {};
+    ResourceTarget best{};
+    int best_distance=width+height;
+    for(int yy=0;yy<height;++yy) {
+        for(int xx=0;xx<width;++xx) {
+            const auto& t=w.tiles[static_cast<std::size_t>(yy)*width+static_cast<std::size_t>(xx)];
+            const int distance=std::abs(xx-x)+std::abs(yy-y);
+            if((water?t.water:t.food)>0&&distance<best_distance) {
+                best={xx,yy,true};
+                best_distance=distance;
+            }
+        }
+    }
+    return best;
+}
 } // namespace genesis
