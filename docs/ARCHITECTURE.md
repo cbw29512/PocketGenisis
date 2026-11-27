@@ -43,3 +43,6 @@ Checkpoint decode, retirement and advancement now use DiskHistoryIndex. Full aud
 
 ## Host capacity preflight
 Read statvfs available blocks for the actual directory. Before scratch allocation check full row file size; before creation/advancement/retirement check conservative future scratch and temporary publication budget. Refusal means no new checkpoint or history publication and caller must pause; retry only through verified recovery. Budget is advisory, not an exclusive allocation guarantee; concurrent disk use, quotas, filesystem metadata and hardware failures can still interrupt writes. Existing transactional recovery remains mandatory. No device FAT32 or 32GB hardware certification.
+
+## Founder recovery
+Shared founder_recovery.hpp derives incapacitation and travel eligibility from existing health/clock. Independent survival retains resource consumption, restricts incapacitated movement and exploration, then healthy founder may approach and assist a weakened partner. After both founder actions, an idle healthy nonurgent partner may consume one nearby unit for the idle urgent patient. Existing resource transactions and ordinary mortality/disease/healing remain authoritative. No invented resources, guaranteed birth or reset. Future work/teaching must honor incapacitation.

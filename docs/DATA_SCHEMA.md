@@ -106,3 +106,6 @@ No persisted field changes. ArchiveState uses disk-derived history instead of li
 
 ### Increment 26 — storage budget
 No persisted schema changes. Host StorageBudget ceiling, available bytes and filesystem block size are transient operational metadata, never simulation inputs. Checked arithmetic estimates four simultaneous derived scratch files (allow up to history_capacity future IDs), two max checkpoints, one max segment allowance per batch, metadata slack and 1 MiB emergency margin. Caller ceiling only lowers actual reported available bytes.
+
+### Increment 27 — founder incapacitation
+No added fields; status derived from founder ID and existing health <=20. Crawl window derived from tick modulo 4. Existing Action idle/move/eat/drink/care covers recovery and assistance; no second health state. Rules revision 16, same binary layout; older disposable rules rejected until explicit migration.

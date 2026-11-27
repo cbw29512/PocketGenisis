@@ -7,7 +7,7 @@
 
 namespace genesis::storage {
 inline constexpr std::uint32_t checkpoint_magic=0x50434750; // PGCP in little endian
-inline constexpr std::uint16_t checkpoint_version=1, checkpoint_rules=15;
+inline constexpr std::uint16_t checkpoint_version=1, checkpoint_rules=16;
 inline constexpr std::size_t checkpoint_limit=128*1024;
 inline std::uint32_t crc32(const Bytes& bytes,std::size_t length) noexcept {
     std::uint32_t crc=0xffffffffu;

@@ -71,3 +71,6 @@ Reuse original host recovery, immutable publication, transactional retirement an
 
 ## G6 bounded disk identity lookup
 Reuse canonical field codec, immutable segment loader, shared genealogy and combined validation. Original POSIX scratch-row adapter; no third-party source or dependency.
+
+## G3 founder recovery
+Reuse original health floor/healing, conserved need consumption, cardinal movement, founder reunion and reproduction eligibility. No imported code or new dependency.

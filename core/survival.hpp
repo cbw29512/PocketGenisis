@@ -1,5 +1,5 @@
 #pragma once
-#include "care.hpp"
+#include "founder_recovery.hpp"
 #include "resource_search.hpp"
 #include <algorithm>
 
@@ -15,19 +15,20 @@ inline void act_survival(World& w,Citizen& f,Citizen* dependent=nullptr) noexcep
     accrue_needs(f);
     const bool urgent=urgent_need(f);
     const bool water=f.thirst>=f.hunger;
-    const bool founder=f.id==1||f.id==2;
+    const bool founder=is_founder(f);
+    const bool travel=founder_can_travel(f,w.tick);
     if(urgent) {
         if(consume_need(w,f,f.x,f.y)) return;
         auto target=find_resource(w,f.x,f.y,water);
-        if(target.found) { move_toward(f,target.x,target.y);return; }
+        if(target.found&&travel) { move_toward(f,target.x,target.y);return; }
         // A missing primary resource must not prevent meeting another urgent need.
         const bool secondary_urgent=(water?f.hunger:f.thirst)>=12;
         if(secondary_urgent) {
             if(consume_resource(w,f,f.x,f.y,!water)) return;
             target=find_resource(w,f.x,f.y,!water);
-            if(target.found) { move_toward(f,target.x,target.y);return; }
+            if(target.found&&travel) { move_toward(f,target.x,target.y);return; }
         }
-        if(founder) {
+        if(founder&&travel) {
             target=find_distant_resource(w,f.x,f.y,water);
             if(!target.found&&secondary_urgent)
                 target=find_distant_resource(w,f.x,f.y,!water);
@@ -35,10 +36,16 @@ inline void act_survival(World& w,Citizen& f,Citizen* dependent=nullptr) noexcep
         }
         return;
     }
+    // A critically weakened founder rests unless survival requires crawling.
+    if(founder_incapacitated(f)) return;
     if(give_care(w,f,dependent)) return;
     // Reunite founders only after survival and care; never force conception.
     if(founder) {
         const auto& other=w.founders[f.id==1?1:0];
+        if(founder_incapacitated(other)&&f.health>=50) {
+            if(distance_between(f,other)>1) move_toward(f,other.x,other.y);
+            return; // Stay near a weakened partner instead of exploring.
+        }
         if(distance_between(f,other)>2) {
             if(f.id==2) move_toward(f,other.x,other.y);
             return;
@@ -71,6 +78,8 @@ template<class Validate> inline bool step_survival_checked(World& w,const Valida
         act_survival(w,c,slot?&w.descendants[slot-1]:nullptr);
     };
     for(std::size_t i=0;i<w.founders.size();++i) act(w.founders[i],i);
+    assist_founder(w,w.founders[0],w.founders[1]);
+    assist_founder(w,w.founders[1],w.founders[0]);
     for(std::size_t i=0;i<w.descendant_count;++i) {
         auto& c=w.descendants[i];
         if(life_stage(c,w.tick)!=LifeStage::infant) act(c,i+2);

@@ -98,11 +98,14 @@ Baseline 55510b0 remote [CI 45931720560](https://github.com/cbw29512/PocketGenis
 - [x] PG-G6-06 Actual external-history-aware simulation and births above 512 — host portable CI 46011106294 passed, including archive_replay_test (synthetic prior history, actual conception/delivery).
 - [ ] PG-G6-07 Automatic checkpoint/retirement cadence, bounded-memory index, UUID, independent backup and portable migration — in progress.
   - [x] PG-G6-07a Bounded automatic host archival cycle — host portable CI 46011367029 passed.
-  - [ ] PG-G6-07b Bounded-memory external index and validated storage admission — integrated host replay CI 46020782461 passed; host capacity preflight candidate awaiting CI.
+  - [x] PG-G6-07b Bounded-memory external index and validated host storage admission — host CI 46022080219 passed; device qualification remains open.
     - [x] PG-G6-07b1 Integrated disk-backed checkpoint replay and bounded lineage cache — host CI 46020782461 passed.
-    - [ ] PG-G6-07b2 Host storage budget and safe refusal/resume — implementation submitted; CI pending.
+    - [x] PG-G6-07b2 Host storage budget and safe refusal/resume — CI 46022080219 passed.
   - [ ] PG-G6-07c UUID, independent backup, migration and device cadence — pending.
-- [ ] PG-G3-02 Complete biological acceptance (founder incapacitation/recovery, parental injury/accidents, calibrated long-run density/age/cause results) — pending.
+- [ ] PG-G3-02 Complete biological acceptance (founder incapacitation/recovery, parental injury/accidents, calibrated long-run density/age/cause results) — active priority per owner; hardware and remaining persistence deferred.
+  - [ ] PG-G3-02a Founder incapacitation, natural recovery and post-collapse birth — implemented; new head CI pending.
+  - [ ] PG-G3-02b Parental childbirth injury and other accidents — pending.
+  - [ ] PG-G3-02c Long-run demographic calibration — pending.
 - [ ] PG-G4-01 Weather, terrain, construction, agriculture and conserved production — pending.
 - [ ] PG-G5-01 Knowledge, teaching, discoveries, Genesis, rarity, culture and effects — pending.
 - [ ] PG-G7-01 Full-screen observer renderer and read-only inspection — pending.
@@ -124,3 +127,6 @@ Baseline 7eb28c4 [CI 46017540348](https://github.com/cbw29512/PocketGenisis/acti
 
 ## Increment 26 — storage capacity preflight
 Baseline 3fdbdfd [CI 46020782461](https://github.com/cbw29512/PocketGenisis/actions/runs/46020782461) passed; integrated bounded host replay verified and 07b1 checked off. Added storage/host_storage_budget.hpp, integrated scratch and transaction capacity checks in disk_history_index.hpp, host_archive_checkpoint.hpp and host_archive_cycle.hpp, added tests/storage_budget_test.cpp. POSIX statvfs available blocks and checked arithmetic; conservative allowance for future identity growth, simultaneous derived indexes, temporary checkpoints and segments, filesystem overhead and 1 MiB reserve. Caller may lower budget but cannot bypass actual free-space reading. Refuse before persistent writes, preserve previous committed world and pending segments; real I/O failures still propagate. Test covers low ceiling, one-byte boundary, overflow, creation/advance/retirement refusal, exact pending batch preservation and retry. New head CI pending; local clone DNS failed. Advisory preflight, not exclusive reservation or actual ENOSPC/power-cut test; device FAT32 admission and persistent index need separate work. Next verify 07b2 and implement independent backup/restore; biological founder recovery remains next independent feature. No official launch.
+
+## Increment 27 — founder incapacitation and recovery candidate
+Baseline 1b95c02 [CI 46022080219](https://github.com/cbw29512/PocketGenisis/actions/runs/46022080219) passed, PG-G6-07b/b2 checked off at host scope. Owner redirected priority to civilization mechanics; physical battery/SD and remaining backup/migration gates remain open, not blockers for core feature work. Added core/founder_recovery.hpp, integrated core/survival.hpp, advanced rules 15 to 16 without payload changes. Founder health <=20 is derived incapacity: no exploration, emergency crawl at most one tile every four ticks, local consumption and ordinary healing allowed. Healthy partner stays nearby and may give a real resource after own/infant care action if idle. Existing reproduction eligibility >=50, health floor 1 and disease progression retained. Regression covers rest, movement, actual resource aid, zero-stock survival, actual last mortal death, natural renewal recovery, save roundtrip, actual birth with seeded test roll fixtures, identity retention, rejection of older rules. New-head CI pending; no local pass claimed. Thresholds provisional. No official world started; old disposable saves require explicit migration. Next parental childbirth injury/accidents then environment/terrain and construction; demographic calibration remains open.
