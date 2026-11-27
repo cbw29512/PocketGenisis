@@ -64,14 +64,14 @@ inline void act_survival(World& w,Citizen& f,Citizen* dependent=nullptr) noexcep
 inline bool step_survival(World& w) noexcept {
     if(w.tick==std::numeric_limits<std::uint64_t>::max()||!valid_population(w)) return false;
     const auto requests=prepare_care(w);
-    auto act=[&](Citizen& c) {
-        const auto slot=requests[static_cast<std::size_t>(c.id)];
+    auto act=[&](Citizen& c,std::size_t live_index) {
+        const auto slot=requests[live_index];
         act_survival(w,c,slot?&w.descendants[slot-1]:nullptr);
     };
-    for(auto& f:w.founders) act(f);
+    for(std::size_t i=0;i<w.founders.size();++i) act(w.founders[i],i);
     for(std::size_t i=0;i<w.descendant_count;++i) {
         auto& c=w.descendants[i];
-        if(life_stage(c,w.tick)!=LifeStage::infant) act(c);
+        if(life_stage(c,w.tick)!=LifeStage::infant) act(c,i+2);
     }
     for(std::size_t i=0;i<w.descendant_count;++i) {
         auto& c=w.descendants[i];

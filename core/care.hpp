@@ -32,13 +32,13 @@ inline bool consume_resource(World& w,Citizen& recipient,int x,int y,bool water)
 inline bool consume_need(World& w,Citizen& recipient,int x,int y) noexcept {
     return consume_resource(w,recipient,x,y,recipient.thirst>=recipient.hunger);
 }
-using CareRequests=std::array<std::uint16_t,history_capacity+3>;
+using CareRequests=std::array<std::uint16_t,live_capacity>;
 // Temporary local care, never a change to biological genealogy.
 inline const Citizen* local_orphan_carer(const World& w,const Citizen& child,
                                         int radius,const CareRequests* requests=nullptr) noexcept {
     auto eligible=[&](const Citizen& c) {
         return life_stage(c,w.tick)>=LifeStage::adult&&c.health>=50&&c.personality[2]>=50&&
-               c.hunger<11&&c.thirst<11&&(!requests||!(*requests)[c.id]);
+               c.hunger<11&&c.thirst<11&&(!requests||!(*requests)[live_slot(w,c.id)]);
     };
     if(const auto* guardian=live_citizen(w,child.guardian_id)) {
         if(eligible(*guardian)&&distance_between(*guardian,child)<=radius) return guardian;
@@ -69,8 +69,9 @@ inline CareRequests prepare_care(World& w) noexcept {
         if(!urgent_need(c)) continue;
         for(auto id:{c.parent1,c.parent2}) {
             const auto* p=live_citizen(w,id);
-            if(p&&distance_between(*p,c)<=1&&!requests[static_cast<std::size_t>(id)])
-                requests[static_cast<std::size_t>(id)]=static_cast<std::uint16_t>(i+1);
+            const auto slot=live_slot(w,id);
+            if(p&&distance_between(*p,c)<=1&&!requests[slot])
+                requests[slot]=static_cast<std::uint16_t>(i+1);
         }
     }
     // Biological dependents reserve their parents first. Orphans compete only
@@ -80,7 +81,7 @@ inline CareRequests prepare_care(World& w) noexcept {
         if(life_stage(c,w.tick)!=LifeStage::infant||!urgent_need(c)||
            live_citizen(w,c.parent1)||live_citizen(w,c.parent2)) continue;
         if(const auto* carer=local_orphan_carer(w,c,1,&requests))
-            requests[carer->id]=static_cast<std::uint16_t>(i+1);
+            requests[live_slot(w,carer->id)]=static_cast<std::uint16_t>(i+1);
     }
     return requests;
 }

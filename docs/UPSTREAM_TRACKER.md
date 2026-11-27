@@ -53,3 +53,6 @@ Original fictional two-slot model reuses existing health, seeded RNG, inheritanc
 
 ## G6 checkpoint foundation
 Original field-wise codec and POSIX adapter using C++17 standard library and operating-system file primitives; no new imported source or dependency. Reuse existing world validation and simulation replay.
+
+## G6 live-slot decoupling
+Reuse existing original stable ID sorted-array lookup; no third-party code or dependency needed for this internal refactor.

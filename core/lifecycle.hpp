@@ -17,10 +17,12 @@ inline void attempt_conception(World& w) noexcept {
        w.descendant_count+w.archive_count+w.pregnancy_count>=history_capacity||
        w.tick>std::numeric_limits<std::uint64_t>::max()-gestation_ticks) return;
     // Parents cannot participate in two simultaneous gestations.
-    std::array<bool,history_capacity+3> busy{};
+    std::array<bool,live_capacity> busy{};
     for(std::size_t i=0;i<w.pregnancy_count;++i) {
         const auto& p=w.pregnancies[i];
-        busy[p.parent1]=busy[p.parent2]=true;
+        const auto a=live_slot(w,p.parent1),b=live_slot(w,p.parent2);
+        if(a==live_capacity||b==live_capacity) return;
+        busy[a]=busy[b]=true;
     }
     // Reservoir sampling: every locally eligible pair has equal selection chance.
     std::uint32_t count=0,roll{};
@@ -28,10 +30,10 @@ inline void attempt_conception(World& w) noexcept {
     const auto n=w.descendant_count+2;
     for(std::size_t i=0;i<n;++i) {
         const auto& a=active_at(w,i);
-        if(busy[a.id]||!eligible_parent(a,w.tick)) continue;
+        if(busy[i]||!eligible_parent(a,w.tick)) continue;
         for(std::size_t j=i+1;j<n;++j) {
             const auto& b=active_at(w,j);
-            if(busy[b.id]||!valid_pair(a.id,b.id)||!eligible_parent(b,w.tick)||
+            if(busy[j]||!valid_pair(a.id,b.id)||!eligible_parent(b,w.tick)||
                std::abs(int(a.x)-int(b.x))+std::abs(int(a.y)-int(b.y))>2) continue;
             ++count;
             if(count==1||(w.streams[reproduction].bounded(count,roll)&&roll==0))

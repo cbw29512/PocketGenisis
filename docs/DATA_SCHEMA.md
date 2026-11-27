@@ -79,3 +79,6 @@ Maintenance context is outside simulation: trusted transport, authentication, ex
 
 ### Increment 17 implementation subset
 No new saved fields. Disease-phase alive and infectious snapshots plus local neighbor and infectious-contact counts are transient, derived from existing coordinates and health. Acute food/water stress is derived from current needs, not a new chronic nutritional state. Checkpoint format 1 retains layout; rules revision 15 supersedes 14. Prior rules checkpoints require explicit migration and are not silently accepted; no official world exists. Future chronic nutrition, shelter occupancy/capacity, sanitation, water contamination and age-specific disease severity need explicit schema and calibrated validation before implementation.
+
+### Increment 18 implementation subset
+No serialized fields change. Stable uint64 citizen identity remains authoritative. Transient live slot 0/1 refers to a founder; slot 2 onward refers to the ID-sorted active descendant position; live_capacity (256) denotes missing. Care and gestation scratch tables now use live slots, never lifetime IDs. Resolve IDs by binary search before indexing; discard slots after each phase before active-array compaction. Historical validation and the provisional lifetime ceiling are unchanged. No checkpoint version change for this internal refactor.

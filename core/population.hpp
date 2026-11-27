@@ -13,8 +13,10 @@ inline bool valid_agent(const Citizen& c) noexcept {
 inline bool valid_pair(std::uint64_t a,std::uint64_t b) noexcept {
     return (a==1 && b==2) || (a>=3 && a<b);
 }
-inline const Citizen* live_citizen(const World& w,std::uint64_t id) noexcept {
-    if(id==1||id==2) return &w.founders[static_cast<std::size_t>(id-1)];
+inline constexpr std::size_t live_capacity=descendant_capacity+2;
+// Slots are transient: valid only while the active array is not compacted.
+inline std::size_t live_slot(const World& w,std::uint64_t id) noexcept {
+    if(id==1||id==2) return static_cast<std::size_t>(id-1);
     // Active array is ID sorted; binary lookup avoids scanning every agent.
     std::size_t lo=0,hi=w.descendant_count;
     while(lo<hi) {
@@ -22,7 +24,12 @@ inline const Citizen* live_citizen(const World& w,std::uint64_t id) noexcept {
         if(w.descendants[mid].id<id) lo=mid+1;
         else hi=mid;
     }
-    return lo<w.descendant_count&&w.descendants[lo].id==id?&w.descendants[lo]:nullptr;
+    return lo<w.descendant_count&&w.descendants[lo].id==id?lo+2:live_capacity;
+}
+inline const Citizen* live_citizen(const World& w,std::uint64_t id) noexcept {
+    const auto slot=live_slot(w,id);
+    if(slot==live_capacity) return nullptr;
+    return slot<2?&w.founders[slot]:&w.descendants[slot-2];
 }
 inline bool valid_population(const World& w) noexcept {
     if(w.descendant_count>descendant_capacity || w.archive_count>history_capacity ||
@@ -112,7 +119,7 @@ inline bool valid_population(const World& w) noexcept {
     if(w.pregnancy_count>pregnancy_capacity||
        w.descendant_count+w.pregnancy_count>descendant_capacity||
        w.descendant_count+w.archive_count+w.pregnancy_count>history_capacity) return false;
-    std::array<bool,history_capacity+3> participating{};
+    std::array<bool,live_capacity> participating{};
     std::uint64_t previous_due=0;
     for(std::size_t i=0;i<w.pregnancy_count;++i) {
         const auto& p=w.pregnancies[i];
@@ -121,8 +128,9 @@ inline bool valid_population(const World& w) noexcept {
         const auto* a=live_citizen(w,p.parent1);
         const auto* b=live_citizen(w,p.parent2);
         if(!a||!b||life_stage(*a,w.tick)<LifeStage::adult||life_stage(*b,w.tick)<LifeStage::adult) return false;
-        if(participating[p.parent1]||participating[p.parent2]) return false;
-        participating[p.parent1]=participating[p.parent2]=true;
+        const auto sa=live_slot(w,p.parent1),sb=live_slot(w,p.parent2);
+        if(participating[sa]||participating[sb]) return false;
+        participating[sa]=participating[sb]=true;
         previous_due=p.due_tick;
     }
     for(std::size_t i=w.pregnancy_count;i<pregnancy_capacity;++i) {
