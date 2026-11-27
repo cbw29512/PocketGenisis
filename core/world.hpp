@@ -21,6 +21,7 @@ struct Citizen {
     std::uint8_t hunger{}, thirst{};
     Action action{Action::idle};
     std::uint64_t parent1{}, parent2{}, birth_tick{};
+    std::uint64_t guardian_id{}, guardian_since_tick{};
     Purpose purpose{Purpose::none};
     std::uint8_t health{100}, lifespan_years{70};
 };

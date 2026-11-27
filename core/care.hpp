@@ -36,11 +36,17 @@ using CareRequests=std::array<std::uint16_t,history_capacity+3>;
 // Temporary local care, never a change to biological genealogy.
 inline const Citizen* local_orphan_carer(const World& w,const Citizen& child,
                                         int radius,const CareRequests* requests=nullptr) noexcept {
+    auto eligible=[&](const Citizen& c) {
+        return life_stage(c,w.tick)>=LifeStage::adult&&c.health>=50&&c.personality[2]>=50&&
+               c.hunger<11&&c.thirst<11&&(!requests||!(*requests)[c.id]);
+    };
+    if(const auto* guardian=live_citizen(w,child.guardian_id)) {
+        if(eligible(*guardian)&&distance_between(*guardian,child)<=radius) return guardian;
+    }
     const Citizen* best=nullptr;
     int best_distance=radius+1;
     auto consider=[&](const Citizen& c) {
-        if(life_stage(c,w.tick)<LifeStage::adult||c.health<50||c.personality[2]<50||
-           c.hunger>=11||c.thirst>=11||(requests&&(*requests)[c.id])) return;
+        if(!eligible(c)) return;
         const int distance=distance_between(c,child);
         if(distance>radius) return;
         // Nearest available adult; stable compassion and ID tie breakers.
@@ -83,6 +89,13 @@ inline bool give_care(World& w,Citizen& parent,Citizen* child) noexcept {
        urgent_need(parent)||parent.health<50||distance_between(parent,*child)>1) return false;
     if(!consume_need(w,*child,parent.x,parent.y)) return false;
     parent.action=Action::care;
+    // Only an actual successful care transaction establishes guardianship.
+    if(life_stage(*child,w.tick)==LifeStage::infant&&
+       !live_citizen(w,child->parent1)&&!live_citizen(w,child->parent2)&&
+       !live_citizen(w,child->guardian_id)) {
+        child->guardian_id=parent.id;
+        child->guardian_since_tick=w.tick;
+    }
     return true;
 }
 inline void follow_parent(World& w,Citizen& child) noexcept {
@@ -90,8 +103,11 @@ inline void follow_parent(World& w,Citizen& child) noexcept {
     const auto* a=live_citizen(w,child.parent1);
     const auto* b=live_citizen(w,child.parent2);
     const auto* p=!a?b:!b?a:distance_between(child,*a)<=distance_between(child,*b)?a:b;
-    // Without either living parent, approach an eligible nearby adult.
-    if(!p) p=local_orphan_carer(w,child,4);
+    // Follow a known local guardian even when they cannot offer care now.
+    if(!p) {
+        const auto* guardian=live_citizen(w,child.guardian_id);
+        p=guardian&&distance_between(child,*guardian)<=4?guardian:local_orphan_carer(w,child,4);
+    }
     if(!p||!distance_between(child,*p)) return;
     // Dependent transport abstraction; no RNG or independent resource search.
     if(child.x!=p->x) child.x=static_cast<std::uint16_t>(int(child.x)+(child.x<p->x?1:-1));

@@ -40,7 +40,7 @@ inline bool valid_population(const World& w) noexcept {
     for(std::size_t i=0;i<w.founders.size();++i) {
         const auto& c=w.founders[i];
         if(!valid_agent(c)||c.id!=i+1||c.parent1||c.parent2||c.birth_tick||
-           c.purpose==Purpose::none||c.health==0) return false;
+           c.purpose==Purpose::none||c.health==0||c.guardian_id||c.guardian_since_tick) return false;
     }
     std::uint64_t last_id=2;
     for(std::size_t i=0;i<w.descendant_count;++i) {
@@ -72,13 +72,35 @@ inline bool valid_population(const World& w) noexcept {
             birth-parent.birth_tick>=18*ticks_per_year &&
             (!dead||w.archive[pos].death_tick>=birth);
     };
-    auto genealogy=[&](const Citizen& c) {
-        return parent_valid(c.parent1,c.birth_tick)&&parent_valid(c.parent2,c.birth_tick);
+    // Guardian provenance is separate from biological lineage and may refer to
+    // an archived adult. Check chronology at assignment, not current age.
+    auto guardian_valid=[&](const Citizen& c,std::uint64_t observed_tick) {
+        if(!c.guardian_id) return c.guardian_since_tick==0;
+        const auto id=c.guardian_id, since=c.guardian_since_tick;
+        if(id>=w.next_citizen_id||id==c.id||id==c.parent1||id==c.parent2||
+           c.parent1<=2||since<c.birth_tick||since>observed_tick||
+           since-c.birth_tick>=2*ticks_per_year) return false;
+        for(auto parent:{c.parent1,c.parent2}) {
+            const auto entry=index[static_cast<std::size_t>(parent-3)];
+            if(!(entry&archived)||w.archive[(entry&~archived)-1].death_tick>since) return false;
+        }
+        if(id<=2) return true;
+        const auto entry=index[static_cast<std::size_t>(id-3)];
+        if(!entry) return false;
+        const auto pos=static_cast<std::size_t>((entry&~archived)-1);
+        const bool dead=(entry&archived)!=0;
+        const auto& g=dead?w.archive[pos].citizen:w.descendants[pos];
+        return g.birth_tick<=since&&since-g.birth_tick>=18*ticks_per_year&&
+               (!dead||w.archive[pos].death_tick>=since);
+    };
+    auto genealogy=[&](const Citizen& c,std::uint64_t observed_tick) {
+        return parent_valid(c.parent1,c.birth_tick)&&parent_valid(c.parent2,c.birth_tick)&&
+               guardian_valid(c,observed_tick);
     };
     for(std::size_t i=0;i<w.descendant_count;++i)
-        if(!genealogy(w.descendants[i])) return false;
+        if(!genealogy(w.descendants[i],w.tick)) return false;
     for(std::size_t i=0;i<w.archive_count;++i)
-        if(!genealogy(w.archive[i].citizen)) return false;
+        if(!genealogy(w.archive[i].citizen,w.archive[i].death_tick)) return false;
     // Each gestation reserves an active slot and a future archive identity.
     if(w.pregnancy_count>pregnancy_capacity||
        w.descendant_count+w.pregnancy_count>descendant_capacity||

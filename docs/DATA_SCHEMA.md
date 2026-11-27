@@ -61,3 +61,6 @@ Supersedes increment 7's single gestation state: World.pregnancies[128] plus pre
 
 ### Increment 11 implementation subset
 Orphan status is derived from two biological parent IDs and absence of both from the living population; archive identities are preserved. Temporary local carers use the existing transient CareRequests index and care action. No guardian field, new saved state or genealogical mutation. Persistent adoption/household schema deferred.
+
+### Increment 12 implementation subset
+Citizen.guardian_id and guardian_since_tick store latest successful adoptive-care relationship independently of biological parent IDs. Zero pair means no recorded guardian. Guardian can refer to a valid archived person; retain through maturation and death, replace only after guardian dies and another local carer actually provides care during infancy. Assignment chronology and adult age checked at the relationship's start; both biological parents must have died by that tick. Preserve prior guardian transitions in the eventual durable journal (not yet implemented). This is a provisional state addition, not a finalized save format.

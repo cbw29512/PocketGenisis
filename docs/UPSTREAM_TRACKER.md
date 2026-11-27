@@ -41,3 +41,6 @@ Reused increment 7's original deterministic reservoir pair selection, inheritanc
 
 ## G3 local orphan care
 Reuse existing validated live-citizen lookup, local care requests, compassion trait, shared consumption and dependent movement. No new third-party source or dependency required.
+
+## G3 persistent guardian
+Reused local orphan-care selection, authoritative resource consumption and existing genealogy/archive index; no imported source or new dependency.
