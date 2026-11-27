@@ -59,3 +59,6 @@ Reuse existing original stable ID sorted-array lookup; no third-party code or de
 
 ## G6 immutable death batches
 Reuse our existing field visitor, CRC, validation and host file primitives. Original bounded segment codec and create-only publication; no new upstream dependency or copied source.
+
+## G6 historical identity reference index
+Reuse original shared genealogy checks, canonical death codec and validated immutable host publication. C++17 standard map is a host reference only; no imported source/dependency or claim of embedded performance.

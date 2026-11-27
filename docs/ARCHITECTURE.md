@@ -22,3 +22,6 @@ Separate stable identities from active array positions. Care requests, conceptio
 
 ## Immutable history storage foundation
 storage/history_segment.hpp reuses the canonical citizen field codec for bounded death batches; storage/host_history.hpp publishes readback-verified immutable files on host POSIX. The current world remains authoritative and unchanged by export. Next close P0 through a checkpoint-bound archive watermark and verified manifest/index, recoverable publication/retirement transaction, external genealogy resolution, UUID, and tests for actual births above 512 without record loss. POSIX hard links are not assumed available on the ESP32 storage medium. No official-world use.
+
+## Historical identity reference index
+Host-only storage/history_index.hpp checks external batches as one ordered prefix, exposes stable identity lookup and validates the combined historical view against current resident records and descendants. core/genealogy.hpp shares lineage checks with the existing runnable world validator. This host reference is not a complete World validator, embedded index or retirement transaction. Next bind a verified prefix to a checkpoint, recover interrupted handoff without loss, integrate lookup into simulation admission/validation and test actual births beyond 512. Device storage needs bounded-memory lookup, not the host map.
