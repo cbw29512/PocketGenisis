@@ -31,3 +31,6 @@ The audit tool logs seed and tick on rejection, and does not modify world state 
 
 ## Delivery recommendation
 Stop feature expansion. Finish biological acceptance and prioritize storage architecture in parallel with target identification; move durable-history work ahead of additional content because it is an absolute long-life blocker. Keep explicit disposable worlds; never initialize official world before the owner approves the completed release gates. No numerical balance changes made merely to raise survival statistics.
+
+## Follow-up — increment 17
+Natural density/resource regulation explicitly approved. First local crowding and acute stress mechanics implemented, 18 host regression executables passed. See POPULATION_EVIDENCE.md for research anchors and remaining calibration requirements. Does not close the P0 lifetime cap or P1 long-run balance findings.

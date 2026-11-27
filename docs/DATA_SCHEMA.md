@@ -76,3 +76,6 @@ Internal binary PGCP format v1/rules 14: header magic uint32 0x50434750, format/
 
 ### Increment 16 — maintenance state
 Maintenance context is outside simulation: trusted transport, authentication, exclusive paused state; one-use reset permit binds exact checkpoint bytes, generation and confirmation. Host prototype uses seed+generation+tick as disposable identity only. Production must bind UUID, archive/journal manifest, verified independent backup receipt, session identity/expiry, new UUID and transaction/activation status; do not serialize credentials in world saves or use simulation RNG for security. No changes to canonical world fields in this increment.
+
+### Increment 17 implementation subset
+No new saved fields. Disease-phase alive and infectious snapshots plus local neighbor and infectious-contact counts are transient, derived from existing coordinates and health. Acute food/water stress is derived from current needs, not a new chronic nutritional state. Checkpoint format 1 retains layout; rules revision 15 supersedes 14. Prior rules checkpoints require explicit migration and are not silently accepted; no official world exists. Future chronic nutrition, shelter occupancy/capacity, sanitation, water contamination and age-specific disease severity need explicit schema and calibrated validation before implementation.

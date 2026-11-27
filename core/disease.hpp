@@ -1,5 +1,6 @@
 #pragma once
 #include "world.hpp"
+#include "crowding.hpp"
 #include <algorithm>
 #include <cstdlib>
 
@@ -41,8 +42,10 @@ inline void advance_diseases(World& w) noexcept {
     const auto n=w.descendant_count+2;
     // Snapshot contagious sources before progression; prevent same-pulse cascades.
     std::array<std::array<bool,descendant_capacity+2>,disease_count> infectious{};
+    std::array<bool,descendant_capacity+2> alive{};
+    for(std::size_t i=0;i<n;++i) alive[i]=disease_citizen(w,i).health!=0;
     for(std::size_t k=0;k<disease_count;++k) {
-        for(std::size_t i=0;i<n;++i) infectious[k][i]=disease_citizen(w,i).diseases[k].illness!=0;
+        for(std::size_t i=0;i<n;++i) infectious[k][i]=alive[i]&&disease_citizen(w,i).diseases[k].illness!=0;
     }
     for(std::size_t k=0;k<disease_count;++k) {
         const auto& rule=disease_rules[k];
@@ -53,20 +56,23 @@ inline void advance_diseases(World& w) noexcept {
             if(!c.health) continue;
             if(d.illness) {
                 const int floor=i<2?1:0;
-                c.health=static_cast<std::uint8_t>(std::max(floor,int(c.health)-int(rule.damage)));
+                c.health=static_cast<std::uint8_t>(std::max(floor,int(c.health)-int(stressed_disease_damage(rule.damage,c.hunger,c.thirst))));
                 // Preserve infection provenance at a fatal pulse.
                 if(!c.health) continue;
                 if(--d.illness==0&&disease_roll(w,7500)) d.immunity=static_cast<std::uint16_t>(rule.immunity);
             } else if(d.immunity) {
                 --d.immunity;
             } else if(has_source) {
-                unsigned contacts=0;
+                unsigned contacts=0,neighbors=0;
                 for(std::size_t j=0;j<n;++j) {
-                    if(!infectious[k][j]) continue;
+                    if(j==i||!alive[j]) continue;
                     const auto& source=disease_citizen(w,j);
-                    if(std::abs(int(c.x)-int(source.x))+std::abs(int(c.y)-int(source.y))<=1) ++contacts;
+                    if(std::abs(int(c.x)-int(source.x))+std::abs(int(c.y)-int(source.y))<=1) {
+                        ++neighbors;
+                        if(infectious[k][j]) ++contacts;
+                    }
                 }
-                if(contacts&&disease_roll(w,exposure_risk(contacts,d.resistance)))
+                if(contacts&&disease_roll(w,crowded_exposure(exposure_risk(contacts,d.resistance),neighbors)))
                     d.illness=static_cast<std::uint16_t>(rule.duration);
             }
             any=any||d.illness!=0;
