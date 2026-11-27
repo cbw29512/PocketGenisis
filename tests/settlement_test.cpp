@@ -36,6 +36,18 @@ int main(){
         a.hunger=a.thirst=0;a.action=Action::idle;research.job.active=true;research.job.owner=1;
         check(!policy(*w,a)&&state.steps==1,"active research precedes home");
         research.job.active=false;
+        // Research is actually eligible at tick240 with the empty knowledge masks.
+        // Reserve that action instead of moving home; the fixture must not confuse
+        // the higher-priority work reservation with a successful homeward step.
+        check(policy(*w,a)&&a.action==Action::idle&&state.steps==1,"new research precedes home");
+        const auto all=static_cast<discovery::Mask>((1u<<discovery::tech_count)-1u);
+        research.known[0]=research.known[1]=all;
+        // With all discoveries known, an affordable unfinished blueprint also
+        // takes precedence. Then remove only the construction materials here.
+        auto& local=w->tiles[construction::location(a)];
+        local.wood=20;local.stone=20;
+        check(policy(*w,a)&&a.action==Action::idle&&state.steps==1,"new construction precedes home");
+        local.wood=local.stone=0;
         check(policy(*w,a)&&a.action==Action::move&&state.arrivals==2,"real discretionary arrival");
         initialize(*w,42);research={};sites={};reserve={};cooked={};sheltered={};state={};Production p{};
         for(unsigned i=0;i<3600;++i){
