@@ -1,6 +1,7 @@
 #pragma once
 #include "world.hpp"
 #include "crowding.hpp"
+#include "spatial_lookup.hpp"
 #include <algorithm>
 #include <cstdlib>
 
@@ -40,16 +41,25 @@ inline bool disease_roll(World& w,unsigned chance) noexcept {
 inline void advance_diseases(World& w) noexcept {
     if(w.tick%60) return;
     const auto n=w.descendant_count+2;
-    // Snapshot contagious sources before progression; prevent same-pulse cascades.
-    std::array<std::array<bool,descendant_capacity+2>,disease_count> infectious{};
-    std::array<bool,descendant_capacity+2> alive{};
-    for(std::size_t i=0;i<n;++i) alive[i]=disease_citizen(w,i).health!=0;
-    for(std::size_t k=0;k<disease_count;++k) {
-        for(std::size_t i=0;i<n;++i) infectious[k][i]=alive[i]&&disease_citizen(w,i).diseases[k].illness!=0;
+    // Snapshot every strain and the alive population before any damage or
+    // recovery. Counts preserve contacts with citizens who die during this pulse.
+    detail::TileCounts alive{};
+    std::array<detail::TileCounts,disease_count> infectious{};
+    for(std::size_t i=0;i<n;++i) {
+        const auto& c=disease_citizen(w,i);
+        if(!c.health) continue;
+        alive.add(c);
+        for(std::size_t k=0;k<disease_count;++k)
+            if(c.diseases[k].illness) infectious[k].add(c);
     }
+    bool has_any=false;
+    for(auto& source:infectious) {
+        if(source.count) {source.sort();has_any=true;}
+    }
+    if(has_any) alive.sort();
     for(std::size_t k=0;k<disease_count;++k) {
         const auto& rule=disease_rules[k];
-        const bool has_source=std::any_of(infectious[k].begin(),infectious[k].end(),[](bool x){return x;});
+        const bool has_source=infectious[k].count!=0;
         bool any=false;
         for(std::size_t i=0;i<n;++i) {
             auto& c=disease_citizen(w,i);auto& d=c.diseases[k];
@@ -63,15 +73,10 @@ inline void advance_diseases(World& w) noexcept {
             } else if(d.immunity) {
                 --d.immunity;
             } else if(has_source) {
-                unsigned contacts=0,neighbors=0;
-                for(std::size_t j=0;j<n;++j) {
-                    if(j==i||!alive[j]) continue;
-                    const auto& source=disease_citizen(w,j);
-                    if(std::abs(int(c.x)-int(source.x))+std::abs(int(c.y)-int(source.y))<=1) {
-                        ++neighbors;
-                        if(infectious[k][j]) ++contacts;
-                    }
-                }
+                // Susceptible citizen was alive at snapshot and is not a
+                // source for this strain. Exclude only itself from neighbors.
+                const auto contacts=infectious[k].nearby(c,1);
+                const auto neighbors=alive.nearby(c,1)-1;
                 if(contacts&&disease_roll(w,crowded_exposure(exposure_risk(contacts,d.resistance),neighbors)))
                     d.illness=static_cast<std::uint16_t>(rule.duration);
             }

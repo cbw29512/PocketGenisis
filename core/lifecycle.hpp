@@ -1,6 +1,7 @@
 #pragma once
 #include "population.hpp"
 #include "parental_health.hpp"
+#include "parent_tiles.hpp"
 #include <algorithm>
 #include <cstdlib>
 
@@ -25,24 +26,29 @@ inline void attempt_conception(World& w) noexcept {
         if(a==live_capacity||b==live_capacity) return;
         busy[a]=busy[b]=true;
     }
-    // Reservoir sampling: every locally eligible pair has equal selection chance.
-    std::uint32_t count=0,roll{};
-    Pregnancy selected{};
+    // Keep exact reservoir order and draws; only skip ineligible/distant slots.
+    detail::ParentTiles index{};
     const auto n=w.descendant_count+2;
     for(std::size_t i=0;i<n;++i) {
-        const auto& a=active_at(w,i);
-        if(busy[i]||!eligible_parent(a,w.tick)) continue;
-        for(std::size_t j=i+1;j<n;++j) {
-            const auto& b=active_at(w,j);
-            if(busy[j]||!valid_pair(a.id,b.id)||!eligible_parent(b,w.tick)||
-               std::abs(int(a.x)-int(b.x))+std::abs(int(a.y)-int(b.y))>2) continue;
+        const auto& c=active_at(w,i);
+        if(!busy[i]&&eligible_parent(c,w.tick)) index.add(c,i);
+        else busy[i]=true; // Reuse scratch as an eligibility mask.
+    }
+    index.sort();
+    std::uint32_t count=0,roll{};
+    std::size_t first=0,second=0;
+    for(std::size_t i=0;i<n;++i) {
+        if(busy[i]||i==1) continue;
+        index.later_neighbors(active_at(w,i),i,[&](std::size_t j) noexcept {
             ++count;
-            if(count==1||(w.streams[reproduction].bounded(count,roll)&&roll==0))
-                selected={a.id,b.id,w.tick+gestation_ticks};
-        }
+            if(count==1||(w.streams[reproduction].bounded(count,roll)&&roll==0)) {
+                first=i;second=j;
+            }
+        });
     }
     if(count&&w.streams[reproduction].bounded(4,roll)&&roll==0)
-        w.pregnancies[w.pregnancy_count++]=selected;
+        w.pregnancies[w.pregnancy_count++]={active_at(w,first).id,active_at(w,second).id,
+                                           w.tick+gestation_ticks};
 }
 inline void deliver(World& w,Citizen& a,Citizen& b) noexcept {
     // Parents are read from existing slots; fixed array never reallocates.
