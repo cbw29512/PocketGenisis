@@ -1,4 +1,5 @@
 #include "../fixture.hpp"
+#include "../profile.hpp"
 #include <Arduino.h>
 #include <esp_heap_caps.h>
 #include <esp_timer.h>
@@ -37,13 +38,13 @@ bool measure(World& w,std::size_t total,bool contact) {
     Serial.printf("START initial=%u contact=%u\n",
         static_cast<unsigned>(total),static_cast<unsigned>(contact));
     Production p{};
+    benchmark::Profile profile{};
     std::uint64_t elapsed=0,max_us=0;
     unsigned above_budget=0,above_second=0;
     std::size_t min_living=total;
     for(unsigned i=0;i<samples;++i) {
-        const auto start=esp_timer_get_time();
-        const bool ok=step_world(w,p);
-        const auto us=static_cast<std::uint64_t>(esp_timer_get_time()-start);
+        std::uint64_t us=0;
+        const bool ok=profile.step(w,p,us);
         if(!ok) {
             Serial.printf("ERROR rejected tick %u\n",i);
             return false;
@@ -69,6 +70,7 @@ bool measure(World& w,std::size_t total,bool contact) {
     Serial.printf("LIMITS min_living=%u over_200ms=%u over_1000ms=%u stack_min_free_bytes=%u\n",
         static_cast<unsigned>(min_living),above_budget,above_second,
         static_cast<unsigned>(uxTaskGetStackHighWaterMark(nullptr)));
+    profile.report(samples);
     memory_report("after_case");
     return true;
 }

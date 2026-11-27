@@ -10,3 +10,15 @@ Build with `pio run -d benchmarks/elecrow -e elecrow_s3_scale_probe`. The separa
 
 ### Xtensa large-initializer build correction
 The first scale build on Windows compiled but failed at link with `l32r: literal target out of range` in setup (no upload). Default-construct large arrays in place only in the disposable scale configuration, move placement construction into a non-inlined helper, and enable Xtensa `-mtext-section-literals` in the scale environment as recommended by the linker. Host regression checks default element values. Core tick logic and production capacity unchanged; the revised device link and runtime remain to be verified. https://gcc.gnu.org/onlinedocs/gcc/Xtensa-Options.html
+
+## Measured scale baseline and profiling
+Owner's successful corrected build/upload and serial run on COM3: dca5e03, 600 ticks each. All eight cases completed, zero deaths and no count reductions. Normal/crowded means and maxima in microseconds:
+
+| Population | Normal mean/max | Crowded mean/max | Normal/crowded >200ms | Normal/crowded >1s |
+|---|---|---|---|---|
+|256|2744/26157|2839/32527|0/0|0/0|
+|512|8143/122773|8413/133611|0/0|0/0|
+|1024|17538/793782|18947/845298|1/1|0/0|
+|2048|37936/3455729|59002/3753356|1/10|1/7|
+
+Heap during each case: internal free 347716, largest 303092; PSRAM free 7756067, largest 7733236. Minimum stack free reported 17284 bytes; PSRAM returned to 8386035 on release. CPU target met at 512, not 1024 or 2048; no replacement hardware justified until optimization and integrated tests. Same scale environment now adds five phase timings (survival includes validation/care/search), each mean/peak and contribution to the overall worst tick, plus absolute worst tick. Timer reads add small measurement overhead, no serial inside timed regions. The shared observed tick retains authoritative order, production and RNG. Default no-op observer preserves standard calls and rules. No spatial algorithm changes yet: profile first, then optimize measured hotspots with replay parity. Host tests check canonical state and phase order; physical rerun required. No official founding.

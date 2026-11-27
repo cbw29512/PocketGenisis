@@ -104,12 +104,12 @@ Baseline 55510b0 remote [CI 45931720560](https://github.com/cbw29512/PocketGenis
   - [ ] PG-G6-07c UUID, independent backup, migration and device cadence — pending.
 - [ ] PG-G3-02 Complete biological acceptance (founder incapacitation/recovery, parental injury/accidents, calibrated long-run density/age/cause results) — active priority per owner; hardware and remaining persistence deferred.
   - [x] PG-G3-02a Founder incapacitation, natural recovery and post-collapse birth — host CI 46022759322 passed (controlled seeded scenario).
-  - [ ] PG-G3-02b Parental childbirth injury and other accidents — parental complication candidate implemented; CI and accidents pending.
+  - [ ] PG-G3-02b Parental childbirth injury and other accidents — parental complications passed host CI 46023611067; ordinary accidents pending.
   - [ ] PG-G3-02c Long-run demographic calibration — pending.
 - [ ] PG-G4-01 Weather, terrain, construction, agriculture and conserved production — pending.
 - [ ] PG-G5-01 Knowledge, teaching, discoveries, Genesis, rarity, culture and effects — pending.
 - [ ] PG-G7-01 Full-screen observer renderer and read-only inspection — pending.
-- [ ] PG-G7-02 Exact ESP32 identification, safe backup/install and authenticated USB maintenance — blocked on physical board verification.
+- [ ] PG-G7-02 Exact ESP32 identification, safe backup/install and authenticated USB maintenance — in progress: owner verified ESP32-S3 rev 0.2, 4 MiB flash, 8 MiB PSRAM, COM3, matching complete factory backups and disabled secure boot/encryption; CPU probe compiled and flashed. PCB revision, display/SD and authenticated maintenance still open.
 - [ ] PG-G8-01 Long-run deterministic replay/divergence, memory and physical power-cut/72h soak — pending.
 - [ ] PG-G9-01 Release acceptance and explicit owner-authorized official founding — pending.
 
@@ -133,3 +133,6 @@ Baseline 1b95c02 [CI 46022080219](https://github.com/cbw29512/PocketGenisis/acti
 
 ## Increment 28 — parental childbirth complications
 Baseline 59a5224 [CI 46022759322](https://github.com/cbw29512/PocketGenisis/actions/runs/46022759322) passed; PG-G3-02a checked off at host scope. Added core/parental_health.hpp, core/death_validation.hpp and tests/parental_health_test.cpp; updated world, lifecycle, population, history segment/index, checkpoint rules and isolated newborn fixture. Independent appended parental RNG stream; provisional risk half existing newborn risk, one selected parent may lose 30 health or suffer severe 100 damage, founder floor 1. Mortal parental deaths archived as cause 6, distinct from newborn fatal childbirth 4, after all disjoint deliveries; sort only current tick's death suffix, preserving stable identities and genealogy. Shared death validation across resident and archive codecs; no new field other than RNG state. Rules 17, old disposable saves require migration. Tests cover recovery, isolated RNG, simultaneous mortality/newborn/parent deaths, codec and immortal floor. New-head CI pending; no local pass claimed. Provisional abstract parent risk, no claim of medical calibration; non-childbirth accidents and long-run biological acceptance remain open. Next accidents then terrain/weather. Hardware/backup deferred per owner, no official founding.
+
+## Increment 29 — measured hardware scaling and phase profiling
+Baseline dca5e03 [CI 46066994818](https://github.com/cbw29512/PocketGenisis/actions/runs/46066994818) passed. Owner's physical 600-tick normal/crowded cases at 256/512/1024/2048 completed without crashes or deaths. Worst times 32.527/133.611/845.298/3753.356 ms respectively; at 2048 crowded seven ticks exceeded one second. PSRAM free 7756067 bytes, internal heap free 347716 bytes, minimum task stack free 17284 bytes. Keep 7-inch Elecrow; 512 meets provisional 200 ms CPU target, 1024/2048 require optimization. No final production population capacity change. Added optional shared phase observer, device timings, canonical parity regression; profile before optimizing suspected disease/conception scans. New-head CI and physical rerun pending. Display, SD, persistence, long soak and official founding remain unqualified. Exact results in benchmarks/elecrow/README.md.
