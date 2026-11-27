@@ -9,7 +9,13 @@ using namespace genesis;
 int main() {
     try {
         static_assert(live_capacity==2050 && history_capacity==4096);
-        auto w=std::make_unique<World>();
+        // Match device default initialization (not aggregate value initialization).
+        auto w=std::unique_ptr<World>(new World);
+        if(w->descendants.back().health!=100 ||
+           w->archive.back().citizen.lifespan_years!=70 ||
+           w->archive.back().citizen.id!=0 ||
+           w->archive.back().death_tick!=0)
+            throw std::runtime_error("default initialization changed");
         if(benchmark::prepare(*w,2051,false))
             throw std::runtime_error("invalid capacity admitted");
         for(auto n:{256u,512u,1024u,2048u}) {

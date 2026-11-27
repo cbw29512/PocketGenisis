@@ -75,9 +75,19 @@ struct World {
     std::array<Rng, stream_count> streams{};
     std::array<Tile, width * height> tiles{};
     std::array<Founder, 2> founders{};
+#ifdef PG_DISPOSABLE_SCALE_PROBE
+    // Default-construct elements in place; avoid GCC 8 expanding huge brace
+    // initializers into thousands of literal-loading instructions.
+    std::array<Citizen, descendant_capacity> descendants;
+#else
     std::array<Citizen, descendant_capacity> descendants{};
+#endif
     std::size_t descendant_count{};
+#ifdef PG_DISPOSABLE_SCALE_PROBE
+    std::array<DeathRecord, history_capacity> archive;
+#else
     std::array<DeathRecord, history_capacity> archive{};
+#endif
     std::size_t archive_count{};
     std::uint64_t next_citizen_id{3}, lost_gestations{};
     std::array<Pregnancy,pregnancy_capacity> pregnancies{};

@@ -15,6 +15,11 @@ constexpr unsigned populations[]={256,512,1024,2048};
 #else
 constexpr unsigned populations[]={2,32,64,128,256};
 #endif
+// Default initialization invokes element default constructors without an
+// enormous aggregate brace expansion. Keep setup's code generation bounded.
+__attribute__((noinline)) World* construct_world(void* raw) noexcept {
+    return new(raw) World;
+}
 void memory_report(const char* label) {
     constexpr auto internal=MALLOC_CAP_INTERNAL|MALLOC_CAP_8BIT;
     constexpr auto external=MALLOC_CAP_SPIRAM|MALLOC_CAP_8BIT;
@@ -82,7 +87,7 @@ void setup() {
         Serial.println("ERROR world allocation in PSRAM failed");
         return;
     }
-    auto* w=new(raw) World{};
+    auto* w=construct_world(raw);
     memory_report("allocated");
     bool ok=true;
     for(auto n:populations) {
