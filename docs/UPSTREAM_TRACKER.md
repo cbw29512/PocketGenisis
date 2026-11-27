@@ -50,3 +50,6 @@ Reused existing seeded RNG, birth inheritance, health recovery and archive primi
 
 ## G3 disease and audit
 Original fictional two-slot model reuses existing health, seeded RNG, inheritance and death archive primitives; no new third-party source or dependency imported. Population audit uses existing portable engine without observer mutation.
+
+## G6 checkpoint foundation
+Original field-wise codec and POSIX adapter using C++17 standard library and operating-system file primitives; no new imported source or dependency. Reuse existing world validation and simulation replay.

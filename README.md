@@ -15,3 +15,5 @@ Design baseline approved. Portable C++ simulation is in development; actual ESP3
 - [Livestream proposal](docs/LIVESTREAM.md)
 
 - [Project audit and release blockers](docs/AUDIT.md)
+
+Host-only disposable-world checkpoints are implemented and tested under `storage/`; the permanent archive and actual device integration remain release blockers.

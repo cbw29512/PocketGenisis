@@ -7,7 +7,7 @@
 | G3 citizens | In progress | Reproduction, genealogy, care, guardianship, newborn and two fictional disease slices host-tested; parental complications, accidents, incapacitation, full recovery, balance and durable history remain |
 | G4 environment | In progress | Seasonal renewable stock slice CI passed; weather, terrain suitability and balance remain |
 | G5 technology | Pending | Prerequisites, failure, teaching and loss tests |
-| G6 saves | Pending | Corruption recovery and migration |
+| G6 saves | In progress | Host versioned checkpoint, roundtrip, alternate-slot recovery tested; UUID, segmented journal, migration, automatic scheduling and hardware power-cut testing pending |
 | G7 target | Pending | Board-specific CI, display/touch/storage |
 | G8 integration | Pending | Render and inspect citizens, measured capacity |
 | G8a seeded emergence | Pending | Reproducibility, save/reload and multi-seed divergence suite with controlled same-map cohort; thresholds agreed before release tests |
@@ -66,3 +66,6 @@ Increment 13: conditional newborn risk, recoverable complications, immediate fat
 
 ## Increment 14 — audit and disease slice
 See [AUDIT.md](AUDIT.md). All exact baseline 13 tests passed; all 14 updated tests passed locally with fatal UBSan, verified source blob hashes before commit. 32 seeds x five simulated years completed, all births/nonzero descendants; 352 identities, 74 deaths, 278 living; 31 reached age two at sampled checkpoints. Partial longer run: six complete 20-year worlds, adulthood observed in all six; execution limit prevented final two. Added reproducible population audit utility, corrected stale status, optimized zero-source disease scans and rejected inconsistent disease death archives. Remote CI prior run 45925704360 queued, no remote pass claimed. Prioritize biological acceptance, durable storage/identity decoupling and hardware identification; no production flash, no official world. See audit priority table.
+
+## Increment 15 — checkpoint foundation
+Audit priority P0 storage: added three modular storage headers, two regression programs, explicit little-endian field encoding, CRC, version validation, alternate-slot recovery and actual POSIX synced file writes/readback. Baseline 27 code/test/script/tool blobs matched 6eb9efb; all 16 regression executables passed locally twice using existing strict C++17/fatal UBSan script (GNU g++ 14.2.0). New tests include 50000 ticks before save and 10000 deterministic continuation ticks, corrupted/truncated/unsupported version rejection, conflicting generations, backwards state, file fallback and no silent reset. New five source blobs verified against local tested files before commit. Remote run 45926350082 queued at start; no CI pass claimed. G6 remains partial, archive P0 not closed: lifetime 512 cap, world UUID, migration, journal transactions and device adapter are still required. Next decouple transient indices from lifetime IDs and implement durable segmented archive with transactional handoff; preserve current checkpoint fixtures via version migration. No official world or flash.

@@ -10,3 +10,6 @@ Publish a bounded read-only snapshot/event stream; separate rendering/broadcast 
 
 ## Approved design boundaries
 Official observer interface is read-only with respect to simulation; maintenance/backup and view/audio settings are isolated from world transitions. Preserve founder personal knowledge separately from mortal knowledge, simulated records and durable observer history. Use shared decay/resource transactions for complete physical disappearance of abandoned structures. Future society, belief, cultural/language, diplomacy and space systems extend versioned state only after primitive core and persistence are stable; no automatic territory growth or hidden intervention. Maintain a quiet default.
+
+## Implemented host persistence slice
+storage/checkpoint_fields.hpp and checkpoint.hpp provide explicit binary encoding, validation and two-generation recovery. storage/host_checkpoint.hpp is a POSIX-only file adapter using synced temporary files and alternating slots. Caller serializes access and isolates disposable world directories. Filesystem readback and simulated corruption tests pass on host; not a physical power-cut or ESP32 certification. Full archive/journal transactions, UUID, automatic checkpoint scheduling, JSON interchange and device adapter remain unimplemented. Do not use this prototype for official saves.
