@@ -1,5 +1,7 @@
 #pragma once
-#ifdef PG_SETTLEMENT_PROBE
+#ifdef PG_AGRICULTURE_PROBE
+#include "../../core/agriculture.hpp"
+#elif defined(PG_SETTLEMENT_PROBE)
 #include "../../core/settlement.hpp"
 #elif defined(PG_SHELTER_PROBE)
 #include "../../core/shelter.hpp"
@@ -15,6 +17,10 @@ namespace genesis::benchmark {
 inline bool construction_probe(World& w) {
     initialize(w,42);discovery::State knowledge{};construction::State sites{};Production p{};
     unsigned births=0;
+#ifdef PG_AGRICULTURE_PROBE
+    agriculture::State crops{};
+    Serial.println("AGRICULTURE PROBE");
+#endif
 #ifdef PG_SETTLEMENT_PROBE
     settlement::State home{};
     Serial.println("SETTLEMENT RETURN PROBE");
@@ -35,7 +41,9 @@ inline bool construction_probe(World& w) {
     constexpr const char* events[]={"none","started","completed","abandoned"};
     for(unsigned i=0;i<43200;++i) {
         discovery::Event re{};construction::Event ce{};
-#ifdef PG_SETTLEMENT_PROBE
+#ifdef PG_AGRICULTURE_PROBE
+        if(!agriculture::step(w,knowledge,sites,reserve,cooked,sheltered,home,crops,p,re,ce,discovery::probe_cadence)) {
+#elif defined(PG_SETTLEMENT_PROBE)
         if(!settlement::step(w,knowledge,sites,reserve,cooked,sheltered,home,p,re,ce,discovery::probe_cadence)) {
 #elif defined(PG_SHELTER_PROBE)
         if(!shelter::step(w,knowledge,sites,reserve,cooked,sheltered,p,re,ce,discovery::probe_cadence)) {
@@ -89,6 +97,14 @@ inline bool construction_probe(World& w) {
     Serial.printf("HOUSING_RESULT shelters=%u planning_capacity=%u unmet_demand=%u site_slots=%u\n",
         construction::completed_huts(sites),construction::completed_huts(sites)*construction::housing_capacity,
         construction::housing_demand(w,sites),construction::site_count);
+#endif
+#ifdef PG_AGRICULTURE_PROBE
+    Serial.printf("AGRICULTURE_RESULT known=%u fields=%u planted=%llu tended=%llu water=%llu harvests=%llu food=%llu stage=%u state_bytes=%u\n",
+        discovery::discovered(knowledge),unsigned(sites.sites[construction::field].stage==construction::Stage::complete),
+        static_cast<unsigned long long>(crops.plants),static_cast<unsigned long long>(crops.tended),
+        static_cast<unsigned long long>(crops.water),static_cast<unsigned long long>(crops.harvests),
+        static_cast<unsigned long long>(crops.food),unsigned(crops.stage),unsigned(sizeof(crops)));
+    if(!agriculture::valid(crops)) {Serial.println("ERROR agriculture accounting");return false;}
 #endif
     return valid_population(w)&&construction::completed(sites)>0&&births>0;
 }

@@ -65,3 +65,5 @@ Default CI runs 16 seeds x 3600 ticks via tests/civilization_diversity_test.cpp.
 `elecrow_s3_settlement_probe` extends shelter with local viable home-return policy; SETTLEMENT_RESULT reports steps and arrivals. No forced settlement or official save; host tests and device run pending.
 
 `elecrow_s3_housing_probe` extends settlement with demand-driven extra shelter slots, same material and labor rules; HOUSING_RESULT reports actual huts and unmet planning demand. Earlier profiles retain original capacity. No official save. CI/device pending.
+
+`elecrow_s3_agriculture_probe` extends housing with one actual prepared field and seed/water/time/labor crop cycle. AGRICULTURE_RESULT reports observed planting, tending, harvest and output; absence of harvest is observable, not forced. Controlled host test verifies mechanics. CI/device pending.

@@ -4,7 +4,11 @@
 #include <cstdlib>
 
 namespace genesis::discovery {
-enum Tech : std::uint8_t { fire,stone_tools,shelter,cooking,food_storage,tech_count };
+enum Tech : std::uint8_t { fire,stone_tools,shelter,cooking,food_storage,
+#ifdef PG_AGRICULTURE_PROBE
+    farming,
+#endif
+    tech_count };
 using Mask=std::uint16_t;
 inline constexpr Mask tech_bit(Tech t) noexcept {return static_cast<Mask>(1u<<t);}
 struct Rule {
@@ -18,6 +22,9 @@ inline constexpr std::array<Rule,tech_count> rules{{
     {"Basic shelter",tech_bit(stone_tools),4,2,0,50},
     {"Cooking",tech_bit(fire),1,0,2,50},
     {"Food storage",tech_bit(stone_tools),3,1,2,50}
+#ifdef PG_AGRICULTURE_PROBE
+    ,{"Farming",static_cast<Mask>(tech_bit(stone_tools)|tech_bit(food_storage)),2,1,4,35}
+#endif
 }};
 inline constexpr unsigned work_required=30;
 inline constexpr std::uint64_t normal_cadence=43200,probe_cadence=60,stall_limit=600;

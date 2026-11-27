@@ -2,13 +2,20 @@
 #include "discovery.hpp"
 
 namespace genesis::construction {
-enum Kind : std::uint8_t { campfire,hut,store,kind_count };
+enum Kind : std::uint8_t { campfire,hut,store,
+#ifdef PG_AGRICULTURE_PROBE
+    field,
+#endif
+    kind_count };
 enum class Stage : std::uint8_t { empty,building,complete,abandoned };
 struct Blueprint {const char* name;discovery::Tech knowledge;unsigned wood,stone,work;};
 inline constexpr std::array<Blueprint,kind_count> blueprints{{
     {"Campfire",discovery::fire,4,2,20},
     {"Shelter",discovery::shelter,8,4,40},
     {"Food store",discovery::food_storage,6,3,30}
+#ifdef PG_AGRICULTURE_PROBE
+    ,{"Prepared field",discovery::farming,2,1,20}
+#endif
 }};
 struct Site {
     Stage stage{};
@@ -52,20 +59,25 @@ inline bool occupied(const State& s,std::uint16_t tile) noexcept {
     for(const auto& b:s.sites) if(b.stage!=Stage::empty&&b.tile==tile) return true;
     return false;
 }
+inline bool near_completed_hut(const State& s,const Citizen& c) noexcept {
+    for(unsigned j=0;j<site_count;++j) {
+        const auto& home=s.sites[j];
+        if(kind_at(j)==hut&&home.stage==Stage::complete&&
+           std::abs(int(c.x)-int(home.tile%width))+std::abs(int(c.y)-int(home.tile/width))<=8) return true;
+    }
+    return false;
+}
 inline bool can_start(const World& w,const discovery::State& research,const State& s,
                       unsigned owner,unsigned k) noexcept {
+    if(owner>=w.founders.size()||k>=site_count) return false;
     const auto& c=w.founders[owner];const auto& bp=blueprints[kind_at(k)];
     const auto tile=location(c);const auto& stock=w.tiles[tile];
-    if(k>=kind_count) {
-        if(!completed_huts(s)||!housing_demand(w,s)||stock.food<12||stock.water<12) return false;
-        bool local=false;
-        for(unsigned j=0;j<site_count;++j) {
-            const auto& home=s.sites[j];
-            if(kind_at(j)==hut&&home.stage==Stage::complete&&
-               std::abs(int(c.x)-int(home.tile%width))+std::abs(int(c.y)-int(home.tile/width))<=8) {local=true;break;}
-        }
-        if(!local) return false;
-    }
+    if(k>=kind_count&&(!housing_demand(w,s)||stock.food<12||stock.water<12||
+                       !near_completed_hut(s,c))) return false;
+#ifdef PG_AGRICULTURE_PROBE
+    if(k==field&&(stock.food<14||stock.water<12||(!w.descendant_count&&stock.food>48)||
+                 !near_completed_hut(s,c))) return false;
+#endif
     return s.sites[k].stage==Stage::empty&&!occupied(s,tile)&&
         discovery::available(c)&&(research.known[owner]&discovery::tech_bit(bp.knowledge))&&
         stock.wood>=bp.wood&&stock.stone>=bp.stone;

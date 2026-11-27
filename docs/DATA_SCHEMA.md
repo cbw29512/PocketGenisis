@@ -131,3 +131,5 @@ Disposable shelter state: uint64 cumulative extra recovery grants. Recovery slot
 Disposable settlement state: uint64 homeward steps and arrivals; derive initial home from completed hut tile, no canonical residency fields. See SETTLEMENT_CONTRACT.md.
 
 Housing probe adds eight Site records under PG_HOUSING_PROBE only. Blueprint kind derived from slot; extra records all huts. No canonical saved state or new citizen fields. Existing profiles retain three-site layout. See HOUSING_CONTRACT.md.
+
+Agriculture profile only: append Farming research catalog entry and prepared field blueprint/site; separate crop stage, last work tick, uint64 plants/tended/water/harvests/food counters. No canonical state change. See AG​RICULTURE_CONTRACT.md (AGRICULTURE_CONTRACT.md).
