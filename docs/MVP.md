@@ -80,3 +80,5 @@ Continuous real-world elapsed time targets, not unlock dates: primitive survival
 
 ## Owner-approved wildlife extension (2026-11-27)
 Add a living food web, wildlife hunger/thirst, reproduction, mortality, hunting, fishing and domestication. First bounded terrestrial food-web prototype and combined performance probe specified in [WILDLIFE_CONTRACT.md](WILDLIFE_CONTRACT.md); fish, migration, age/health, learned hunting, domestication, rendering and durable replay remain explicit staged gates. No official save changes until schema and replay validation. Target 4096 humans independent of natural ecological carrying capacity.
+
+Owner clarification: wildlife is lightweight, moves toward food and water, and supplies hunting/fishing. Developed city land excludes wild animals; livestock is separately domesticated and bred by citizens. Abandoned land may return to habitat. Avoid individual animal AI and genealogy. See WILDLIFE_CONTRACT.md for implementation boundary.

@@ -98,6 +98,7 @@ bool measure(World& w,std::size_t total,bool contact) {
     }
     Serial.printf("WILDLIFE final=%llu births=%llu deaths=%llu hunted=%llu meals=%llu predation=%llu mean_us=%llu max_us=%llu\n",
         wildlife::population(*animals),ecology.births,ecology.deaths,ecology.hunted,ecology.meals,ecology.predation,animal_sum/samples,animal_peak);
+    Serial.printf("WILDLIFE_MOVEMENT migrated=%llu displaced_deaths=%llu\n",ecology.migrated,ecology.displaced_deaths);
 #endif
     memory_report("after_case");
     return true;

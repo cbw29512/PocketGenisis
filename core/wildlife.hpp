@@ -13,12 +13,15 @@ struct WildlifeTile {
 };
 struct Wildlife {
     std::array<WildlifeTile,std::size_t(width)*height> tiles;
+    // Explicit land-use input; a crowd is not automatically a city.
+    std::array<std::uint8_t,std::size_t(width)*height> developed;
 };
 struct Totals {
-    std::uint64_t births{}, deaths{}, hunted{}, meals{}, food{}, water{}, predation{}, spoiled{};
+    std::uint64_t births{}, deaths{}, hunted{}, meals{}, food{}, water{}, predation{}, spoiled{}, migrated{}, displaced_deaths{};
 };
 inline void initialize(Wildlife& state,std::uint64_t seed) noexcept {
     Rng rng{seed^0x57494c444c494645ULL};
+    state.developed.fill(0);
     for(auto& tile:state.tiles) {
         tile=WildlifeTile{};
         for(std::size_t k=0;k<species_count;++k) {
@@ -34,8 +37,9 @@ inline std::uint64_t population(const Wildlife& state) noexcept {
     return n;
 }
 inline bool valid(const Wildlife& state) noexcept {
-    for(const auto& tile:state.tiles) {
-        if(tile.meat>meat_limit) return false;
+    for(std::size_t i=0;i<state.tiles.size();++i) {
+        const auto& tile=state.tiles[i];
+        if(state.developed[i]>1||tile.meat>meat_limit) return false;
         for(auto count:tile.count) if(count>group_limit) return false;
     }
     return true;
@@ -78,9 +82,9 @@ inline void pulse(WildlifeTile& tile,Tile& resources,bool breeding,Totals& out) 
         }
     }
 }
-inline void hunt(Citizen& c,WildlifeTile& tile,std::uint64_t tick,Totals& out) noexcept {
+inline void hunt(Citizen& c,WildlifeTile& tile,std::uint64_t tick,Totals& out,bool developed=false) noexcept {
     if(!c.health||c.action!=Action::idle||c.hunger<24||life_stage(c,tick)!=LifeStage::adult) return;
-    if(!tile.meat) {
+    if(!tile.meat&&!developed) {
         for(std::size_t k=0;k<wolf;++k) {
             if(!tile.count[k]||unsigned(tile.meat)+yield[k]>meat_limit) continue;
             --tile.count[k];tile.meat+=yield[k];++out.hunted;++out.deaths;
@@ -93,15 +97,27 @@ inline void hunt(Citizen& c,WildlifeTile& tile,std::uint64_t tick,Totals& out) n
         c.action=Action::eat;
     }
 }
+} // namespace genesis::wildlife
+#include "wildlife_movement.hpp"
+namespace genesis::wildlife {
 // Caller must first complete a validated human tick. No new RNG draws.
 inline void advance(World& w,Wildlife& state,Totals& out) noexcept {
     auto act=[&](Citizen& c) noexcept {
-        hunt(c,state.tiles[std::size_t(c.y)*width+c.x],w.tick,out);
+        const auto i=std::size_t(c.y)*width+c.x;
+        hunt(c,state.tiles[i],w.tick,out,state.developed[i]!=0);
     };
     for(auto& c:w.founders) act(c);
     for(std::size_t i=0;i<w.descendant_count;++i) act(w.descendants[i]);
     if(w.tick%60) return;
-    for(std::size_t i=0;i<state.tiles.size();++i)
-        pulse(state.tiles[i],w.tiles[i],w.tick%600==0,out);
+    migrate(w,state,out);
+    for(std::size_t i=0;i<state.tiles.size();++i) {
+        auto& tile=state.tiles[i];
+        if(state.developed[i]) {
+            // Habitat loss is accounted for explicitly; animals that cannot
+            // escape this local pulse cannot feed or breed on developed land.
+            for(auto& n:tile.count) {out.deaths+=n;out.displaced_deaths+=n;n=0;}
+            if(tile.meat) {--tile.meat;++out.spoiled;}
+        } else pulse(tile,w.tiles[i],w.tick%600==0,out);
+    }
 }
 } // namespace genesis::wildlife
