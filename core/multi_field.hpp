@@ -32,7 +32,16 @@ struct Work {
     mutable unsigned selected{};
     bool operator()(const World& w,Citizen& c) const noexcept {
         if(storage::ReserveWork{research,sites,reserve,cadence}(w,c)) return true;
-        if(research.job.active||construction::active(sites)>=0) return false;
+        if(research.job.active||construction::active(sites)>=0) {
+#ifdef PG_IRRIGATION_PROBE
+            return farm_planning::seek(w,research,sites,c);
+#else
+            return false;
+#endif
+        }
+#ifdef PG_IRRIGATION_PROBE
+        if(farm_planning::seek(w,research,sites,c)) return true;
+#endif
         if(!chosen&&agriculture::farmer(research,c)) {
             int best=settlement::home_radius+1,ready=-1;
             for(unsigned i=0;i<construction::field_count;++i) {

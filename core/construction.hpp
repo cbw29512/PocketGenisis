@@ -104,10 +104,11 @@ inline int thirsty_field(const World& w,const State& s,std::uint16_t source) noe
     return best;
 }
 #endif
-inline bool can_start(const World& w,const discovery::State& research,const State& s,
-                      unsigned owner,unsigned k) noexcept {
-    if(owner>=w.founders.size()||k>=site_count) return false;
-    const auto& c=w.founders[owner];const auto& bp=blueprints[kind_at(k)];
+// Evaluate the exact admission rule at a prospective location without moving a citizen.
+inline bool can_start_at(const World& w,const discovery::State& research,const State& s,
+                         unsigned owner,unsigned k,const Citizen& c) noexcept {
+    if(owner>=w.founders.size()||k>=site_count||c.x>=width||c.y>=height) return false;
+    const auto& bp=blueprints[kind_at(k)];
     const auto tile=location(c);const auto& stock=w.tiles[tile];
     if(k>=kind_count&&kind_at(k)==hut&&(!housing_demand(w,s)||stock.food<12||stock.water<12||
                        !near_completed_hut(s,c))) return false;
@@ -132,6 +133,10 @@ inline bool can_start(const World& w,const discovery::State& research,const Stat
     return s.sites[k].stage==Stage::empty&&!occupied(s,tile)&&
         discovery::available(c)&&(research.known[owner]&discovery::tech_bit(bp.knowledge))&&
         stock.wood>=bp.wood&&stock.stone>=bp.stone;
+}
+inline bool can_start(const World& w,const discovery::State& research,const State& s,
+                      unsigned owner,unsigned k) noexcept {
+    return owner<w.founders.size()&&can_start_at(w,research,s,owner,k,w.founders[owner]);
 }
 inline unsigned completed(const State& s) noexcept {
     unsigned total=0;for(const auto& site:s.sites) total+=site.stage==Stage::complete;return total;

@@ -64,6 +64,8 @@ int main(){
         check(valid_population(*w)&&discovery::discovered(research)>0&&build::completed(sites)>0,"integrated progress");
         std::cout<<"IRRIGATION_SMOKE discoveries="<<discovery::discovered(research)
                  <<" channels="<<(sites.sites[build::channel].stage==build::Stage::complete)
+                 <<" fields="<<(sites.sites[build::field].stage==build::Stage::complete)
+                 <<" plants="<<crops.plants<<" stage="<<unsigned(crops.stage)
                  <<" transfers="<<water.transfers<<" moved_water="<<water.water<<" harvests="<<crops.harvests<<'\n';return 0;
     }catch(const std::exception& e){std::cerr<<"FAIL "<<e.what()<<'\n';return 1;}
 }

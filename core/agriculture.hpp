@@ -3,6 +3,9 @@
 #error "Agriculture is an isolated probe profile"
 #endif
 #include "settlement.hpp"
+#ifdef PG_IRRIGATION_PROBE
+#include "farm_planning.hpp"
+#endif
 
 namespace genesis::agriculture {
 inline constexpr unsigned seed_cost=2,harvest_yield=8,stock_cap=100;
@@ -83,7 +86,16 @@ struct Work {
     mutable std::uint64_t chosen{};
     bool operator()(const World& w,Citizen& c) const noexcept {
         if(storage::ReserveWork{research,sites,reserve,cadence}(w,c)) return true;
-        if(research.job.active||construction::active(sites)>=0) return false;
+        if(research.job.active||construction::active(sites)>=0) {
+#ifdef PG_IRRIGATION_PROBE
+            return farm_planning::seek(w,research,sites,c);
+#else
+            return false;
+#endif
+        }
+#ifdef PG_IRRIGATION_PROBE
+        if(farm_planning::seek(w,research,sites,c)) return true;
+#endif
         if(!chosen&&farmer(research,c)&&task(w,sites,farm,w.tick+1)!=Task::none) {
             const auto& plot=sites.sites[construction::field];
             const int x=plot.tile%width,y=plot.tile/width;
