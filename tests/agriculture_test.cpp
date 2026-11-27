@@ -85,7 +85,35 @@ int main(){
         check(keep_near(*w,a)&&a.x==away-1&&a.action==Action::move,"return toward growing crop");
         a.x=away;a.action=Action::idle;plot_stock.water=0;
         check(!farm::viable_tending(*w,sites,crops,w->tick),"dry crop not holding farmer");
-        check(!keep_near(*w,a)&&a.x==away,"dry field allows exploration");
+        // Dry farmland must not suppress ordinary home visits either.
+        check(keep_near(*w,a)&&a.action==Action::move&&home.steps==1,
+              "dry field allows scheduled home visit");
+        a.x=away;a.action=Action::idle;w->tick=20; // outside 0..11 home-return window
+        check(!keep_near(*w,a)&&a.x==away,"dry field allows exploration outside home window");
+        // Controlled integration: existing farm and knowledge, but all planting,
+        // tending, travel, consumption and harvest must occur through real ticks.
+        initialize(*w,42);research={};sites={};crops={};reserve={};cooked={};sheltered={};home={};
+        research.known[0]=research.known[1]=all;
+        a.personality[0]=b.personality[0]=0; // isolate labor from random wandering
+        a.x=50;a.y=30;b.x=51;b.y=30;
+        sites.sites[build::field].stage=build::Stage::complete;
+        sites.sites[build::field].tile=build::location(a);
+        sites.sites[build::hut].stage=build::Stage::complete;
+        sites.sites[build::hut].tile=build::location(a)+1;
+        sites.sites[build::campfire].stage=build::Stage::complete;
+        sites.sites[build::campfire].tile=build::location(a)-3;
+        sites.sites[build::store].stage=build::Stage::complete;
+        sites.sites[build::store].tile=build::location(a)-4;
+        auto& controlled=w->tiles[build::location(a)];
+        controlled.food=90;controlled.water=100;
+        for(unsigned i=0;i<720;++i) {
+            discovery::Event re{};build::Event ce{};
+            check(farm::step(*w,research,sites,reserve,cooked,sheltered,home,crops,p,re,ce,discovery::probe_cadence),"controlled real tick");
+            check(farm::valid(crops),"controlled crop accounting");
+        }
+        check(crops.harvests>0&&crops.food==crops.harvests*farm::harvest_yield,
+              "real tick crop cycle");
+        std::cout<<"AGRICULTURE_CONTROLLED harvests="<<crops.harvests<<" food="<<crops.food<<'\n';
         initialize(*w,42);research={};sites={};crops={};reserve={};cooked={};sheltered={};home={};
         unsigned births=0;
         for(unsigned i=0;i<43200;++i) {
