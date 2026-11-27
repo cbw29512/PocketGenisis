@@ -48,3 +48,6 @@ Wildlife movement revision: same four cases now include food-directed one-tile m
 
 ## Accelerated discovery test (separate firmware)
 Build `pio run -d benchmarks/elecrow -e elecrow_s3_discovery_probe`. Runs 3600 actual disposable world ticks, starting from two founders, with accelerated 60-tick experiment opportunities, reporting RESEARCH, CIV_PROGRESS and DISCOVERY_RESULT over serial. This is a founder-only research transaction test, not a production clock or calibrated progression forecast. Does not run the wildlife benchmark, render graphics, or write saves. Existing probe environments unchanged. See docs/DISCOVERY_CONTRACT.md. CI/device verification pending.
+
+## Construction prototype
+`elecrow_s3_construction_probe` runs 43200 disposable seed42 ticks with research, local construction and ordinary reproduction. BUILD events and CONSTRUCTION_RESULT report completed sites and births. No display/save/functional building benefits. Existing family/discovery probes unchanged. CI/device pending.

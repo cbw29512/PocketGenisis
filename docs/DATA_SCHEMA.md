@@ -115,3 +115,6 @@ Append parental_health_events RNG stream (index 9), preserving all existing stre
 
 ### Disposable discovery state
 See DISCOVERY_CONTRACT.md for nonpersistent founder masks, first discovery records, one work-in-progress experiment, counters and last opportunity. Uses existing research RNG; no canonical World layout or checkpoint revision change. Production integration requires explicit versioned persistence, validation and replay.
+
+### Disposable construction state
+Three prototype blueprint records (stage, tile index, owner slot, work, started/finished/last work ticks). No canonical save changes. See CONSTRUCTION_CONTRACT.md. Future production requires unique structure IDs, durable history and variable capacity; no assumption of a three-building world.

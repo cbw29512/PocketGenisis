@@ -3,6 +3,9 @@
 #ifdef PG_DISCOVERY_PROBE
 #include "../discovery_probe.hpp"
 #endif
+#ifdef PG_CONSTRUCTION_PROBE
+#include "../construction_probe.hpp"
+#endif
 #ifdef PG_WILDLIFE_PROBE
 #include "../../../core/wildlife.hpp"
 #endif
@@ -129,7 +132,9 @@ void setup() {
 #endif
     memory_report("allocated");
     bool ok=true;
-#ifdef PG_DISCOVERY_PROBE
+#ifdef PG_CONSTRUCTION_PROBE
+    ok=benchmark::construction_probe(*w);
+#elif defined(PG_DISCOVERY_PROBE)
     ok=benchmark::discovery_probe(*w);
 #else
     for(auto n:populations) {
