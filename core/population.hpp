@@ -1,11 +1,12 @@
 #pragma once
-#include "world.hpp"
+#include "disease.hpp"
 
 namespace genesis {
 inline bool valid_agent(const Citizen& c) noexcept {
     if(c.x>=width || c.y>=height || c.hunger>100 || c.thirst>100 || c.health>100 ||
        static_cast<unsigned>(c.action)>static_cast<unsigned>(Action::care)||
        static_cast<unsigned>(c.birth_outcome)>static_cast<unsigned>(BirthOutcome::fatal)) return false;
+    if(!valid_diseases(c)) return false;
     for(auto trait:c.personality) if(trait>100) return false;
     return static_cast<unsigned>(c.purpose)<=static_cast<unsigned>(Purpose::inventor);
 }
@@ -56,8 +57,9 @@ inline bool valid_population(const World& w) noexcept {
         const auto& d=w.archive[i]; const auto& c=d.citizen;
         if(!identity(c,static_cast<std::uint16_t>(archived|(i+1)))||
            d.death_tick<c.birth_tick||d.death_tick>w.tick||
-           static_cast<unsigned>(d.cause)<1||static_cast<unsigned>(d.cause)>4||
+           static_cast<unsigned>(d.cause)<1||static_cast<unsigned>(d.cause)>5||
            (d.cause==DeathCause::old_age?c.health==0:c.health!=0)) return false;
+        if(d.cause==DeathCause::disease&&!is_ill(c)) return false;
         if((d.cause==DeathCause::childbirth)!=(c.birth_outcome==BirthOutcome::fatal)||
            (d.cause==DeathCause::childbirth&&d.death_tick!=c.birth_tick)) return false;
         if(i) {

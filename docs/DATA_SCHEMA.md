@@ -67,3 +67,6 @@ Citizen.guardian_id and guardian_since_tick store latest successful adoptive-car
 
 ### Increment 13 implementation subset
 Append health_events stream index 6; persist state with other RNG streams in future checkpoint format. Citizen.birth_outcome: normal 0, complicated 1, fatal 2. Founders must be normal; fatal cannot be live and corresponds exactly to archived DeathCause childbirth=4 at birth_tick. Complicated provenance persists through recovery. Fatal newborn consumes a lifetime identity and archives immediately, not an active population slot; prenatal gestation loss remains distinct. Provisional state/rules changes require versioned migration before official saves.
+
+### Increment 14 implementation subset
+Append RNG streams immunity_traits=7 and disease_events=8. Two fixed catalog slots, stable order; each Citizen has resistance 0–100, illness and immunity remaining 60-tick pulses, mutually exclusive and bounded by catalog. Resistance inherited with variation; acquired immunity not inherited. DeathCause disease=5 requires active illness in archived snapshot. Persist all state in future versioned encoding; never serialize raw C++ memory. Rates, durations and catalog are provisional.

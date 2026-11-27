@@ -19,6 +19,7 @@ inline unsigned renew_stock(std::uint16_t& stock, unsigned amount) noexcept {
 inline bool step_world(World& w, Production& produced) noexcept {
     produced={};
     if(!step_survival(w)) return false;
+    advance_diseases(w);
     update_mortality(w);
     update_lifecycle(w);
     if(w.tick%60!=0) return true;

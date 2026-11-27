@@ -47,3 +47,6 @@ Reused local orphan-care selection, authoritative resource consumption and exist
 
 ## G3 newborn health
 Reused existing seeded RNG, birth inheritance, health recovery and archive primitives; no imported source or dependency. Provisional risk model is original simulation tuning.
+
+## G3 disease and audit
+Original fictional two-slot model reuses existing health, seeded RNG, inheritance and death archive primitives; no new third-party source or dependency imported. Population audit uses existing portable engine without observer mutation.

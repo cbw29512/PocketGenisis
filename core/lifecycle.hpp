@@ -57,6 +57,7 @@ inline void deliver(World& w,const Citizen& a,const Citizen& b) noexcept {
     std::uint32_t roll{};
     w.streams[reproduction].bounded(21,roll);
     child.lifespan_years=static_cast<std::uint8_t>(60+roll);
+    inherit_resistance(w,child,a,b);
     apply_birth_health(w,child,a,b);
     if(child.birth_outcome==BirthOutcome::fatal) {
         archive_death(w,child,DeathCause::childbirth);
