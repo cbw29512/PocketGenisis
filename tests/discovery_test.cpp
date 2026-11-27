@@ -1,6 +1,7 @@
 // Emulate the Arduino preprocessor definition before including the core.
 #define bit(b) (1UL << (b))
 #include "../core/discovery.hpp"
+#include "../core/ecology.hpp"
 #include <iostream>
 #include <memory>
 #include <stdexcept>
@@ -16,7 +17,10 @@ int main() {
         auto& tile=local(*w,w->founders[0]);tile.wood=0;tile.stone=0;tile.food=0;
         auto rng=w->streams[research].state;
         check(advance(*w,s,probe_cadence).kind==EventKind::none&&w->streams[research].state==rng,"unfunded experiment");
-        tile.wood=10;tile.stone=10;tile.food=10;w->tick=120;
+        tile.wood=10;tile.stone=10;tile.food=10;w->tick=61;
+        w->founders[0].action=Action::drink;
+        check(advance(*w,s,probe_cadence).kind==EventKind::none,"busy opportunity stays open");
+        w->founders[0].action=Action::idle;w->tick=62;
         auto event=advance(*w,s,probe_cadence);
         check(event.kind==EventKind::started&&s.attempts==1&&s.job.active,"start");
         const auto rule=rules[event.tech];
@@ -47,6 +51,14 @@ int main() {
         }
         check(x.known==y.known&&x.attempts==y.attempts&&x.successes==y.successes&&x.failures==y.failures&&a->streams[research].state==b->streams[research].state,"state parity");
         check(a->streams[reproduction].state==other&&discovered(x)>0,"isolated RNG and discovery");
+        // Exercise the real survival/ecology clock, not hand-set idle citizens.
+        genesis::initialize(*w,42);State actual{};Production production{};
+        for(unsigned i=0;i<3600;++i) {
+            check(step_world(*w,production),"authoritative world tick");
+            advance(*w,actual,probe_cadence);
+        }
+        check(actual.attempts>0&&actual.successes>0&&discovered(actual)>0,"live founders must discover");
+        check(actual.attempts==actual.successes+actual.failures+unsigned(actual.job.active),"live accounting");
         std::cout<<"PASS: discovery prerequisites, costs, failure, teaching, replay\n";return 0;
     } catch(const std::exception& e) {std::cerr<<"FAIL: "<<e.what()<<'\n';return 1;}
 }
