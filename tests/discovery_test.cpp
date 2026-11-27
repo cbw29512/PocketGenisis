@@ -1,3 +1,5 @@
+// Emulate the Arduino preprocessor definition before including the core.
+#define bit(b) (1UL << (b))
 #include "../core/discovery.hpp"
 #include <iostream>
 #include <memory>
@@ -9,7 +11,7 @@ int main() {
     try {
         auto w=std::unique_ptr<World>(new World);
         genesis::initialize(*w,42);State s{};
-        check(!eligible(0,shelter)&&eligible(bit(stone_tools),shelter),"prerequisites");
+        check(!eligible(0,shelter)&&eligible(tech_bit(stone_tools),shelter),"prerequisites");
         w->founders[1].health=1;w->tick=60;
         auto& tile=local(*w,w->founders[0]);tile.wood=0;tile.stone=0;tile.food=0;
         auto rng=w->streams[research].state;

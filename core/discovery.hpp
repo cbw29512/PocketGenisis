@@ -6,7 +6,7 @@
 namespace genesis::discovery {
 enum Tech : std::uint8_t { fire,stone_tools,shelter,cooking,food_storage,tech_count };
 using Mask=std::uint16_t;
-inline constexpr Mask bit(Tech t) noexcept {return static_cast<Mask>(1u<<t);}
+inline constexpr Mask tech_bit(Tech t) noexcept {return static_cast<Mask>(1u<<t);}
 struct Rule {
     const char* name;
     Mask prerequisites;
@@ -15,9 +15,9 @@ struct Rule {
 inline constexpr std::array<Rule,tech_count> rules{{
     {"Fire",0,2,1,0,70},
     {"Stone tools",0,0,3,0,70},
-    {"Basic shelter",bit(stone_tools),4,2,0,50},
-    {"Cooking",bit(fire),1,0,2,50},
-    {"Food storage",bit(stone_tools),3,1,2,50}
+    {"Basic shelter",tech_bit(stone_tools),4,2,0,50},
+    {"Cooking",tech_bit(fire),1,0,2,50},
+    {"Food storage",tech_bit(stone_tools),3,1,2,50}
 }};
 inline constexpr unsigned work_required=30;
 inline constexpr std::uint64_t normal_cadence=43200,probe_cadence=60;
@@ -39,7 +39,7 @@ inline bool available(const Citizen& c) noexcept {
 }
 inline bool eligible(Mask known,Tech tech) noexcept {
     const auto& rule=rules[tech];
-    return !(known&bit(tech))&&(known&rule.prerequisites)==rule.prerequisites;
+    return !(known&tech_bit(tech))&&(known&rule.prerequisites)==rule.prerequisites;
 }
 inline bool affordable(const Tile& tile,const Rule& rule) noexcept {
     return tile.wood>=rule.wood&&tile.stone>=rule.stone&&tile.food>=rule.food;
@@ -59,8 +59,8 @@ inline Event teach(const World& w,State& s) noexcept {
     for(unsigned i=0;i<2;++i) for(unsigned k=0;k<tech_count;++k) {
         const auto tech=static_cast<Tech>(k);
         if(s.job.active&&s.job.owner==i&&s.job.tech==k) continue;
-        if((s.known[1-i]&bit(tech))&&eligible(s.known[i],tech)) {
-            s.known[i]|=bit(tech);
+        if((s.known[1-i]&tech_bit(tech))&&eligible(s.known[i],tech)) {
+            s.known[i]|=tech_bit(tech);
             return {EventKind::taught,static_cast<std::uint8_t>(k),w.founders[i].id};
         }
     }
@@ -78,7 +78,7 @@ inline Event advance(World& w,State& s,std::uint64_t cadence=normal_cadence) noe
             if(roll>=chance(c,tech)) {
                 ++s.failures;return {EventKind::failed,job.tech,c.id};
             }
-            ++s.successes;s.known[job.owner]|=bit(tech);
+            ++s.successes;s.known[job.owner]|=tech_bit(tech);
             const bool first=!s.first[tech].founder;
             if(first) s.first[tech]={w.tick,c.id};
             return {first?EventKind::discovered:EventKind::learned,job.tech,c.id};
