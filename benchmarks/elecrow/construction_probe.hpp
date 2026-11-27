@@ -1,5 +1,7 @@
 #pragma once
-#ifdef PG_AGRICULTURE_PROBE
+#ifdef PG_IRRIGATION_PROBE
+#include "../../core/irrigation.hpp"
+#elif defined(PG_AGRICULTURE_PROBE)
 #include "../../core/agriculture.hpp"
 #elif defined(PG_SETTLEMENT_PROBE)
 #include "../../core/settlement.hpp"
@@ -17,6 +19,10 @@ namespace genesis::benchmark {
 inline bool construction_probe(World& w) {
     initialize(w,42);discovery::State knowledge{};construction::State sites{};Production p{};
     unsigned births=0;
+#ifdef PG_IRRIGATION_PROBE
+    irrigation::State irrigation_water{};
+    Serial.println("IRRIGATION PROBE");
+#endif
 #ifdef PG_AGRICULTURE_PROBE
     agriculture::State crops{};
     Serial.println("AGRICULTURE PROBE");
@@ -41,7 +47,9 @@ inline bool construction_probe(World& w) {
     constexpr const char* events[]={"none","started","completed","abandoned"};
     for(unsigned i=0;i<43200;++i) {
         discovery::Event re{};construction::Event ce{};
-#ifdef PG_AGRICULTURE_PROBE
+#ifdef PG_IRRIGATION_PROBE
+        if(!irrigation::step(w,knowledge,sites,reserve,cooked,sheltered,home,crops,irrigation_water,p,re,ce,discovery::probe_cadence)) {
+#elif defined(PG_AGRICULTURE_PROBE)
         if(!agriculture::step(w,knowledge,sites,reserve,cooked,sheltered,home,crops,p,re,ce,discovery::probe_cadence)) {
 #elif defined(PG_SETTLEMENT_PROBE)
         if(!settlement::step(w,knowledge,sites,reserve,cooked,sheltered,home,p,re,ce,discovery::probe_cadence)) {
@@ -110,6 +118,13 @@ inline bool construction_probe(World& w) {
         std::abs(int(w.founders[0].x)-int(plot%width))+std::abs(int(w.founders[0].y)-int(plot/width)),
         std::abs(int(w.founders[1].x)-int(plot%width))+std::abs(int(w.founders[1].y)-int(plot/width)));
     if(!agriculture::valid(crops)) {Serial.println("ERROR agriculture accounting");return false;}
+#endif
+#ifdef PG_IRRIGATION_PROBE
+    Serial.printf("IRRIGATION_RESULT channels=%u transfers=%llu water_moved=%llu state_bytes=%u\n",
+        unsigned(sites.sites[construction::channel].stage==construction::Stage::complete),
+        static_cast<unsigned long long>(irrigation_water.transfers),
+        static_cast<unsigned long long>(irrigation_water.water),unsigned(sizeof(irrigation_water)));
+    if(!irrigation::valid(irrigation_water)) {Serial.println("ERROR irrigation accounting");return false;}
 #endif
     return valid_population(w)&&construction::completed(sites)>0&&births>0;
 }

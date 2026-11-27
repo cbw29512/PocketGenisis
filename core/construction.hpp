@@ -6,6 +6,9 @@ enum Kind : std::uint8_t { campfire,hut,store,
 #ifdef PG_AGRICULTURE_PROBE
     field,
 #endif
+#ifdef PG_IRRIGATION_PROBE
+    channel,
+#endif
     kind_count };
 enum class Stage : std::uint8_t { empty,building,complete,abandoned };
 struct Blueprint {const char* name;discovery::Tech knowledge;unsigned wood,stone,work;};
@@ -15,6 +18,9 @@ inline constexpr std::array<Blueprint,kind_count> blueprints{{
     {"Food store",discovery::food_storage,6,3,30}
 #ifdef PG_AGRICULTURE_PROBE
     ,{"Prepared field",discovery::farming,2,1,20}
+#endif
+#ifdef PG_IRRIGATION_PROBE
+    ,{"Irrigation channel",discovery::irrigation,4,3,30}
 #endif
 }};
 struct Site {
@@ -67,6 +73,12 @@ inline bool near_completed_hut(const State& s,const Citizen& c) noexcept {
     }
     return false;
 }
+#ifdef PG_IRRIGATION_PROBE
+inline constexpr unsigned irrigation_target=24,irrigation_source_reserve=24;
+inline bool channel_adjacent(std::uint16_t a,std::uint16_t b) noexcept {
+    return std::abs(int(a%width)-int(b%width))+std::abs(int(a/width)-int(b/width))==1;
+}
+#endif
 inline bool can_start(const World& w,const discovery::State& research,const State& s,
                       unsigned owner,unsigned k) noexcept {
     if(owner>=w.founders.size()||k>=site_count) return false;
@@ -77,6 +89,14 @@ inline bool can_start(const World& w,const discovery::State& research,const Stat
 #ifdef PG_AGRICULTURE_PROBE
     if(k==field&&(stock.food<14||stock.water<12||(!w.descendant_count&&stock.food>48)||
                  !near_completed_hut(s,c))) return false;
+#endif
+#ifdef PG_IRRIGATION_PROBE
+    if(k==channel) {
+        const auto& plot=s.sites[field];
+        if(plot.stage!=Stage::complete||plot.tile>=w.tiles.size()||
+           !channel_adjacent(tile,plot.tile)||stock.water<=irrigation_source_reserve||
+           w.tiles[plot.tile].water>=irrigation_target) return false;
+    }
 #endif
     return s.sites[k].stage==Stage::empty&&!occupied(s,tile)&&
         discovery::available(c)&&(research.known[owner]&discovery::tech_bit(bp.knowledge))&&
