@@ -44,7 +44,8 @@ inline bool valid_founders(const World& w) noexcept {
 inline bool valid_gestations(const World& w) noexcept {
     if(w.descendant_count>descendant_capacity||w.archive_count>history_capacity) return false;
     // Each gestation reserves an active slot and a future archive identity.
-    if(w.pregnancy_count>pregnancy_capacity||
+    if(w.next_citizen_id<3||w.pregnancy_count>std::numeric_limits<std::uint64_t>::max()-w.next_citizen_id||
+       w.pregnancy_count>pregnancy_capacity||
        w.descendant_count+w.pregnancy_count>descendant_capacity||
        w.descendant_count+w.archive_count+w.pregnancy_count>history_capacity) return false;
     std::array<bool,live_capacity> participating{};

@@ -12,7 +12,8 @@ inline const Citizen& active_at(const World& w,std::size_t i) noexcept {
     return i<2?w.founders[i]:w.descendants[i-2];
 }
 inline void attempt_conception(World& w) noexcept {
-    if(w.tick%600||w.pregnancy_count>=pregnancy_capacity||
+    if(w.tick%600||w.pregnancy_count>=std::numeric_limits<std::uint64_t>::max()-w.next_citizen_id||
+       w.pregnancy_count>=pregnancy_capacity||
        w.descendant_count+w.pregnancy_count>=descendant_capacity||
        w.descendant_count+w.archive_count+w.pregnancy_count>=history_capacity||
        w.tick>std::numeric_limits<std::uint64_t>::max()-gestation_ticks) return;

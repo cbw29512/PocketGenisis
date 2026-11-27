@@ -94,8 +94,8 @@ Baseline 55510b0 remote [CI 45931720560](https://github.com/cbw29512/PocketGenis
 - [x] PG-G6-02 Bounded live-slot care and gestation tables — verified baseline portable CI 45931720560.
 - [x] PG-G6-03 Immutable host death segment storage — verified baseline portable CI 45931720560.
 - [x] PG-G6-04 Combined historical identity and genealogy reference validation — verified baseline portable CI 45931720560.
-- [ ] PG-G6-05 Checkpoint-bound archive retirement — implemented, pending new head CI and review; test interrupted handoff, exact record preservation and fail-closed recovery.
-- [ ] PG-G6-06 Actual external-history-aware simulation and births above 512 — next; must not drop identities or bypass validation.
+- [x] PG-G6-05 Checkpoint-bound archive retirement — host portable CI 46008859950 passed; not physical power-cut certification.
+- [ ] PG-G6-06 Actual external-history-aware simulation and births above 512 — candidate implemented, regression added; new head CI pending.
 - [ ] PG-G6-07 Automatic checkpoint/retirement cadence, bounded-memory index, UUID, independent backup and portable migration — pending.
 - [ ] PG-G3-02 Complete biological acceptance (founder incapacitation/recovery, parental injury/accidents, calibrated long-run density/age/cause results) — pending.
 - [ ] PG-G4-01 Weather, terrain, construction, agriculture and conserved production — pending.
@@ -104,3 +104,6 @@ Baseline 55510b0 remote [CI 45931720560](https://github.com/cbw29512/PocketGenis
 - [ ] PG-G7-02 Exact ESP32 identification, safe backup/install and authenticated USB maintenance — blocked on physical board verification.
 - [ ] PG-G8-01 Long-run deterministic replay/divergence, memory and physical power-cut/72h soak — pending.
 - [ ] PG-G9-01 Release acceptance and explicit owner-authorized official founding — pending.
+
+## Increment 22 — external-history-aware advancement candidate
+Verified 23ecab2 via [CI 46008859950](https://github.com/cbw29512/PocketGenisis/actions/runs/46008859950), portable simulation job successful; PG-G6-05 checked off at host scope. Changed core/survival.hpp, ecology.hpp, population.hpp, lifecycle.hpp; added storage/archive_replay.hpp, extended host_archive_checkpoint.hpp, added tests/archive_replay_test.cpp. Shared simulation tick with explicit historical validator, finite resident death reservation and uint64 ID exhaustion guards. Advance from exact verified checkpoint in batches of at most 3600 ticks; re-simulate consecutive checkpoints on load and compare canonical bytes. Test starts with synthetic 512-death fixture, retires it, runs actual conception and gestation beyond original cap and checks all archived fields survive; not an organic 512-birth run. New tests await exact head CI; no local pass claimed. Host replay is O(history) per tick; storage cadence/capacity pause, UUID, bounded external index and physical recovery remain open. No official launch.

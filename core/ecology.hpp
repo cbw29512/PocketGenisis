@@ -16,9 +16,10 @@ inline unsigned renew_stock(std::uint16_t& stock, unsigned amount) noexcept {
     return added;
 }
 // One authoritative tick; natural renewal happens after citizen consumption.
-inline bool step_world(World& w, Production& produced) noexcept {
+namespace detail {
+template<class Validate> inline bool step_world_checked(World& w,Production& produced,const Validate& validate) noexcept {
     produced={};
-    if(!step_survival(w)) return false;
+    if(!step_survival_checked(w,validate)) return false;
     advance_diseases(w);
     update_mortality(w);
     update_lifecycle(w);
@@ -33,5 +34,9 @@ inline bool step_world(World& w, Production& produced) noexcept {
         produced.wood+=renew_stock(t.wood,wood[s]);
     }
     return true;
+}
+} // namespace detail
+inline bool step_world(World& w,Production& produced) noexcept {
+    return detail::step_world_checked(w,produced,valid_population);
 }
 } // namespace genesis

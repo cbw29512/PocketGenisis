@@ -1,5 +1,5 @@
 #pragma once
-#include "archive_checkpoint.hpp"
+#include "archive_replay.hpp"
 
 namespace genesis::storage {
 // Single writer, isolated existing directory, trusted paths. No legacy mixing.
@@ -11,10 +11,10 @@ inline ArchiveState load_archive_host(const std::string& dir) {
     if(!x.world&&!y.world) throw std::runtime_error("no verified archive checkpoint");
     if(x.world&&y.world) {
         if(x.generation<y.generation) {
-            if(!valid_retirement_pair(x,y)) throw std::runtime_error("archive generations conflict");
+            if(!valid_archive_pair(x,y)) throw std::runtime_error("archive generations conflict");
             return y;
         }
-        if(!valid_retirement_pair(y,x)) throw std::runtime_error("archive generations conflict");
+        if(!valid_archive_pair(y,x)) throw std::runtime_error("archive generations conflict");
         return x;
     }
     // A missing peer is expected only for the first generation. Any other
@@ -30,18 +30,25 @@ inline ArchiveState create_archive_host(const std::string& dir,const World& orig
     publish_file(dir,0,encode_archive_checkpoint(original,index,1));
     return load_archive_host(dir);
 }
-// Publish immutable segments first. Publish the new checkpoint second. Return
-// the replacement state only after disk recovery verifies it. The caller's old
-// state and previous slot are untouched even if a write throws.
-inline ArchiveState retire_archive_host(const std::string& dir,const ArchiveState& current,std::size_t count) {
-    if(!current.world||!current.history||current.degraded||!count||
-       count>current.world->archive_count||current.generation==std::numeric_limits<std::uint64_t>::max())
-        throw std::runtime_error("archive retirement not authorized by a verified state");
+// Reject stale or changed caller state before publication.
+inline ArchiveState require_current_archive(const std::string& dir,const ArchiveState& current) {
+    if(!current.world||!current.history||current.degraded||
+       current.generation==std::numeric_limits<std::uint64_t>::max())
+        throw std::runtime_error("archive operation requires a verified state");
     auto disk=load_archive_host(dir);
     if(disk.degraded||disk.slot!=current.slot||disk.generation!=current.generation||
        disk.committed!=current.committed||
        encode_archive_checkpoint(*current.world,*current.history,current.generation)!=disk.committed)
         throw std::runtime_error("stale or changed archive checkpoint; reload required");
+    return disk;
+}
+// Publish immutable segments first. Publish the new checkpoint second. Return
+// the replacement state only after disk recovery verifies it. The caller's old
+// state and previous slot are untouched even if a write throws.
+inline ArchiveState retire_archive_host(const std::string& dir,const ArchiveState& current,std::size_t count) {
+    auto disk=require_current_archive(dir,current);
+    if(!count||count>disk.world->archive_count)
+        throw std::runtime_error("invalid retirement count");
     const auto prefix=disk.history->count();
     for(std::size_t offset=0;offset<count;) {
         const auto n=std::min(segment_capacity,count-offset);
@@ -58,6 +65,21 @@ inline ArchiveState retire_archive_host(const std::string& dir,const ArchiveStat
     auto verified=load_archive_host(dir);
     if(verified.degraded||verified.committed!=bytes)
         throw std::runtime_error("archive publication uncertain; reload required");
+    return verified;
+}
+// Advance only from exact disk state; no arbitrary candidate accepted.
+inline ArchiveState advance_archive_host(const std::string& dir,const ArchiveState& current,std::uint64_t ticks) {
+    if(!ticks||ticks>archive_replay_limit) throw std::runtime_error("invalid archive replay window");
+    auto disk=require_current_archive(dir,current);
+    if(!read_file(history_path(dir,disk.history->count())).missing)
+        throw std::runtime_error("uncommitted history batch; complete retirement first");
+    auto candidate=std::make_unique<World>(*disk.world);
+    if(!replay_archive(*candidate,*disk.history,ticks)) throw std::runtime_error("archive replay rejected");
+    const auto bytes=encode_archive_checkpoint(*candidate,*disk.history,disk.generation+1);
+    publish_file(dir,1-disk.slot,bytes);
+    auto verified=load_archive_host(dir);
+    if(verified.degraded||verified.committed!=bytes)
+        throw std::runtime_error("archive advancement uncertain; reload required");
     return verified;
 }
 } // namespace genesis::storage

@@ -61,8 +61,10 @@ inline void act_survival(World& w,Citizen& f,Citizen* dependent=nullptr) noexcep
         }
     }
 }
-inline bool step_survival(World& w) noexcept {
-    if(w.tick==std::numeric_limits<std::uint64_t>::max()||!valid_population(w)) return false;
+namespace detail {
+// Shared phases; storage mode supplies its authoritative validator.
+template<class Validate> inline bool step_survival_checked(World& w,const Validate& validate) noexcept {
+    if(w.tick==std::numeric_limits<std::uint64_t>::max()||!validate(w)) return false;
     const auto requests=prepare_care(w);
     auto act=[&](Citizen& c,std::size_t live_index) {
         const auto slot=requests[live_index];
@@ -78,5 +80,9 @@ inline bool step_survival(World& w) noexcept {
         if(life_stage(c,w.tick)==LifeStage::infant) follow_parent(w,c);
     }
     return advance_clock(w);
+}
+} // namespace detail
+inline bool step_survival(World& w) noexcept {
+    return detail::step_survival_checked(w,valid_population);
 }
 } // namespace genesis

@@ -91,3 +91,6 @@ No new serialized fields. Host reference index maps stable uint64 citizen IDs to
 
 ### Increment 21 — checkpoint-bound retirement prototype
 Separate host-only PGAW magic uint32 0x57414750, version uint16 1, rules uint16 15, generation uint64, committed external death ordinal count uint64, existing field-wise World payload (resident tail only), CRC32. Two alternating slots in a separate isolated directory, never mix with PGCP. The external prefix plus resident tail and living IDs must cover all issued identities exactly; the index is rebuilt from declared prefix and validated on each load. Previous checkpoint preserves full prior tail. Prototype only permits exact same-tick retirement, not simulation advancement or official migration. UUID and bounded-memory lookup pending.
+
+### Increment 22 — bounded advancement
+PGAW payload/version unchanged; consecutive generations may represent exact retirement at equal tick or deterministic advancement at unchanged external prefix, with 1–3600 ticks per advancement. No persisted slot indices. next_citizen_id remains monotonic uint64; reserve remaining IDs for active pregnancies and refuse conception at exhaustion. Existing temporary resident live/death reservation remains bounded; cumulative external identities are not counted against resident capacity.
