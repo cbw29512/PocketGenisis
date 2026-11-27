@@ -19,11 +19,11 @@ inline unsigned renew_stock(std::uint16_t& stock, unsigned amount) noexcept {
 enum class TickPhase : std::size_t { survival, disease, mortality, lifecycle, renewal, count };
 // One authoritative tick; natural renewal happens after citizen consumption.
 namespace detail {
-template<class Validate,class Observe>
+template<class Validate,class Observe,class Work=NoDiscretionaryWork>
 inline bool step_world_observed(World& w,Production& produced,const Validate& validate,
-                                const Observe& observe) noexcept {
+                                const Observe& observe,const Work& work={}) noexcept {
     produced={};
-    if(!step_survival_checked(w,validate)) return false;
+    if(!step_survival_checked(w,validate,work)) return false;
     observe(TickPhase::survival);
     advance_diseases(w);
     observe(TickPhase::disease);

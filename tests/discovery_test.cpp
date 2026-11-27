@@ -1,7 +1,7 @@
 // Emulate the Arduino preprocessor definition before including the core.
 #define bit(b) (1UL << (b))
 #include "../core/discovery.hpp"
-#include "../core/ecology.hpp"
+#include "../core/discovery_work.hpp"
 #include <iostream>
 #include <memory>
 #include <stdexcept>
@@ -54,11 +54,23 @@ int main() {
         // Exercise the real survival/ecology clock, not hand-set idle citizens.
         genesis::initialize(*w,42);State actual{};Production production{};
         for(unsigned i=0;i<3600;++i) {
-            check(step_world(*w,production),"authoritative world tick");
-            advance(*w,actual,probe_cadence);
+            Event live_event{};
+            check(step_with_research(*w,actual,production,live_event,probe_cadence),"authoritative research world tick");
         }
         check(actual.attempts>0&&actual.successes>0&&discovered(actual)>0,"live founders must discover");
+        check(actual.known[0]!=0&&actual.known[1]!=0,"both live founders acquire knowledge in seed 42");
         check(actual.attempts==actual.successes+actual.failures+actual.abandoned+unsigned(actual.job.active),"live accounting");
+        // A highly curious founder can work without needing a lucky idle roll.
+        genesis::initialize(*w,42);State reserved{};w->tick=60;
+        w->founders[0].personality[0]=100;
+        check(advance(*w,reserved,probe_cadence).kind==EventKind::started,"reserve fixture");
+        auto& worker=w->founders[reserved.job.owner];worker.personality[0]=100;
+        const auto decisions_before=w->streams[decisions].state;
+        act_survival_with_work(*w,worker,nullptr,ReserveWork{reserved,probe_cadence});
+        check(worker.action==Action::idle&&w->streams[decisions].state==decisions_before,"productive work before curiosity");
+        worker.hunger=11;worker.thirst=0;
+        act_survival_with_work(*w,worker,nullptr,ReserveWork{reserved,probe_cadence});
+        check(worker.action==Action::eat,"urgent food before research");
         // A stalled job must release its slot without a research RNG roll or refund.
         genesis::initialize(*w,42);State stalled{};w->founders[1].health=1;w->tick=60;
         check(advance(*w,stalled,probe_cadence).kind==EventKind::started,"start stall fixture");

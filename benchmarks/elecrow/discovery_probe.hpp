@@ -1,5 +1,5 @@
 #pragma once
-#include "../../core/discovery.hpp"
+#include "../../core/discovery_work.hpp"
 #include <Arduino.h>
 namespace genesis::benchmark {
 inline bool discovery_probe(World& w) {
@@ -8,14 +8,14 @@ inline bool discovery_probe(World& w) {
     constexpr const char* kinds[]={"none","started","failed","discovered","learned","taught","abandoned"};
     unsigned available_ticks[2]={0,0},urgent[2]={0,0},weak[2]={0,0},actions[2][5]{};
     for(unsigned i=0;i<3600;++i) {
-        if(!step_world(w,p)) {Serial.println("ERROR discovery world tick");return false;}
+        discovery::Event event{};
+        if(!discovery::step_with_research(w,s,p,event,discovery::probe_cadence)) {Serial.println("ERROR discovery world tick");return false;}
         for(unsigned j=0;j<2;++j) {
             const auto& c=w.founders[j];
             available_ticks[j]+=discovery::available(c);
             urgent[j]+=(c.hunger>=12||c.thirst>=12);weak[j]+=c.health<50;
             ++actions[j][static_cast<unsigned>(c.action)];
         }
-        const auto event=discovery::advance(w,s,discovery::probe_cadence);
         if(event.kind!=discovery::EventKind::none)
             Serial.printf("RESEARCH tick=%llu founder=%llu event=%s technology=%s known=%u/%u\n",
                 static_cast<unsigned long long>(w.tick),static_cast<unsigned long long>(event.founder),
@@ -36,8 +36,8 @@ inline bool discovery_probe(World& w) {
             j+1,unsigned(c.health),unsigned(c.hunger),unsigned(c.thirst),unsigned(c.x),unsigned(c.y),
             unsigned(c.personality[0]),urgent[j],weak[j],actions[j][0],actions[j][1],actions[j][2],actions[j][3],actions[j][4]);
     }
-    if(!s.attempts||!s.successes||!discovery::discovered(s)) {
-        Serial.println("ERROR discovery probe did not demonstrate a discovery");return false;
+    if(!s.attempts||!s.successes||!discovery::discovered(s)||!s.known[0]||!s.known[1]) {
+        Serial.println("ERROR discovery probe did not demonstrate knowledge for both founders");return false;
     }
     return valid_population(w)&&s.attempts==s.successes+s.failures+s.abandoned+unsigned(s.job.active);
 }

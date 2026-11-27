@@ -68,7 +68,8 @@ inline Event teach(const World& w,State& s) noexcept {
     }
     return {};
 }
-// Called once after a successful authoritative tick. No survival action is replaced.
+// Called once after a successful authoritative tick. The disposable policy may
+// reserve discretionary time; urgent survival actions are never replaced.
 inline Event advance(World& w,State& s,std::uint64_t cadence=normal_cadence) noexcept {
     if(!cadence||!w.tick) return {};
     if(s.job.active) {
