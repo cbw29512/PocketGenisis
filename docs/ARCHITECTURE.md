@@ -19,3 +19,6 @@ Observer rendering owns the full viewport; temporary overlays only. No direct re
 
 ## Lifetime identity decoupling, first slice
 Separate stable identities from active array positions. Care requests, conception eligibility and pregnancy participant validation use bounded live-slot tables; they do not grow with historical population. Slots are ephemeral and cannot be persisted or retained across compaction. Existing death archive indexing/validation and admission capacity still require replacement with durable segmented history. Do not claim the 512-identity blocker closed from this refactor.
+
+## Immutable history storage foundation
+storage/history_segment.hpp reuses the canonical citizen field codec for bounded death batches; storage/host_history.hpp publishes readback-verified immutable files on host POSIX. The current world remains authoritative and unchanged by export. Next close P0 through a checkpoint-bound archive watermark and verified manifest/index, recoverable publication/retirement transaction, external genealogy resolution, UUID, and tests for actual births above 512 without record loss. POSIX hard links are not assumed available on the ESP32 storage medium. No official-world use.

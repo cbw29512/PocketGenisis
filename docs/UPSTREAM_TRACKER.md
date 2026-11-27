@@ -56,3 +56,6 @@ Original field-wise codec and POSIX adapter using C++17 standard library and ope
 
 ## G6 live-slot decoupling
 Reuse existing original stable ID sorted-array lookup; no third-party code or dependency needed for this internal refactor.
+
+## G6 immutable death batches
+Reuse our existing field visitor, CRC, validation and host file primitives. Original bounded segment codec and create-only publication; no new upstream dependency or copied source.

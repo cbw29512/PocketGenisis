@@ -82,3 +82,6 @@ No new saved fields. Disease-phase alive and infectious snapshots plus local nei
 
 ### Increment 18 implementation subset
 No serialized fields change. Stable uint64 citizen identity remains authoritative. Transient live slot 0/1 refers to a founder; slot 2 onward refers to the ID-sorted active descendant position; live_capacity (256) denotes missing. Care and gestation scratch tables now use live slots, never lifetime IDs. Resolve IDs by binary search before indexing; discard slots after each phase before active-array compaction. Historical validation and the provisional lifetime ceiling are unchanged. No checkpoint version change for this internal refactor.
+
+### Increment 19 — death archive segment prototype
+PGHS version 1, little-endian magic uint32 0x53484750, format/rules uint16, seed uint64, first death ordinal uint64, count uint16 (1–64), records encoded using existing citizen field visitor plus death_tick uint64 and cause uint8, trailing CRC32. Ordinals are zero-based positions in death chronology, not citizen IDs; reject overflow. Isolated per-world host directory and seed provide disposable identity only; production UUID, ordered manifest, global duplicate/gap detection, cross-segment genealogy validation, archive lookup and checkpoint-bound commit watermark remain mandatory. Current World and PGCP format/rules unchanged.
