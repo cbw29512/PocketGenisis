@@ -34,8 +34,17 @@ struct Citizen {
     std::array<DiseaseState,disease_count> diseases{};
 };
 using Founder = Citizen;
+// Alternate capacities are only for isolated, disposable CPU benchmark builds.
+// Do not link differently configured World definitions into one executable.
+#ifdef PG_DISPOSABLE_SCALE_PROBE
+inline constexpr std::size_t descendant_capacity=2048;
+inline constexpr std::size_t history_capacity=4096;
+#else
 inline constexpr std::size_t descendant_capacity=254;
 inline constexpr std::size_t history_capacity=512;
+#endif
+// The legacy identity index reserves its high bit for archived records.
+static_assert(history_capacity<0x8000 && descendant_capacity<=history_capacity);
 enum class DeathCause : std::uint8_t { starvation=1, dehydration=2, old_age=3, childbirth=4, disease=5, parental_childbirth=6 };
 struct DeathRecord {
     Citizen citizen{};

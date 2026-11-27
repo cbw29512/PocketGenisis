@@ -4,10 +4,17 @@
 #include <esp_timer.h>
 #include <new>
 #include <algorithm>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 using namespace genesis;
 
 namespace {
 constexpr unsigned samples=600;
+#ifdef PG_DISPOSABLE_SCALE_PROBE
+constexpr unsigned populations[]={256,512,1024,2048};
+#else
+constexpr unsigned populations[]={2,32,64,128,256};
+#endif
 void memory_report(const char* label) {
     constexpr auto internal=MALLOC_CAP_INTERNAL|MALLOC_CAP_8BIT;
     constexpr auto external=MALLOC_CAP_SPIRAM|MALLOC_CAP_8BIT;
@@ -22,8 +29,12 @@ bool measure(World& w,std::size_t total,bool contact) {
         Serial.println("ERROR invalid benchmark fixture");
         return false;
     }
+    Serial.printf("START initial=%u contact=%u\n",
+        static_cast<unsigned>(total),static_cast<unsigned>(contact));
     Production p{};
     std::uint64_t elapsed=0,max_us=0;
+    unsigned above_budget=0,above_second=0;
+    std::size_t min_living=total;
     for(unsigned i=0;i<samples;++i) {
         const auto start=esp_timer_get_time();
         const bool ok=step_world(w,p);
@@ -34,6 +45,10 @@ bool measure(World& w,std::size_t total,bool contact) {
         }
         elapsed+=us;
         max_us=std::max(max_us,us);
+        above_budget+=us>200000;
+        above_second+=us>1000000;
+        min_living=std::min(min_living,w.descendant_count+2);
+        if((i+1)%100==0) Serial.printf("PROGRESS ticks=%u/%u\n",i+1,samples);
         // Yield outside measured time; no deliberate real-time wait in samples.
         delay(1);
     }
@@ -46,6 +61,9 @@ bool measure(World& w,std::size_t total,bool contact) {
         static_cast<unsigned>(contact),samples,
         static_cast<unsigned long long>(elapsed/samples),
         static_cast<unsigned long long>(max_us),static_cast<unsigned>(w.archive_count));
+    Serial.printf("LIMITS min_living=%u over_200ms=%u over_1000ms=%u stack_min_free_bytes=%u\n",
+        static_cast<unsigned>(min_living),above_budget,above_second,
+        static_cast<unsigned>(uxTaskGetStackHighWaterMark(nullptr)));
     memory_report("after_case");
     return true;
 }
@@ -67,10 +85,9 @@ void setup() {
     auto* w=new(raw) World{};
     memory_report("allocated");
     bool ok=true;
-    for(auto n:{2u,32u,64u,128u,256u}) {
-        if(!measure(*w,n,false)) {ok=false;break;}
+    for(auto n:populations) {
+        if(!measure(*w,n,false)||!measure(*w,n,true)) {ok=false;break;}
     }
-    if(ok) ok=measure(*w,256,true);
     w->~World();
     heap_caps_free(raw);
     memory_report("released");
