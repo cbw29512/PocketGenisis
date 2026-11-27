@@ -16,9 +16,14 @@ struct Rng {
     bool bounded(std::uint32_t limit, std::uint32_t& out) noexcept {
         if (!limit) return false;
         const auto n = std::uint64_t{limit};
-        const auto threshold = (std::uint64_t{0} - n) % n;
-        std::uint64_t value;
-        do { value = next(); } while (value < threshold);
+        auto value = next();
+        // The rejection threshold is always smaller than n. Avoid an
+        // expensive 64-bit division on the overwhelmingly common path;
+        // the rare path uses exactly the original rejection rule.
+        if (value < n) {
+            const auto threshold = (std::uint64_t{0} - n) % n;
+            while (value < threshold) value = next();
+        }
         out = static_cast<std::uint32_t>(value % n);
         return true;
     }

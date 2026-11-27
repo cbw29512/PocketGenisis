@@ -31,3 +31,15 @@ Owner approved 4096 active citizens as the engine performance target, not a game
 
 ## Wildlife experiment
 Build `pio run -d benchmarks/elecrow -e elecrow_s3_wildlife_probe`. Disposable 2048/4096 ordinary/crowded cases, 600 ticks each. Separate wildlife PSRAM sidecar; combined RESULT and LIMITS include wildlife time, existing PHASE and WORST_TICK lines still describe only the human core; WILDLIFE reports separate peak and totals. See docs/WILDLIFE_CONTRACT.md. Physical compile/upload/run not verified. No save changes or official world.
+
+## Physical wildlife baseline — owner serial COM3, a03627f, 2026-11-27
+All four 600-tick cases completed; no crash, no >1s tick. Initial animals 7838 each, sidecar 96000 bytes. Times in microseconds:
+
+| Humans/contact | Mean/max combined | Lifecycle peak | Disease peak | Wildlife peak | Final humans/animals | Animal births/deaths/hunts/meals | >200ms |
+|---|---|---|---|---|---|---|---|
+|2048/0|35054/85048|39749|5592|10089|2048/8541|1691/988/0/0|0|
+|2048/1|35191/115085|60902|30241|10101|2048/8257|1569/1150/6/10|0|
+|4096/0|69039/164063|85322|11110|12155|4096/7705|1436/1569/0/0|0|
+|4096/1|71157/351037|245484|61239|12109|4080/6992|1229/2075/184/428|1|
+
+All cases: minimum free stack 35252, internal free 314948/largest 270324, PSRAM free 7078419/largest 7077876. Released PSRAM 8386035. Predation 208 per case; population accounting holds. Host CI 46069238777 passed. 4096 crowded fails max budget; lifecycle and disease remain priority. This is short disposable CPU evidence, not demographic calibration or production certification. Candidate next optimization: avoid unnecessary RNG rejection-threshold division, reuse consecutive parent-tile masks, cache disease neighborhood counts. Preserve exact draws, pair order and canonical state. Same probe required for validation.
