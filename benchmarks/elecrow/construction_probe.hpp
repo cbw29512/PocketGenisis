@@ -1,5 +1,7 @@
 #pragma once
-#ifdef PG_IRRIGATION_PROBE
+#ifdef PG_MULTI_FIELD_PROBE
+#include "../../core/multi_field.hpp"
+#elif defined(PG_IRRIGATION_PROBE)
 #include "../../core/irrigation.hpp"
 #elif defined(PG_AGRICULTURE_PROBE)
 #include "../../core/agriculture.hpp"
@@ -24,7 +26,12 @@ inline bool construction_probe(World& w) {
     Serial.println("IRRIGATION PROBE");
 #endif
 #ifdef PG_AGRICULTURE_PROBE
+#ifdef PG_MULTI_FIELD_PROBE
+    multi_field::State farms{};
+    auto& crops=farms.crops[0]; // existing serial diagnostics describe first field
+#else
     agriculture::State crops{};
+#endif
     Serial.println("AGRICULTURE PROBE");
 #endif
 #ifdef PG_SETTLEMENT_PROBE
@@ -47,7 +54,9 @@ inline bool construction_probe(World& w) {
     constexpr const char* events[]={"none","started","completed","abandoned"};
     for(unsigned i=0;i<43200;++i) {
         discovery::Event re{};construction::Event ce{};
-#ifdef PG_IRRIGATION_PROBE
+#ifdef PG_MULTI_FIELD_PROBE
+        if(!multi_field::step(w,knowledge,sites,reserve,cooked,sheltered,home,farms,irrigation_water,p,re,ce,discovery::probe_cadence)) {
+#elif defined(PG_IRRIGATION_PROBE)
         if(!irrigation::step(w,knowledge,sites,reserve,cooked,sheltered,home,crops,irrigation_water,p,re,ce,discovery::probe_cadence)) {
 #elif defined(PG_AGRICULTURE_PROBE)
         if(!agriculture::step(w,knowledge,sites,reserve,cooked,sheltered,home,crops,p,re,ce,discovery::probe_cadence)) {
@@ -125,6 +134,11 @@ inline bool construction_probe(World& w) {
         static_cast<unsigned long long>(irrigation_water.transfers),
         static_cast<unsigned long long>(irrigation_water.water),unsigned(sizeof(irrigation_water)));
     if(!irrigation::valid(irrigation_water)) {Serial.println("ERROR irrigation accounting");return false;}
+#endif
+#ifdef PG_MULTI_FIELD_PROBE
+    Serial.printf("MULTI_FIELD_RESULT fields=%u harvests=%llu state_bytes=%u\n",
+        multi_field::completed(sites),static_cast<unsigned long long>(multi_field::harvests(farms)),unsigned(sizeof(farms)));
+    if(!multi_field::valid(farms)) {Serial.println("ERROR multi field accounting");return false;}
 #endif
     return valid_population(w)&&construction::completed(sites)>0&&births>0;
 }

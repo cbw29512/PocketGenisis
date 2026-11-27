@@ -19,8 +19,9 @@ inline bool valid(const State& s) noexcept {
 }
 enum class Task : std::uint8_t { none,plant,tend,harvest };
 inline Task task(const World& w,const construction::State& sites,const State& s,
-                 std::uint64_t tick) noexcept {
-    const auto& plot=sites.sites[construction::field];
+                 std::uint64_t tick,unsigned slot=construction::field) noexcept {
+    if(slot>=construction::site_count||construction::kind_at(slot)!=construction::field) return Task::none;
+    const auto& plot=sites.sites[slot];
     if(plot.stage!=construction::Stage::complete||plot.tile>=w.tiles.size()||s.stage>4) return Task::none;
     const auto& stock=w.tiles[plot.tile];
     const bool winter=(tick%ticks_per_year)/(ticks_per_year/4)==3;
@@ -36,12 +37,13 @@ inline bool farmer(const discovery::State& knowledge,const Citizen& c) noexcept 
            (knowledge.known[c.id-1]&discovery::tech_bit(discovery::farming));
 }
 inline Task work(World& w,const discovery::State& knowledge,const construction::State& sites,
-                 State& s,Citizen& c) noexcept {
-    if(!farmer(knowledge,c)||construction::location(c)!=sites.sites[construction::field].tile)
+                 State& s,Citizen& c,unsigned slot=construction::field) noexcept {
+    if(slot>=construction::site_count||construction::kind_at(slot)!=construction::field||
+       !farmer(knowledge,c)||construction::location(c)!=sites.sites[slot].tile)
         return Task::none;
-    const auto action=task(w,sites,s,w.tick);
+    const auto action=task(w,sites,s,w.tick,slot);
     if(action==Task::none) return action;
-    auto& stock=w.tiles[sites.sites[construction::field].tile];
+    auto& stock=w.tiles[sites.sites[slot].tile];
     if(action==Task::plant) {
         stock.food-=seed_cost;--stock.water;s.stage=1;++s.plants;++s.water;
     } else if(action==Task::tend) {
@@ -55,13 +57,17 @@ inline Task work(World& w,const discovery::State& knowledge,const construction::
 struct Renewal {
     const construction::State& sites;
     bool operator()(std::size_t tile) const noexcept {
-        const auto& plot=sites.sites[construction::field];
-        return plot.stage!=construction::Stage::complete||plot.tile!=tile;
+        for(unsigned i=0;i<construction::field_count;++i) {
+            const auto& plot=sites.sites[construction::field_slot(i)];
+            if(plot.stage==construction::Stage::complete&&plot.tile==tile) return false;
+        }
+        return true;
     }
 };
 inline bool viable_tending(const World& w,const construction::State& sites,const State& farm,
-                           std::uint64_t tick) noexcept {
-    const auto& plot=sites.sites[construction::field];
+                           std::uint64_t tick,unsigned slot=construction::field) noexcept {
+    if(slot>=construction::site_count||construction::kind_at(slot)!=construction::field) return false;
+    const auto& plot=sites.sites[slot];
     if(!farm.stage||farm.stage>4||plot.stage!=construction::Stage::complete||plot.tile>=w.tiles.size()) return false;
     const auto& stock=w.tiles[plot.tile];
     if(farm.stage==4) return stock.food<=stock_cap-harvest_yield;

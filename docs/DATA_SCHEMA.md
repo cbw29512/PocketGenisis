@@ -135,3 +135,5 @@ Housing probe adds eight Site records under PG_HOUSING_PROBE only. Blueprint kin
 Agriculture profile only: append Farming research catalog entry and prepared field blueprint/site; separate crop stage, last work tick, uint64 plants/tended/water/harvests/food counters. No canonical state change. See AGRICULTURE_CONTRACT.md.
 
 Irrigation profile only: appended Irrigation technology and channel blueprint/site, uint64 last transfer tick, successful transfers and cumulative water moved. Water remains in ordinary tile stocks. See IRRIGATION_CONTRACT.md.
+
+Multi-field profile only: three additional Site slots after extra huts; array of four existing agriculture::State records indexed by field ordinal. No canonical saved fields. See MULTI_FIELD_CONTRACT.md.

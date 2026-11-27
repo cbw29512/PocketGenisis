@@ -69,3 +69,5 @@ Default CI runs 16 seeds x 3600 ticks via tests/civilization_diversity_test.cpp.
 `elecrow_s3_agriculture_probe` extends housing with one actual prepared field and seed/water/time/labor crop cycle. AGRICULTURE_RESULT reports observed planting, tending, harvest and output; absence of harvest is observable, not forced. Controlled host test verifies mechanics. CI/device pending.
 
 `elecrow_s3_irrigation_probe` extends agriculture with demand-gated adjacent channel and conserved water redistribution. IRRIGATION_RESULT reports actual completed channel and water moved; zero demand is allowed. Host fixture verifies transfer in a real tick; CI/device pending.
+
+`elecrow_s3_multi_field_probe` extends irrigation with four independent field slots; existing AGRICULTURE_RESULT is field zero, MULTI_FIELD_RESULT reports aggregate completed fields and harvests. CI/device pending.

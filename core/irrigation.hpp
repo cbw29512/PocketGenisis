@@ -15,12 +15,11 @@ inline bool valid(const State& s) noexcept {
 inline unsigned transfer(World& w,const construction::State& sites,State& s) noexcept {
     if(!w.tick||w.tick%interval||w.tick<=s.last_transfer) return 0;
     const auto& channel=sites.sites[construction::channel];
-    const auto& field=sites.sites[construction::field];
-    if(channel.stage!=construction::Stage::complete||field.stage!=construction::Stage::complete||
-       channel.tile>=w.tiles.size()||field.tile>=w.tiles.size()||
-       !construction::channel_adjacent(channel.tile,field.tile)) return 0;
+    if(channel.stage!=construction::Stage::complete||channel.tile>=w.tiles.size()) return 0;
+    const auto target=construction::thirsty_field(w,sites,channel.tile);
+    if(target<0) return 0;
     auto& source=w.tiles[channel.tile].water;
-    auto& dest=w.tiles[field.tile].water;
+    auto& dest=w.tiles[sites.sites[unsigned(target)].tile].water;
     if(source<=construction::irrigation_source_reserve||dest>=construction::irrigation_target) return 0;
     const auto n=std::min({rate,unsigned(source-construction::irrigation_source_reserve),
                          unsigned(construction::irrigation_target-dest)});

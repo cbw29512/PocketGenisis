@@ -35,10 +35,24 @@ inline constexpr unsigned extra_huts=8;
 #else
 inline constexpr unsigned extra_huts=0;
 #endif
-inline constexpr unsigned site_count=kind_count+extra_huts,housing_capacity=2;
+#ifdef PG_MULTI_FIELD_PROBE
+inline constexpr unsigned extra_fields=3;
+#else
+inline constexpr unsigned extra_fields=0;
+#endif
+inline constexpr unsigned site_count=kind_count+extra_huts+extra_fields,housing_capacity=2;
 inline constexpr Kind kind_at(unsigned slot) noexcept {
+#ifdef PG_MULTI_FIELD_PROBE
+    if(slot>=kind_count+extra_huts) return field;
+#endif
     return slot<kind_count?static_cast<Kind>(slot):hut;
 }
+#ifdef PG_AGRICULTURE_PROBE
+inline constexpr unsigned field_count=1+extra_fields;
+inline constexpr unsigned field_slot(unsigned i) noexcept {
+    return i==0?unsigned(field):kind_count+extra_huts+i-1;
+}
+#endif
 struct State {
     std::array<Site,site_count> sites{};
 };
@@ -78,24 +92,41 @@ inline constexpr unsigned irrigation_target=24,irrigation_source_reserve=24;
 inline bool channel_adjacent(std::uint16_t a,std::uint16_t b) noexcept {
     return std::abs(int(a%width)-int(b%width))+std::abs(int(a/width)-int(b/width))==1;
 }
+// Stable lowest-water adjacent completed field; never select unrelated tiles.
+inline int thirsty_field(const World& w,const State& s,std::uint16_t source) noexcept {
+    int best=-1;unsigned lowest=irrigation_target;
+    for(unsigned i=0;i<field_count;++i) {
+        const auto k=field_slot(i);const auto& plot=s.sites[k];
+        if(plot.stage!=Stage::complete||plot.tile>=w.tiles.size()||
+           !channel_adjacent(source,plot.tile)) continue;
+        if(w.tiles[plot.tile].water<lowest) {lowest=w.tiles[plot.tile].water;best=int(k);}
+    }
+    return best;
+}
 #endif
 inline bool can_start(const World& w,const discovery::State& research,const State& s,
                       unsigned owner,unsigned k) noexcept {
     if(owner>=w.founders.size()||k>=site_count) return false;
     const auto& c=w.founders[owner];const auto& bp=blueprints[kind_at(k)];
     const auto tile=location(c);const auto& stock=w.tiles[tile];
-    if(k>=kind_count&&(!housing_demand(w,s)||stock.food<12||stock.water<12||
+    if(k>=kind_count&&kind_at(k)==hut&&(!housing_demand(w,s)||stock.food<12||stock.water<12||
                        !near_completed_hut(s,c))) return false;
 #ifdef PG_AGRICULTURE_PROBE
-    if(k==field&&(stock.food<14||stock.water<12||(!w.descendant_count&&stock.food>48)||
+    if(kind_at(k)==field&&(stock.food<14||stock.water<12||(!w.descendant_count&&stock.food>48)||
                  !near_completed_hut(s,c))) return false;
+#ifdef PG_MULTI_FIELD_PROBE
+    if(kind_at(k)==field&&k!=field) {
+        unsigned established=0;
+        for(unsigned i=0;i<field_count;++i)
+            established+=s.sites[field_slot(i)].stage==Stage::complete;
+        // Provisional planning demand, not a population cap or guaranteed yield.
+        if(!established||w.descendant_count+2<=4*established||stock.food>48) return false;
+    }
+#endif
 #endif
 #ifdef PG_IRRIGATION_PROBE
     if(k==channel) {
-        const auto& plot=s.sites[field];
-        if(plot.stage!=Stage::complete||plot.tile>=w.tiles.size()||
-           !channel_adjacent(tile,plot.tile)||stock.water<=irrigation_source_reserve||
-           w.tiles[plot.tile].water>=irrigation_target) return false;
+        if(stock.water<=irrigation_source_reserve||thirsty_field(w,s,tile)<0) return false;
     }
 #endif
     return s.sites[k].stage==Stage::empty&&!occupied(s,tile)&&
