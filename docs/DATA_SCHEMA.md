@@ -55,3 +55,6 @@ World dimensions/geometry immutable after founding; exploration visibility indep
 
 ### Increment 9 implementation subset
 No serialized state addition. Founder reunion is derived from existing IDs, coordinates and urgent needs; fallback resource selection uses actual stocks and stable row-major ordering. No new action enum, no forced reproduction. Algorithm change requires a rules-version increment before official saves exist.
+
+### Increment 10 implementation subset
+Supersedes increment 7's single gestation state: World.pregnancies[128] plus pregnancy_count, active prefix ordered by nondecreasing due_tick and stable insertion order, remaining slots all zero. Distinct live parents per pregnancy and no overlapping participants; pending gestations reserve active and lifetime history capacity. Cancellation does not issue citizen ID. Stable ordered delivery preserves monotonic IDs. This provisional RAM representation is not canonical serialization; versioned migration required before official saves.

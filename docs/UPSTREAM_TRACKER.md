@@ -35,3 +35,6 @@ Re-read LibColony pinned MIT license and header design lines 15–65 (needs/work
 
 ## G3 recovery
 Re-read pinned ecosystem MIT license and CYD source lines 473–504, including nearest-resource search and random wandering when none found. Retain deterministic bounded local search; original founder-only full-map fallback and reunion rule avoid indefinite local starvation or isolation without importing upstream floating-point behavior. No code copied.
+
+## G3 concurrent gestation
+Reused increment 7's original deterministic reservoir pair selection, inheritance and archive reservation; expanded bounded gestation storage and validation, no new upstream dependency or source copied. Earlier pinned ecosystem reference is not a multi-parent pregnancy implementation and is not substituted for our existing mechanics.

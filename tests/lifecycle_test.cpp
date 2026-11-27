@@ -16,7 +16,7 @@ int main() {
         setup(a);setup(b);
         for(int i=0;i<100000 && !a.descendant_count;++i) {
             check(step_world(a,p)&&step_world(b,q),"autonomous world step");
-            check(a.pregnancy.due_tick==b.pregnancy.due_tick && a.descendant_count==b.descendant_count,"gestation replay");
+            check(a.pregnancies[0].due_tick==b.pregnancies[0].due_tick && a.descendant_count==b.descendant_count,"gestation replay");
         }
         check(a.descendant_count==1 && b.descendant_count==1,"autonomous birth");
         auto& c=a.descendants[0]; const auto& d=b.descendants[0];
@@ -31,7 +31,7 @@ int main() {
         check(step_world(a,p)&&c.action==Action::drink,"parent provides dependent water");
         check(life_stage(c,c.birth_tick+2*ticks_per_year)==LifeStage::child,"child boundary");
         check(life_stage(c,c.birth_tick+12*ticks_per_year)==LifeStage::adolescent,"adolescent boundary");
-        a.pregnancy={};
+        a.pregnancies.fill(Pregnancy{});a.pregnancy_count=0;
         a.tick=c.birth_tick+18*ticks_per_year-1;
         check(step_world(a,p)&&c.purpose!=Purpose::none,"adult purpose assigned");
         auto purpose=c.purpose;
@@ -48,9 +48,9 @@ int main() {
         for(std::size_t i=0;i<a.descendant_count;++i) {
             auto& child=a.descendants[i]; child.id=i+3;child.parent1=1;child.parent2=2;child.birth_tick=1;
         }
-        check(step_world(a,p)&&a.descendant_count==descendant_capacity&&!a.pregnancy.due_tick,"capacity defers conception");
+        check(step_world(a,p)&&a.descendant_count==descendant_capacity&&!a.pregnancies[0].due_tick,"capacity defers conception");
         setup(a);
-        check(!a.descendant_count&&a.next_citizen_id==3&&!a.pregnancy.due_tick,"explicit reset clears population");
+        check(!a.descendant_count&&a.next_citizen_id==3&&!a.pregnancies[0].due_tick,"explicit reset clears population");
         std::cout<<"PASS: autonomous gestation, birth, genealogy, inheritance, maturation, shared survival, capacity and rejection\n";
         return 0;
     } catch(const std::exception& e) {

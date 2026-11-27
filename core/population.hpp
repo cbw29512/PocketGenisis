@@ -79,13 +79,27 @@ inline bool valid_population(const World& w) noexcept {
         if(!genealogy(w.descendants[i])) return false;
     for(std::size_t i=0;i<w.archive_count;++i)
         if(!genealogy(w.archive[i].citizen)) return false;
-    const auto& p=w.pregnancy;
-    if(!p.due_tick) return !p.parent1&&!p.parent2;
-    if(!valid_pair(p.parent1,p.parent2)||p.due_tick<=w.tick||
-       p.due_tick-w.tick>gestation_ticks||w.descendant_count>=descendant_capacity||
-       w.descendant_count+w.archive_count>=history_capacity) return false;
-    const auto* a=live_citizen(w,p.parent1);
-    const auto* b=live_citizen(w,p.parent2);
-    return a&&b&&life_stage(*a,w.tick)>=LifeStage::adult&&life_stage(*b,w.tick)>=LifeStage::adult;
+    // Each gestation reserves an active slot and a future archive identity.
+    if(w.pregnancy_count>pregnancy_capacity||
+       w.descendant_count+w.pregnancy_count>descendant_capacity||
+       w.descendant_count+w.archive_count+w.pregnancy_count>history_capacity) return false;
+    std::array<bool,history_capacity+3> participating{};
+    std::uint64_t previous_due=0;
+    for(std::size_t i=0;i<w.pregnancy_count;++i) {
+        const auto& p=w.pregnancies[i];
+        if(!valid_pair(p.parent1,p.parent2)||p.due_tick<=w.tick||
+           p.due_tick-w.tick>gestation_ticks||p.due_tick<previous_due) return false;
+        const auto* a=live_citizen(w,p.parent1);
+        const auto* b=live_citizen(w,p.parent2);
+        if(!a||!b||life_stage(*a,w.tick)<LifeStage::adult||life_stage(*b,w.tick)<LifeStage::adult) return false;
+        if(participating[p.parent1]||participating[p.parent2]) return false;
+        participating[p.parent1]=participating[p.parent2]=true;
+        previous_due=p.due_tick;
+    }
+    for(std::size_t i=w.pregnancy_count;i<pregnancy_capacity;++i) {
+        const auto& p=w.pregnancies[i];
+        if(p.parent1||p.parent2||p.due_tick) return false;
+    }
+    return true;
 }
 } // namespace genesis

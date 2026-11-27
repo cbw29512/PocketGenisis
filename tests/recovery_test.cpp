@@ -14,7 +14,7 @@ int main() {
         auto rng=w.streams[decisions].state;
         for(int i=0;i<8;++i) check(step_survival(w),"reunion step");
         check(a.x==10&&b.x==12&&a.y==10&&b.y==10,"founders reunite deterministically");
-        check(w.streams[decisions].state==rng&&!w.pregnancy.due_tick,"reunion is not a conception roll");
+        check(w.streams[decisions].state==rng&&!w.pregnancies[0].due_tick,"reunion is not a conception roll");
         initialize(w,42);
         for(auto& t:w.tiles) {t.water=0;t.food=0;}
         a.x=0;a.y=0;b.x=99;b.y=59;a.thirst=100;

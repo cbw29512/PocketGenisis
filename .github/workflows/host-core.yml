@@ -1,31 +1,17 @@
 name: Host core
 on:
   push:
+    branches: [main]
   pull_request:
 permissions:
   contents: read
+concurrency:
+  group: host-core-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Compile and test portable simulation
-        run: |
-          g++ -std=c++17 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -Icore tests/core_test.cpp -o core-test
-          ./core-test
-          g++ -std=c++17 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -Icore tests/survival_test.cpp -o survival-test
-          ./survival-test
-          g++ -std=c++17 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -Icore tests/ecology_test.cpp -o ecology-test
-          ./ecology-test
-          g++ -std=c++17 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -Icore tests/resource_search_test.cpp -o resource-search-test
-          ./resource-search-test
-          g++ -std=c++17 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -Icore tests/lifecycle_test.cpp -o lifecycle-test
-          ./lifecycle-test
-          g++ -std=c++17 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -Icore tests/mortality_test.cpp -o mortality-test
-          ./mortality-test
-          g++ -std=c++17 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -Icore tests/generation_test.cpp -o generation-test
-          ./generation-test
-          g++ -std=c++17 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -Icore tests/care_test.cpp -o care-test
-          ./care-test
-          g++ -std=c++17 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -Icore tests/recovery_test.cpp -o recovery-test
-          ./recovery-test
+        run: bash scripts/test-host.sh

@@ -11,26 +11,34 @@ inline const Citizen& active_at(const World& w,std::size_t i) noexcept {
     return i<2?w.founders[i]:w.descendants[i-2];
 }
 inline void attempt_conception(World& w) noexcept {
-    if(w.tick%600||w.descendant_count>=descendant_capacity||
-       w.descendant_count+w.archive_count>=history_capacity||
+    if(w.tick%600||w.pregnancy_count>=pregnancy_capacity||
+       w.descendant_count+w.pregnancy_count>=descendant_capacity||
+       w.descendant_count+w.archive_count+w.pregnancy_count>=history_capacity||
        w.tick>std::numeric_limits<std::uint64_t>::max()-gestation_ticks) return;
+    // Parents cannot participate in two simultaneous gestations.
+    std::array<bool,history_capacity+3> busy{};
+    for(std::size_t i=0;i<w.pregnancy_count;++i) {
+        const auto& p=w.pregnancies[i];
+        busy[p.parent1]=busy[p.parent2]=true;
+    }
     // Reservoir sampling: every locally eligible pair has equal selection chance.
     std::uint32_t count=0,roll{};
     Pregnancy selected{};
     const auto n=w.descendant_count+2;
     for(std::size_t i=0;i<n;++i) {
         const auto& a=active_at(w,i);
-        if(!eligible_parent(a,w.tick)) continue;
+        if(busy[a.id]||!eligible_parent(a,w.tick)) continue;
         for(std::size_t j=i+1;j<n;++j) {
             const auto& b=active_at(w,j);
-            if(!valid_pair(a.id,b.id)||!eligible_parent(b,w.tick)||
+            if(busy[b.id]||!valid_pair(a.id,b.id)||!eligible_parent(b,w.tick)||
                std::abs(int(a.x)-int(b.x))+std::abs(int(a.y)-int(b.y))>2) continue;
             ++count;
             if(count==1||(w.streams[reproduction].bounded(count,roll)&&roll==0))
                 selected={a.id,b.id,w.tick+gestation_ticks};
         }
     }
-    if(count&&w.streams[reproduction].bounded(4,roll)&&roll==0) w.pregnancy=selected;
+    if(count&&w.streams[reproduction].bounded(4,roll)&&roll==0)
+        w.pregnancies[w.pregnancy_count++]=selected;
 }
 inline void deliver(World& w,const Citizen& a,const Citizen& b) noexcept {
     // Parents are read from existing slots; fixed array never reallocates.
@@ -55,19 +63,26 @@ inline void update_lifecycle(World& w) noexcept {
         if(c.purpose==Purpose::none&&life_stage(c,w.tick)>=LifeStage::adult)
             c.purpose=choose_purpose(c);
     }
-    if(w.pregnancy.due_tick) {
-        // Mortality and compaction already ran, so resolve by ID, not pointer/slot.
-        const auto* a=live_citizen(w,w.pregnancy.parent1);
-        const auto* b=live_citizen(w,w.pregnancy.parent2);
+    // Preserve due-tick order while resolving births/losses after mortality.
+    std::size_t write=0;
+    bool resolved=false;
+    for(std::size_t i=0;i<w.pregnancy_count;++i) {
+        const auto p=w.pregnancies[i];
+        const auto* a=live_citizen(w,p.parent1);
+        const auto* b=live_citizen(w,p.parent2);
         if(!a||!b) {
             if(w.lost_gestations<std::numeric_limits<std::uint64_t>::max()) ++w.lost_gestations;
-            w.pregnancy={};
-        } else if(w.tick==w.pregnancy.due_tick) {
+            resolved=true;
+        } else if(w.tick==p.due_tick) {
             deliver(w,*a,*b);
-            w.pregnancy={};
+            resolved=true;
+        } else {
+            w.pregnancies[write++]=p;
         }
-        return;
     }
-    attempt_conception(w);
+    for(std::size_t i=write;i<w.pregnancy_count;++i) w.pregnancies[i]={};
+    w.pregnancy_count=write;
+    // Keep the existing one-roll-per-opportunity budget, even with many families.
+    if(!resolved) attempt_conception(w);
 }
 } // namespace genesis
