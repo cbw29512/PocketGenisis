@@ -112,3 +112,6 @@ No added fields; status derived from founder ID and existing health <=20. Crawl 
 
 ### Increment 28 — parental health
 Append parental_health_events RNG stream (index 9), preserving all existing stream indices and initial states. DeathCause parental_childbirth=6 (adult or elder mortal parent); newborn childbirth=4 unchanged. No new citizen fields or gestational sex assignment. Rules revision 17; serialized world gains one uint64 RNG state. Shared validation enforces health, age and newborn provenance; not a durable record of nonfatal injuries, which awaits event journal.
+
+### Disposable discovery state
+See DISCOVERY_CONTRACT.md for nonpersistent founder masks, first discovery records, one work-in-progress experiment, counters and last opportunity. Uses existing research RNG; no canonical World layout or checkpoint revision change. Production integration requires explicit versioned persistence, validation and replay.

@@ -1,5 +1,8 @@
 #include "../fixture.hpp"
 #include "../profile.hpp"
+#ifdef PG_DISCOVERY_PROBE
+#include "../discovery_probe.hpp"
+#endif
 #ifdef PG_WILDLIFE_PROBE
 #include "../../../core/wildlife.hpp"
 #endif
@@ -126,9 +129,13 @@ void setup() {
 #endif
     memory_report("allocated");
     bool ok=true;
+#ifdef PG_DISCOVERY_PROBE
+    ok=benchmark::discovery_probe(*w);
+#else
     for(auto n:populations) {
         if(!measure(*w,n,false)||!measure(*w,n,true)) {ok=false;break;}
     }
+#endif
 #ifdef PG_WILDLIFE_PROBE
     animals->~Wildlife();heap_caps_free(animal_raw);animals=nullptr;
 #endif
