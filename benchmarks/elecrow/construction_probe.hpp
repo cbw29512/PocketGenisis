@@ -1,5 +1,7 @@
 #pragma once
-#ifdef PG_COOKING_PROBE
+#ifdef PG_SHELTER_PROBE
+#include "../../core/shelter.hpp"
+#elif defined(PG_COOKING_PROBE)
 #include "../../core/cooking.hpp"
 #elif defined(PG_STORAGE_PROBE)
 #include "../../core/food_store.hpp"
@@ -11,6 +13,10 @@ namespace genesis::benchmark {
 inline bool construction_probe(World& w) {
     initialize(w,42);discovery::State knowledge{};construction::State sites{};Production p{};
     unsigned births=0;
+#ifdef PG_SHELTER_PROBE
+    shelter::State sheltered{};
+    Serial.println("FUNCTIONAL SHELTER PROBE");
+#endif
 #ifdef PG_COOKING_PROBE
     cooking::State cooked{};
     Serial.println("FUNCTIONAL CAMPFIRE PROBE");
@@ -23,7 +29,9 @@ inline bool construction_probe(World& w) {
     constexpr const char* events[]={"none","started","completed","abandoned"};
     for(unsigned i=0;i<43200;++i) {
         discovery::Event re{};construction::Event ce{};
-#ifdef PG_COOKING_PROBE
+#ifdef PG_SHELTER_PROBE
+        if(!shelter::step(w,knowledge,sites,reserve,cooked,sheltered,p,re,ce,discovery::probe_cadence)) {
+#elif defined(PG_COOKING_PROBE)
         if(!cooking::step(w,knowledge,sites,reserve,cooked,p,re,ce,discovery::probe_cadence)) {
 #elif defined(PG_STORAGE_PROBE)
         if(!storage::step(w,knowledge,sites,reserve,p,re,ce,discovery::probe_cadence)) {
@@ -59,6 +67,10 @@ inline bool construction_probe(World& w) {
         static_cast<unsigned long long>(cooked.meals),static_cast<unsigned long long>(cooked.wood),
         static_cast<unsigned long long>(cooked.relief),unsigned(sizeof(cooked)));
     if(!cooking::valid(cooked)) {Serial.println("ERROR cooking accounting");return false;}
+#endif
+#ifdef PG_SHELTER_PROBE
+    Serial.printf("SHELTER_RESULT extra_recovery=%llu state_bytes=%u\n",
+        static_cast<unsigned long long>(sheltered.extra_recovery),unsigned(sizeof(sheltered)));
 #endif
     return valid_population(w)&&construction::completed(sites)>0&&births>0;
 }

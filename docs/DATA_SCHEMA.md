@@ -125,3 +125,5 @@ Separate state: bounded balance (unsigned, 0..64), deposited/withdrawn/spoiled u
 Storage prototype adds uint64 assisted counter (subset of withdrawn). Recipient and provider share existing hunger consumption logic; no new canonical saved fields.
 
 Disposable cooking state: uint64 meals, wood consumed, additional hunger relief counters. No canonical World fields. See COOKING_CONTRACT.md.
+
+Disposable shelter state: uint64 cumulative extra recovery grants. Recovery slots are temporary per tick, not saved. See SHELTER_CONTRACT.md.
