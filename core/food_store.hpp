@@ -56,12 +56,12 @@ struct ReserveWork {
         return can_deposit(w,sites,reserve,c);
     }
 };
-template<class Food,class Recovery,class Work>
+template<class Food,class Recovery,class Work,class Renewal=NaturalFoodRenewal>
 inline bool step_with_policies(World& w,discovery::State& research,construction::State& sites,State& reserve,
-                 Production& p,discovery::Event& re,construction::Event& ce,std::uint64_t cadence,const Food& food,const Recovery& recovery,const Work& work) noexcept {
+                 Production& p,discovery::Event& re,construction::Event& ce,std::uint64_t cadence,const Food& food,const Recovery& recovery,const Work& work,const Renewal& renewal={}) noexcept {
     const bool busy=research.job.active||construction::active(sites)>=0;
     if(!construction::step_with_policy(w,research,sites,p,re,ce,cadence,
-            work,food,recovery)) return false;
+            work,food,recovery,renewal)) return false;
     if(!busy&&!research.job.active&&construction::active(sites)<0&&
         re.kind==discovery::EventKind::none&&ce.kind==construction::EventKind::none) {
         // One discretionary deposit per world tick; no overlapping research/build work.

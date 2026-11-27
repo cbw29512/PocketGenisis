@@ -104,6 +104,11 @@ inline bool construction_probe(World& w) {
         static_cast<unsigned long long>(crops.plants),static_cast<unsigned long long>(crops.tended),
         static_cast<unsigned long long>(crops.water),static_cast<unsigned long long>(crops.harvests),
         static_cast<unsigned long long>(crops.food),unsigned(crops.stage),unsigned(sizeof(crops)));
+    const auto plot=sites.sites[construction::field].tile;
+    Serial.printf("FARM_DIAGNOSTIC plot=%u food=%u water=%u founder1_distance=%d founder2_distance=%d\n",
+        unsigned(plot),unsigned(w.tiles[plot].food),unsigned(w.tiles[plot].water),
+        std::abs(int(w.founders[0].x)-int(plot%width))+std::abs(int(w.founders[0].y)-int(plot/width)),
+        std::abs(int(w.founders[1].x)-int(plot%width))+std::abs(int(w.founders[1].y)-int(plot/width)));
     if(!agriculture::valid(crops)) {Serial.println("ERROR agriculture accounting");return false;}
 #endif
     return valid_population(w)&&construction::completed(sites)>0&&births>0;

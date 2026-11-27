@@ -15,13 +15,17 @@ inline unsigned renew_stock(std::uint16_t& stock, unsigned amount) noexcept {
     stock=static_cast<std::uint16_t>(stock+added);
     return added;
 }
+// Cultivated land may suppress wild food renewal without changing water/wood.
+struct NaturalFoodRenewal {
+    constexpr bool operator()(std::size_t) const noexcept {return true;}
+};
 // Optional observation only: phase boundaries are not saved state or rules.
 enum class TickPhase : std::size_t { survival, disease, mortality, lifecycle, renewal, count };
 // One authoritative tick; natural renewal happens after citizen consumption.
 namespace detail {
-template<class Validate,class Observe,class Work=NoDiscretionaryWork,class Food=NoReserveFood,class Recovery=NoRecoveryBonus>
+template<class Validate,class Observe,class Work=NoDiscretionaryWork,class Food=NoReserveFood,class Recovery=NoRecoveryBonus,class Renewal=NaturalFoodRenewal>
 inline bool step_world_observed(World& w,Production& produced,const Validate& validate,
-                                const Observe& observe,const Work& work={},const Food& reserve_food={},const Recovery& recovery={}) noexcept {
+                                const Observe& observe,const Work& work={},const Food& reserve_food={},const Recovery& recovery={},const Renewal& renewal={}) noexcept {
     produced={};
     if(!step_survival_checked(w,validate,work,reserve_food)) return false;
     observe(TickPhase::survival);
@@ -36,8 +40,9 @@ inline bool step_world_observed(World& w,Production& produced,const Validate& va
     constexpr unsigned water[]={3,1,2,2};
     constexpr unsigned wood[]={1,1,0,0};
     const auto s=season(w);
-    for(auto& t:w.tiles) {
-        produced.food+=renew_stock(t.food,food[s]);
+    for(std::size_t i=0;i<w.tiles.size();++i) {
+        auto& t=w.tiles[i];
+        if(renewal(i)) produced.food+=renew_stock(t.food,food[s]);
         produced.water+=renew_stock(t.water,water[s]);
         produced.wood+=renew_stock(t.wood,wood[s]);
     }

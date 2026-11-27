@@ -61,7 +61,32 @@ int main(){
         // At a completed field, a free founder reserves exactly one farming task.
         const farm::Work policy{research,sites,reserve,crops,home,discovery::probe_cadence};
         check(policy(*w,a)&&policy.chosen==a.id,"reserve farm action");
-        initialize(*w,42);research={};sites={};crops={};reserve={};cooked={};sheltered={};home={};Production p{};
+        // Cultivated tile loses wild food renewal, but not water renewal.
+        w->tick=59;stock.food=50;stock.water=50;stock.wood=50;
+        a.hunger=a.thirst=b.hunger=b.thirst=0;
+        auto& wild=w->tiles[build::location(a)-3];wild.food=50;
+        Production p{};
+        check(detail::step_world_observed(*w,p,valid_population,[](TickPhase) noexcept {},
+            NoDiscretionaryWork{},NoReserveFood{},NoRecoveryBonus{},farm::Renewal{sites}),"renewal tick");
+        check(stock.food==50&&stock.water==53&&wild.food==52,"only field wild growth suppressed");
+        // Isolated crop-locality policy: preserve ordinary movement and allow
+        // leaving when water is depleted or urgent survival takes priority.
+        initialize(*w,42);research={};sites={};crops={};reserve={};cooked={};sheltered={};home={};
+        research.known[0]=research.known[1]=all;
+        auto& plot=sites.sites[build::field];plot.stage=build::Stage::complete;plot.tile=build::location(a);
+        sites.sites[build::hut].stage=build::Stage::complete;sites.sites[build::hut].tile=plot.tile-1;
+        sites.sites[build::campfire].stage=build::Stage::complete;sites.sites[build::campfire].tile=plot.tile-2;
+        sites.sites[build::store].stage=build::Stage::complete;sites.sites[build::store].tile=plot.tile-3;
+        auto& plot_stock=w->tiles[plot.tile];plot_stock.food=50;plot_stock.water=50;
+        w->tick=10;
+        check(farm::work(*w,research,sites,crops,a)==farm::Task::plant,"locality crop planted");
+        a.x+=3;const auto away=a.x;
+        const farm::Work keep_near{research,sites,reserve,crops,home,discovery::probe_cadence};
+        check(keep_near(*w,a)&&a.x==away-1&&a.action==Action::move,"return toward growing crop");
+        a.x=away;a.action=Action::idle;plot_stock.water=0;
+        check(!farm::viable_tending(*w,sites,crops,w->tick),"dry crop not holding farmer");
+        check(!keep_near(*w,a)&&a.x==away,"dry field allows exploration");
+        initialize(*w,42);research={};sites={};crops={};reserve={};cooked={};sheltered={};home={};
         unsigned births=0;
         for(unsigned i=0;i<43200;++i) {
             discovery::Event re{};build::Event ce{};
@@ -71,6 +96,11 @@ int main(){
         }
         check(valid_population(*w)&&discovery::discovered(research)>0&&build::completed(sites)>0,"integrated world");
         std::cout<<"AGRICULTURE_SMOKE known="<<discovery::discovered(research)<<" fields="<<(sites.sites[build::field].stage==build::Stage::complete)
-                 <<" plants="<<crops.plants<<" harvests="<<crops.harvests<<" food="<<crops.food<<" births="<<births<<'\n';return 0;
+                 <<" plants="<<crops.plants<<" tended="<<crops.tended<<" stage="<<unsigned(crops.stage)
+                 <<" harvests="<<crops.harvests<<" food="<<crops.food<<" births="<<births
+                 <<" plot_food="<<w->tiles[sites.sites[build::field].tile].food
+                 <<" plot_water="<<w->tiles[sites.sites[build::field].tile].water
+                 <<" founder1_distance="<<std::abs(int(a.x)-int(sites.sites[build::field].tile%width))+std::abs(int(a.y)-int(sites.sites[build::field].tile/width))
+                 <<" founder2_distance="<<std::abs(int(b.x)-int(sites.sites[build::field].tile%width))+std::abs(int(b.y)-int(sites.sites[build::field].tile/width))<<'\n';return 0;
     }catch(const std::exception& e){std::cerr<<"FAIL "<<e.what()<<'\n';return 1;}
 }

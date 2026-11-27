@@ -18,13 +18,13 @@ struct ReserveWork {
         return false;
     }
 };
-template<class Work=ReserveWork,class Food=NoReserveFood,class Recovery=NoRecoveryBonus>
+template<class Work=ReserveWork,class Food=NoReserveFood,class Recovery=NoRecoveryBonus,class Renewal=NaturalFoodRenewal>
 inline bool step_with_policy(World& w,discovery::State& research,State& sites,Production& p,
-                 discovery::Event& re,Event& ce,std::uint64_t cadence,const Work& work,const Food& reserve_food={},const Recovery& recovery={}) noexcept {
+                 discovery::Event& re,Event& ce,std::uint64_t cadence,const Work& work,const Food& reserve_food={},const Recovery& recovery={},const Renewal& renewal={}) noexcept {
     re={};ce={};
     const bool building=active(sites)>=0;
     if(!detail::step_world_observed(w,p,valid_population,[](TickPhase) noexcept {},
-                                  work,reserve_food,recovery)) return false;
+                                  work,reserve_food,recovery,renewal)) return false;
     if(building) ce=advance(w,research,sites);
     else {
         const bool researching=research.job.active;
