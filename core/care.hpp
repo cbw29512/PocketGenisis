@@ -36,6 +36,16 @@ inline bool consume_resource(World& w,Citizen& recipient,int x,int y,bool water)
 inline bool consume_need(World& w,Citizen& recipient,int x,int y) noexcept {
     return consume_resource(w,recipient,x,y,recipient.thirst>=recipient.hunger);
 }
+// Optional local food reserve policy; default paths have identical behavior.
+struct NoReserveFood {
+    bool operator()(World&,Citizen&,const Citizen&) const noexcept {return false;}
+};
+template<class Food>
+inline bool consume_with_reserve(World& w,Citizen& recipient,const Citizen& provider,
+                                 bool water,const Food& reserve) noexcept {
+    if(consume_resource(w,recipient,provider.x,provider.y,water)) return true;
+    return !water&&reserve(w,recipient,provider);
+}
 using CareRequests=std::array<std::uint16_t,live_capacity>;
 // Temporary local care, never a change to biological genealogy.
 inline const Citizen* local_orphan_carer(const World& w,const Citizen& child,
@@ -89,10 +99,11 @@ inline CareRequests prepare_care(World& w) noexcept {
     }
     return requests;
 }
-inline bool give_care(World& w,Citizen& parent,Citizen* child) noexcept {
+template<class Food=NoReserveFood>
+inline bool give_care(World& w,Citizen& parent,Citizen* child,const Food& reserve={}) noexcept {
     if(!child||child->action!=Action::idle||!urgent_need(*child)||
        urgent_need(parent)||parent.health<50||distance_between(parent,*child)>1) return false;
-    if(!consume_need(w,*child,parent.x,parent.y)) return false;
+    if(!consume_with_reserve(w,*child,parent,child->thirst>=child->hunger,reserve)) return false;
     parent.action=Action::care;
     // Only an actual successful care transaction establishes guardianship.
     if(life_stage(*child,w.tick)==LifeStage::infant&&

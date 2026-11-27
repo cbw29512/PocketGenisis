@@ -41,9 +41,9 @@ inline bool construction_probe(World& w) {
         construction::completed(sites),discovery::discovered(knowledge),births,unsigned(w.descendant_count+2),
         unsigned(w.archive_count),unsigned(sizeof(sites)));
 #ifdef PG_STORAGE_PROBE
-    Serial.printf("STORAGE_RESULT balance=%u deposits=%llu withdrawals=%llu spoiled=%llu state_bytes=%u\n",
+    Serial.printf("STORAGE_RESULT balance=%u deposits=%llu withdrawals=%llu spoiled=%llu assisted=%llu state_bytes=%u\n",
         reserve.balance,static_cast<unsigned long long>(reserve.deposited),static_cast<unsigned long long>(reserve.withdrawn),
-        static_cast<unsigned long long>(reserve.spoiled),unsigned(sizeof(reserve)));
+        static_cast<unsigned long long>(reserve.spoiled),static_cast<unsigned long long>(reserve.assisted),unsigned(sizeof(reserve)));
     if(!storage::valid(reserve)||!reserve.deposited) {Serial.println("ERROR food reserve demonstration");return false;}
 #endif
     return valid_population(w)&&construction::completed(sites)>0&&births>0;

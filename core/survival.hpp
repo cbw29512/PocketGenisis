@@ -14,9 +14,6 @@ inline void move_toward(Citizen& c,int x,int y) noexcept {
 struct NoDiscretionaryWork {
     bool operator()(const World&,const Citizen&) const noexcept {return false;}
 };
-struct NoReserveFood {
-    bool operator()(World&,Citizen&) const noexcept {return false;}
-};
 template<class Work,class Food=NoReserveFood>
 inline void act_survival_with_work(World& w,Citizen& f,Citizen* dependent,const Work& work,const Food& reserve_food={}) noexcept {
     accrue_needs(f);
@@ -25,14 +22,13 @@ inline void act_survival_with_work(World& w,Citizen& f,Citizen* dependent,const 
     const bool founder=is_founder(f);
     const bool travel=founder_can_travel(f,w.tick);
     if(urgent) {
-        if(consume_need(w,f,f.x,f.y)) return;
-        if(!water&&reserve_food(w,f)) return;
+        if(consume_with_reserve(w,f,f,water,reserve_food)) return;
         auto target=find_resource(w,f.x,f.y,water);
         if(target.found&&travel) { move_toward(f,target.x,target.y);return; }
         // A missing primary resource must not prevent meeting another urgent need.
         const bool secondary_urgent=(water?f.hunger:f.thirst)>=12;
         if(secondary_urgent) {
-            if(consume_resource(w,f,f.x,f.y,!water)) return;
+            if(consume_with_reserve(w,f,f,!water,reserve_food)) return;
             target=find_resource(w,f.x,f.y,!water);
             if(target.found&&travel) { move_toward(f,target.x,target.y);return; }
         }
@@ -46,7 +42,7 @@ inline void act_survival_with_work(World& w,Citizen& f,Citizen* dependent,const 
     }
     // A critically weakened founder rests unless survival requires crawling.
     if(founder_incapacitated(f)) return;
-    if(give_care(w,f,dependent)) return;
+    if(give_care(w,f,dependent,reserve_food)) return;
     // Reunite founders only after survival and care; never force conception.
     if(founder) {
         const auto& other=w.founders[f.id==1?1:0];
@@ -93,8 +89,8 @@ inline bool step_survival_checked(World& w,const Validate& validate,const Work& 
         act_survival_with_work(w,c,slot?&w.descendants[slot-1]:nullptr,work,reserve_food);
     };
     for(std::size_t i=0;i<w.founders.size();++i) act(w.founders[i],i);
-    assist_founder(w,w.founders[0],w.founders[1]);
-    assist_founder(w,w.founders[1],w.founders[0]);
+    assist_founder(w,w.founders[0],w.founders[1],reserve_food);
+    assist_founder(w,w.founders[1],w.founders[0],reserve_food);
     for(std::size_t i=0;i<w.descendant_count;++i) {
         auto& c=w.descendants[i];
         if(life_stage(c,w.tick)!=LifeStage::infant) act(c,i+2);

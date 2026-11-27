@@ -14,15 +14,16 @@ inline bool founder_can_travel(const Citizen& c,std::uint64_t tick) noexcept {
 }
 // Nearby assistance consumes real stock, after each person's own action.
 // No extra action for the helper, no resource creation, no genealogy change.
-inline bool assist_founder(World& w,Citizen& helper,Citizen& patient) noexcept {
+template<class Food=NoReserveFood>
+inline bool assist_founder(World& w,Citizen& helper,Citizen& patient,const Food& reserve={}) noexcept {
     if(!founder_incapacitated(patient)||!is_founder(helper)||helper.id==patient.id||
        helper.health<50||urgent_need(helper)||helper.action!=Action::idle||
        patient.action!=Action::idle||!urgent_need(patient)||distance_between(helper,patient)>1)
         return false;
     const bool water=patient.thirst>=patient.hunger;
-    if(!consume_resource(w,patient,helper.x,helper.y,water)) {
+    if(!consume_with_reserve(w,patient,helper,water,reserve)) {
         if((water?patient.hunger:patient.thirst)<12||
-           !consume_resource(w,patient,helper.x,helper.y,!water)) return false;
+           !consume_with_reserve(w,patient,helper,!water,reserve)) return false;
     }
     helper.action=Action::care;
     return true;

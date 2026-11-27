@@ -5,10 +5,10 @@ namespace genesis::storage {
 inline constexpr unsigned capacity=64,local_surplus=24;
 struct State {
     unsigned balance{};
-    std::uint64_t deposited{},withdrawn{},spoiled{};
+    std::uint64_t deposited{},withdrawn{},spoiled{},assisted{};
 };
 inline bool valid(const State& s) noexcept {
-    return s.balance<=capacity&&s.deposited==s.withdrawn+s.spoiled+s.balance;
+    return s.balance<=capacity&&s.assisted<=s.withdrawn&&s.deposited==s.withdrawn+s.spoiled+s.balance;
 }
 inline bool nearby(const construction::State& sites,const Citizen& c) noexcept {
     const auto& b=sites.sites[construction::store];
@@ -27,11 +27,18 @@ inline bool deposit(World& w,const construction::State& sites,State& s,Citizen& 
 struct ReserveFood {
     const construction::State& sites;
     State& reserve;
+    bool operator()(World& w,Citizen& recipient,const Citizen& provider) const noexcept {
+        // Shared fallback: caller has already attempted natural food at provider's tile.
+        // Caregiver must be local to store and recipient; no remote transfers.
+        if(!reserve.balance||recipient.hunger<12||recipient.action!=Action::idle||
+           !nearby(sites,provider)||distance_between(recipient,provider)>1||
+           w.tiles[construction::location(provider)].food) return false;
+        --reserve.balance;++reserve.withdrawn;
+        if(recipient.id!=provider.id) ++reserve.assisted;
+        satisfy_need(recipient,false);return true;
+    }
     bool operator()(World& w,Citizen& c) const noexcept {
-        // The survival phase invokes this only after local food was unavailable.
-        if(!reserve.balance||c.hunger<12||c.thirst>=c.hunger||
-           c.action!=Action::idle||!nearby(sites,c)||w.tiles[construction::location(c)].food) return false;
-        --reserve.balance;++reserve.withdrawn;satisfy_need(c,false);return true;
+        return (*this)(w,c,c);
     }
 };
 inline void spoil(std::uint64_t tick,State& s) noexcept {
