@@ -20,19 +20,20 @@ inline constexpr std::array<Rule,tech_count> rules{{
     {"Food storage",tech_bit(stone_tools),3,1,2,50}
 }};
 inline constexpr unsigned work_required=30;
-inline constexpr std::uint64_t normal_cadence=43200,probe_cadence=60;
+inline constexpr std::uint64_t normal_cadence=43200,probe_cadence=60,stall_limit=600;
 struct Record {std::uint64_t tick{},founder{};};
 struct Experiment {
     std::uint8_t owner{},tech{},work{};
     bool active{};
+    std::uint64_t last_work_tick{};
 };
 struct State {
     std::array<Mask,2> known{};
     std::array<Record,tech_count> first{};
     Experiment job{};
-    std::uint64_t attempts{},successes{},failures{},last_opportunity{},last_teaching{};
+    std::uint64_t attempts{},successes{},failures{},abandoned{},last_opportunity{},last_teaching{};
 };
-enum class EventKind : std::uint8_t { none,started,failed,discovered,learned,taught };
+enum class EventKind : std::uint8_t { none,started,failed,discovered,learned,taught,abandoned };
 struct Event {EventKind kind{};std::uint8_t tech{};std::uint64_t founder{};};
 inline bool available(const Citizen& c) noexcept {
     return c.health>=50&&c.hunger<12&&c.thirst<12&&c.action==Action::idle;
@@ -72,7 +73,14 @@ inline Event advance(World& w,State& s,std::uint64_t cadence=normal_cadence) noe
     if(!cadence||!w.tick) return {};
     if(s.job.active) {
         auto& job=s.job;auto& c=w.founders[job.owner];
-        if(available(c)&&++job.work==work_required) {
+        if(available(c)) {
+            job.last_work_tick=w.tick;
+            ++job.work;
+        } else if(w.tick-job.last_work_tick>=stall_limit) {
+            job.active=false;++s.abandoned;
+            return {EventKind::abandoned,job.tech,c.id};
+        }
+        if(job.work==work_required) {
             const auto tech=static_cast<Tech>(job.tech);
             std::uint32_t roll{};w.streams[research].bounded(100,roll);
             job.active=false;
@@ -86,6 +94,9 @@ inline Event advance(World& w,State& s,std::uint64_t cadence=normal_cadence) noe
         }
         return {}; // Do not teach during an active experiment.
     }
+    // Prefer sharing an existing solution when both founders have free time.
+    const auto shared=teach(w,s);
+    if(shared.kind!=EventKind::none) return shared;
     // Cooldown measured from admission, not a one-tick sampling window.
     if(w.tick-s.last_opportunity>=cadence) {
         std::array<std::uint8_t,2*tech_count> candidates{};
@@ -104,11 +115,11 @@ inline Event advance(World& w,State& s,std::uint64_t cadence=normal_cadence) noe
             const auto tech=static_cast<std::uint8_t>(selected%tech_count);
             auto& c=w.founders[owner];auto& tile=local(w,c);const auto& rule=rules[tech];
             tile.wood-=rule.wood;tile.stone-=rule.stone;tile.food-=rule.food;
-            s.job={owner,tech,0,true};++s.attempts;s.last_opportunity=w.tick;
+            s.job={owner,tech,0,true,w.tick};++s.attempts;s.last_opportunity=w.tick;
             return {EventKind::started,tech,c.id};
         }
     }
-    return teach(w,s);
+    return {};
 }
 inline unsigned discovered(const State& s) noexcept {
     unsigned n=0;for(const auto& record:s.first) if(record.founder) ++n;return n;

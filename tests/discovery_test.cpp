@@ -58,7 +58,18 @@ int main() {
             advance(*w,actual,probe_cadence);
         }
         check(actual.attempts>0&&actual.successes>0&&discovered(actual)>0,"live founders must discover");
-        check(actual.attempts==actual.successes+actual.failures+unsigned(actual.job.active),"live accounting");
+        check(actual.attempts==actual.successes+actual.failures+actual.abandoned+unsigned(actual.job.active),"live accounting");
+        // A stalled job must release its slot without a research RNG roll or refund.
+        genesis::initialize(*w,42);State stalled{};w->founders[1].health=1;w->tick=60;
+        check(advance(*w,stalled,probe_cadence).kind==EventKind::started,"start stall fixture");
+        const auto saved_rng=w->streams[research].state;
+        w->founders[0].hunger=100;w->tick+=stall_limit-1;
+        check(advance(*w,stalled,probe_cadence).kind==EventKind::none&&stalled.job.active,"retain short interruption");
+        ++w->tick;
+        check(advance(*w,stalled,probe_cadence).kind==EventKind::abandoned&&!stalled.job.active&&stalled.abandoned==1,"release stalled job");
+        check(w->streams[research].state==saved_rng&&stalled.failures==0,"no fabricated failed roll");
+        w->founders[0].hunger=0;
+        ++w->tick;check(advance(*w,stalled,probe_cadence).kind==EventKind::started,"slot reusable");
         std::cout<<"PASS: discovery prerequisites, costs, failure, teaching, replay\n";return 0;
     } catch(const std::exception& e) {std::cerr<<"FAIL: "<<e.what()<<'\n';return 1;}
 }
