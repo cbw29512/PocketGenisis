@@ -9,7 +9,7 @@ struct PersonRecord {
     std::uint64_t death_tick{};
 };
 template<class Lookup> inline bool valid_genealogy(const Citizen& c,std::uint64_t observed_tick,
-                                    std::uint64_t next_id,const Lookup& lookup) noexcept {
+                                    std::uint64_t next_id,const Lookup& lookup) {
     auto parent_valid=[&](std::uint64_t id) {
         if(id==1||id==2) return true;
         if(id<3||id>=c.id) return false;

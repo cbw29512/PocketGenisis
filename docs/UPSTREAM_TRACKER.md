@@ -68,3 +68,6 @@ Reuse original canonical field visitor, CRC, immutable batch publication, histor
 
 ## G6 automatic archive cycle
 Reuse original host recovery, immutable publication, transactional retirement and bounded deterministic replay. No imported source or new dependency.
+
+## G6 bounded disk identity lookup
+Reuse canonical field codec, immutable segment loader, shared genealogy and combined validation. Original POSIX scratch-row adapter; no third-party source or dependency.

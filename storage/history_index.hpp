@@ -35,14 +35,17 @@ public:
     std::uint64_t seed() const noexcept {return seed_;}
     std::uint64_t count() const noexcept {return count_;}
     const auto& records() const noexcept {return records_;}
+    template<class Visit> bool visit(const Visit& visitor) const {
+        for(const auto& item:records_) if(!visitor(item.second)) return false;
+        return true;
+    }
     const DeathRecord* last() const noexcept {return last_;}
     const DeathRecord* find(std::uint64_t id) const noexcept {
         const auto it=records_.find(id);return it==records_.end()?nullptr:&it->second;
     }
 };
-// Validate the combined checkpoint view. The ordinary tick entry point still
-// uses its original RAM-only validator; external simulation admission is pending.
-inline bool valid_history_view(const World& w,const HistoryIndex& index) noexcept {
+// Shared combined validation: host map or checked disk-backed lookup.
+template<class Index> inline bool valid_history_view(const World& w,const Index& index) {
     if(w.seed!=index.seed()||w.descendant_count>descendant_capacity||w.archive_count>history_capacity||
        w.next_citizen_id<3||index.count()>w.next_citizen_id-3||
        w.next_citizen_id-3-index.count()!=w.descendant_count+w.archive_count||
@@ -52,9 +55,9 @@ inline bool valid_history_view(const World& w,const HistoryIndex& index) noexcep
         return c.id>=3&&c.id<w.next_citizen_id&&valid_pair(c.parent1,c.parent2)&&c.parent2<c.id&&
                c.birth_tick&&c.birth_tick<=w.tick&&c.lifespan_years>=60&&c.lifespan_years<=80&&valid_agent(c);
     };
-    for(const auto& item:index.records()) {
-        if(!mortal(item.second.citizen)||item.second.death_tick>w.tick) return false;
-    }
+    if(!index.visit([&](const DeathRecord& d) {
+        return mortal(d.citizen)&&d.death_tick<=w.tick;
+    })) return false;
     std::uint64_t previous=2;
     for(std::size_t i=0;i<w.descendant_count;++i) {
         const auto& c=w.descendants[i];
@@ -75,7 +78,7 @@ inline bool valid_history_view(const World& w,const HistoryIndex& index) noexcep
         for(std::size_t j=0;j<i;++j) if(w.archive[j].citizen.id==c.id) return false;
         last=&d;
     }
-    auto lookup=[&](std::uint64_t id) noexcept -> PersonRecord {
+    auto lookup=[&](std::uint64_t id) -> PersonRecord {
         if(const auto* c=live_citizen(w,id)) return {c,false,0};
         if(const auto* d=index.find(id)) return {&d->citizen,true,d->death_tick};
         for(std::size_t i=0;i<w.archive_count;++i) {
@@ -83,10 +86,9 @@ inline bool valid_history_view(const World& w,const HistoryIndex& index) noexcep
         }
         return {};
     };
-    for(const auto& item:index.records()) {
-        const auto& d=item.second;
-        if(!valid_genealogy(d.citizen,d.death_tick,w.next_citizen_id,lookup)) return false;
-    }
+    if(!index.visit([&](const DeathRecord& d) {
+        return valid_genealogy(d.citizen,d.death_tick,w.next_citizen_id,lookup);
+    })) return false;
     for(std::size_t i=0;i<w.archive_count;++i) {
         const auto& d=w.archive[i];
         if(!valid_genealogy(d.citizen,d.death_tick,w.next_citizen_id,lookup)) return false;

@@ -40,3 +40,6 @@ Baseline remote portable CI 45931720560 passed. Added host checkpoint-bound arch
 
 ## Follow-up — increments 22–23
 Host replay past the lifetime ceiling verified in CI 46011106294: 512 synthetic archived deaths followed by actual conception and delivery, with preserved identities. Automatic bounded archival cycle candidate added, pending exact new-head CI. P0 remains open at release scope: bounded-memory device index, real storage capacity/admission, physical durability, independent backup/UUID and sustained organic long-run tests.
+
+## Follow-up — increment 24
+Automatic host archive cycle CI 46011367029 passed. Disk-backed fixed-row index candidate eliminates lifetime-sized RAM map in the new audit/lookup path, pending CI; runtime still uses reference map, no FAT32/board qualification. P0 remains open for integrated bounded-memory storage, capacity, UUID, independent backups and physical recovery.

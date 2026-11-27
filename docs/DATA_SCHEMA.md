@@ -97,3 +97,6 @@ PGAW payload/version unchanged; consecutive generations may represent exact reti
 
 ### Increment 23 — automatic host cycle
 No saved schema or rules changes. CycleAction advanced/retired/resumed_retirement and returned retired count are transient host diagnostics. Each call loads authoritative checkpoint and returns a single verified new generation. Maximum 600 ticks per advancing call; full batch size 64; pending segment exact record count determines retry size. Device timer, persistent UUID and independent backup remain separate gates.
+
+### Increment 24 — derived disk identity rows
+No authoritative schema/version changes. Scratch file has fixed canonical death-record fields plus CRC32 per row, position (citizen_id-3)*encoded_row_width, little endian via existing visitor. All-zero sparse row indicates no archived identity; scratch size derived from next ID after validating count and maximum resident remainder. This is disposable derived data, not an independent archive. PGHS segments and PGAW committed prefix remain authoritative. Only one lookup row is borrowed until next find; visit uses separate local row. Future persistent FAT32 index requires a verified manifest, storage allocation and power-loss recovery.
