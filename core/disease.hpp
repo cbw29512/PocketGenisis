@@ -76,9 +76,13 @@ inline void advance_diseases(World& w) noexcept {
                 // Susceptible citizen was alive at snapshot and is not a
                 // source for this strain. Exclude only itself from neighbors.
                 const auto contacts=infectious[k].nearby(c,1);
-                const auto neighbors=alive.nearby(c,1)-1;
-                if(contacts&&disease_roll(w,crowded_exposure(exposure_risk(contacts,d.resistance),neighbors)))
-                    d.illness=static_cast<std::uint16_t>(rule.duration);
+                // Without infectious contacts, crowding cannot change the
+                // result and the original branch consumes no RNG draw.
+                if(contacts) {
+                    const auto neighbors=alive.nearby(c,1)-1;
+                    if(disease_roll(w,crowded_exposure(exposure_risk(contacts,d.resistance),neighbors)))
+                        d.illness=static_cast<std::uint16_t>(rule.duration);
+                }
             }
             any=any||d.illness!=0;
         }

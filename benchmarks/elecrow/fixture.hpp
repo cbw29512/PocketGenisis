@@ -15,8 +15,12 @@ inline bool prepare(World& w, std::size_t total, bool contact) noexcept {
         c.parent1=1;
         c.parent2=2;
         c.birth_tick=1;
-        c.x=static_cast<std::uint16_t>(contact?50:10+i%80);
-        c.y=static_cast<std::uint16_t>(contact?30:10+i/80);
+        // Preserve the original <=2048 fixture; larger populations need
+        // a wider grid to stay inside the 100x60 world.
+        const auto columns=total>2048?90u:80u;
+        const auto margin=total>2048?5u:10u;
+        c.x=static_cast<std::uint16_t>(contact?50:margin+i%columns);
+        c.y=static_cast<std::uint16_t>(contact?30:margin+i/columns);
         c.personality.fill(50);
         c.purpose=choose_purpose(c);
     }

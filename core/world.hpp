@@ -37,8 +37,13 @@ using Founder = Citizen;
 // Alternate capacities are only for isolated, disposable CPU benchmark builds.
 // Do not link differently configured World definitions into one executable.
 #ifdef PG_DISPOSABLE_SCALE_PROBE
+#ifdef PG_DISPOSABLE_4096_PROBE
+inline constexpr std::size_t descendant_capacity=4096;
+inline constexpr std::size_t history_capacity=8192;
+#else
 inline constexpr std::size_t descendant_capacity=2048;
 inline constexpr std::size_t history_capacity=4096;
+#endif
 #else
 inline constexpr std::size_t descendant_capacity=254;
 inline constexpr std::size_t history_capacity=512;

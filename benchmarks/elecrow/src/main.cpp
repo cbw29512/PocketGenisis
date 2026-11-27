@@ -11,7 +11,9 @@ using namespace genesis;
 
 namespace {
 constexpr unsigned samples=600;
-#ifdef PG_DISPOSABLE_SCALE_PROBE
+#if defined(PG_DISPOSABLE_4096_PROBE)
+constexpr unsigned populations[]={4096};
+#elif defined(PG_DISPOSABLE_SCALE_PROBE)
 constexpr unsigned populations[]={256,512,1024,2048};
 #else
 constexpr unsigned populations[]={2,32,64,128,256};
