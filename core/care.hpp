@@ -33,6 +33,27 @@ inline bool consume_need(World& w,Citizen& recipient,int x,int y) noexcept {
     return consume_resource(w,recipient,x,y,recipient.thirst>=recipient.hunger);
 }
 using CareRequests=std::array<std::uint16_t,history_capacity+3>;
+// Temporary local care, never a change to biological genealogy.
+inline const Citizen* local_orphan_carer(const World& w,const Citizen& child,
+                                        int radius,const CareRequests* requests=nullptr) noexcept {
+    const Citizen* best=nullptr;
+    int best_distance=radius+1;
+    auto consider=[&](const Citizen& c) {
+        if(life_stage(c,w.tick)<LifeStage::adult||c.health<50||c.personality[2]<50||
+           c.hunger>=11||c.thirst>=11||(requests&&(*requests)[c.id])) return;
+        const int distance=distance_between(c,child);
+        if(distance>radius) return;
+        // Nearest available adult; stable compassion and ID tie breakers.
+        if(!best||distance<best_distance||(distance==best_distance&&
+           (c.personality[2]>best->personality[2]||
+            (c.personality[2]==best->personality[2]&&c.id<best->id)))) {
+            best=&c;best_distance=distance;
+        }
+    };
+    for(const auto& c:w.founders) consider(c);
+    for(std::size_t i=0;i<w.descendant_count;++i) consider(w.descendants[i]);
+    return best;
+}
 inline CareRequests prepare_care(World& w) noexcept {
     CareRequests requests{};
     for(std::size_t i=0;i<w.descendant_count;++i) {
@@ -45,6 +66,15 @@ inline CareRequests prepare_care(World& w) noexcept {
             if(p&&distance_between(*p,c)<=1&&!requests[static_cast<std::size_t>(id)])
                 requests[static_cast<std::size_t>(id)]=static_cast<std::uint16_t>(i+1);
         }
+    }
+    // Biological dependents reserve their parents first. Orphans compete only
+    // for remaining local adult actions, in ascending infant ID order.
+    for(std::size_t i=0;i<w.descendant_count;++i) {
+        const auto& c=w.descendants[i];
+        if(life_stage(c,w.tick)!=LifeStage::infant||!urgent_need(c)||
+           live_citizen(w,c.parent1)||live_citizen(w,c.parent2)) continue;
+        if(const auto* carer=local_orphan_carer(w,c,1,&requests))
+            requests[carer->id]=static_cast<std::uint16_t>(i+1);
     }
     return requests;
 }
@@ -60,6 +90,8 @@ inline void follow_parent(World& w,Citizen& child) noexcept {
     const auto* a=live_citizen(w,child.parent1);
     const auto* b=live_citizen(w,child.parent2);
     const auto* p=!a?b:!b?a:distance_between(child,*a)<=distance_between(child,*b)?a:b;
+    // Without either living parent, approach an eligible nearby adult.
+    if(!p) p=local_orphan_carer(w,child,4);
     if(!p||!distance_between(child,*p)) return;
     // Dependent transport abstraction; no RNG or independent resource search.
     if(child.x!=p->x) child.x=static_cast<std::uint16_t>(int(child.x)+(child.x<p->x?1:-1));

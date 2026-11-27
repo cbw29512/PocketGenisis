@@ -38,3 +38,6 @@ Re-read pinned ecosystem MIT license and CYD source lines 473–504, including n
 
 ## G3 concurrent gestation
 Reused increment 7's original deterministic reservoir pair selection, inheritance and archive reservation; expanded bounded gestation storage and validation, no new upstream dependency or source copied. Earlier pinned ecosystem reference is not a multi-parent pregnancy implementation and is not substituted for our existing mechanics.
+
+## G3 local orphan care
+Reuse existing validated live-citizen lookup, local care requests, compassion trait, shared consumption and dependent movement. No new third-party source or dependency required.
