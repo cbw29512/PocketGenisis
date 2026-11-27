@@ -85,6 +85,11 @@ inline bool construction_probe(World& w) {
         static_cast<unsigned long long>(home.steps),static_cast<unsigned long long>(home.arrivals),unsigned(sizeof(home)));
     if(!settlement::valid(home)) {Serial.println("ERROR settlement accounting");return false;}
 #endif
+#ifdef PG_HOUSING_PROBE
+    Serial.printf("HOUSING_RESULT shelters=%u planning_capacity=%u unmet_demand=%u site_slots=%u\n",
+        construction::completed_huts(sites),construction::completed_huts(sites)*construction::housing_capacity,
+        construction::housing_demand(w,sites),construction::site_count);
+#endif
     return valid_population(w)&&construction::completed(sites)>0&&births>0;
 }
 }

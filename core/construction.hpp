@@ -16,16 +16,36 @@ struct Site {
     std::uint8_t owner{},work{};
     std::uint64_t started{},finished{},last_work{};
 };
+// Isolated capacity extension: existing profiles retain their original layout.
+#ifdef PG_HOUSING_PROBE
+inline constexpr unsigned extra_huts=8;
+#else
+inline constexpr unsigned extra_huts=0;
+#endif
+inline constexpr unsigned site_count=kind_count+extra_huts,housing_capacity=2;
+inline constexpr Kind kind_at(unsigned slot) noexcept {
+    return slot<kind_count?static_cast<Kind>(slot):hut;
+}
 struct State {
-    std::array<Site,kind_count> sites{};
+    std::array<Site,site_count> sites{};
 };
+inline unsigned completed_huts(const State& s) noexcept {
+    unsigned n=0;for(unsigned k=0;k<site_count;++k)
+        n+=kind_at(k)==hut&&s.sites[k].stage==Stage::complete;
+    return n;
+}
+inline unsigned housing_demand(const World& w,const State& s) noexcept {
+    const auto living=static_cast<unsigned>(w.descendant_count+2);
+    const auto capacity=completed_huts(s)*housing_capacity;
+    return living>capacity?living-capacity:0;
+}
 enum class EventKind : std::uint8_t { none,started,completed,abandoned };
 struct Event {EventKind kind{};std::uint8_t type{};std::uint16_t tile{};std::uint64_t builder{};};
 inline std::uint16_t location(const Citizen& c) noexcept {
     return static_cast<std::uint16_t>(std::size_t(c.y)*width+c.x);
 }
 inline int active(const State& s) noexcept {
-    for(unsigned k=0;k<kind_count;++k) if(s.sites[k].stage==Stage::building) return int(k);
+    for(unsigned k=0;k<site_count;++k) if(s.sites[k].stage==Stage::building) return int(k);
     return -1;
 }
 inline bool occupied(const State& s,std::uint16_t tile) noexcept {
@@ -34,8 +54,18 @@ inline bool occupied(const State& s,std::uint16_t tile) noexcept {
 }
 inline bool can_start(const World& w,const discovery::State& research,const State& s,
                       unsigned owner,unsigned k) noexcept {
-    const auto& c=w.founders[owner];const auto& bp=blueprints[k];
+    const auto& c=w.founders[owner];const auto& bp=blueprints[kind_at(k)];
     const auto tile=location(c);const auto& stock=w.tiles[tile];
+    if(k>=kind_count) {
+        if(!completed_huts(s)||!housing_demand(w,s)||stock.food<12||stock.water<12) return false;
+        bool local=false;
+        for(unsigned j=0;j<site_count;++j) {
+            const auto& home=s.sites[j];
+            if(kind_at(j)==hut&&home.stage==Stage::complete&&
+               std::abs(int(c.x)-int(home.tile%width))+std::abs(int(c.y)-int(home.tile/width))<=8) {local=true;break;}
+        }
+        if(!local) return false;
+    }
     return s.sites[k].stage==Stage::empty&&!occupied(s,tile)&&
         discovery::available(c)&&(research.known[owner]&discovery::tech_bit(bp.knowledge))&&
         stock.wood>=bp.wood&&stock.stone>=bp.stone;
@@ -50,23 +80,23 @@ inline Event advance(World& w,const discovery::State& research,State& s) noexcep
         auto& site=s.sites[k];const auto& c=w.founders[site.owner];
         if(discovery::available(c)&&location(c)==site.tile) {
             site.last_work=w.tick;
-            if(++site.work==blueprints[k].work) {
+            if(++site.work==blueprints[kind_at(unsigned(k))].work) {
                 site.stage=Stage::complete;site.finished=w.tick;
-                return {EventKind::completed,static_cast<std::uint8_t>(k),site.tile,c.id};
+                return {EventKind::completed,static_cast<std::uint8_t>(kind_at(unsigned(k))),site.tile,c.id};
             }
         } else if(w.tick-site.last_work>=600) {
             site.stage=Stage::abandoned;site.finished=w.tick;
-            return {EventKind::abandoned,static_cast<std::uint8_t>(k),site.tile,c.id};
+            return {EventKind::abandoned,static_cast<std::uint8_t>(kind_at(unsigned(k))),site.tile,c.id};
         }
         return {};
     }
     // Stable small catalog and founder order; no population-wide scan.
-    for(unsigned i=0;i<2;++i) for(unsigned j=0;j<kind_count;++j) {
+    for(unsigned i=0;i<2;++i) for(unsigned j=0;j<site_count;++j) {
         if(!can_start(w,research,s,i,j)) continue;
-        const auto tile=location(w.founders[i]);auto& stock=w.tiles[tile];const auto& bp=blueprints[j];
+        const auto tile=location(w.founders[i]);auto& stock=w.tiles[tile];const auto& bp=blueprints[kind_at(j)];
         stock.wood-=bp.wood;stock.stone-=bp.stone;
         s.sites[j]={Stage::building,tile,static_cast<std::uint8_t>(i),0,w.tick,0,w.tick};
-        return {EventKind::started,static_cast<std::uint8_t>(j),tile,w.founders[i].id};
+        return {EventKind::started,static_cast<std::uint8_t>(kind_at(j)),tile,w.founders[i].id};
     }
     return {};
 }

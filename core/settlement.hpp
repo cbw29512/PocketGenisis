@@ -7,19 +7,23 @@ inline constexpr int home_radius=8;
 struct State {std::uint64_t steps{},arrivals{};};
 inline bool valid(const State& state) noexcept {return state.arrivals<=state.steps;}
 inline bool return_home(World const& w,const construction::State& sites,Citizen& c,State& state) noexcept {
-    const auto& home=sites.sites[construction::hut];
-    if(!is_founder(c)||home.stage!=construction::Stage::complete||
-       home.tile>=w.tiles.size()||founder_incapacitated(c)||
+    if(!is_founder(c)||founder_incapacitated(c)||
        c.action!=Action::idle||c.hunger>free_need_max||c.thirst>free_need_max) return false;
     if(c.health>=90&&w.tick%return_period>=return_window) return false;
-    const auto& stock=w.tiles[home.tile];
-    if(stock.food<home_stock_min||stock.water<home_stock_min) return false;
-    const int x=home.tile%width,y=home.tile/width;
-    const int distance=std::abs(int(c.x)-x)+std::abs(int(c.y)-y);
-    if(!distance||distance>home_radius) return false;
+    const construction::Site* best=nullptr;int best_distance=home_radius+1;
+    for(unsigned k=0;k<construction::site_count;++k) {
+        const auto& home=sites.sites[k];
+        if(construction::kind_at(k)!=construction::hut||
+           home.stage!=construction::Stage::complete||home.tile>=w.tiles.size()) continue;
+        const auto& stock=w.tiles[home.tile];
+        if(stock.food<home_stock_min||stock.water<home_stock_min) continue;
+        const int distance=std::abs(int(c.x)-int(home.tile%width))+std::abs(int(c.y)-int(home.tile/width));
+        if(distance<best_distance) {best=&home;best_distance=distance;}
+    }
+    if(!best||!best_distance) return false;
     // Use exactly one ordinary movement action; never teleport or trap citizens.
-    move_toward(c,x,y);++state.steps;
-    if(construction::location(c)==home.tile) ++state.arrivals;
+    move_toward(c,best->tile%width,best->tile/width);++state.steps;
+    if(construction::location(c)==best->tile) ++state.arrivals;
     return true;
 }
 struct Work {

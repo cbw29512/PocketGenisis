@@ -14,7 +14,7 @@ struct ReserveWork {
         if(k>=0) return sites.sites[k].owner==owner&&sites.sites[k].tile==location(c);
         if(discovery::ReserveWork{research,cadence}(w,c)) return true;
         if(research.job.active) return false;
-        for(unsigned j=0;j<kind_count;++j) if(can_start(w,research,sites,owner,j)) return true;
+        for(unsigned j=0;j<site_count;++j) if(can_start(w,research,sites,owner,j)) return true;
         return false;
     }
 };
