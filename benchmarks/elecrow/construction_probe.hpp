@@ -1,5 +1,7 @@
 #pragma once
-#ifdef PG_SHELTER_PROBE
+#ifdef PG_SETTLEMENT_PROBE
+#include "../../core/settlement.hpp"
+#elif defined(PG_SHELTER_PROBE)
 #include "../../core/shelter.hpp"
 #elif defined(PG_COOKING_PROBE)
 #include "../../core/cooking.hpp"
@@ -13,6 +15,10 @@ namespace genesis::benchmark {
 inline bool construction_probe(World& w) {
     initialize(w,42);discovery::State knowledge{};construction::State sites{};Production p{};
     unsigned births=0;
+#ifdef PG_SETTLEMENT_PROBE
+    settlement::State home{};
+    Serial.println("SETTLEMENT RETURN PROBE");
+#endif
 #ifdef PG_SHELTER_PROBE
     shelter::State sheltered{};
     Serial.println("FUNCTIONAL SHELTER PROBE");
@@ -29,7 +35,9 @@ inline bool construction_probe(World& w) {
     constexpr const char* events[]={"none","started","completed","abandoned"};
     for(unsigned i=0;i<43200;++i) {
         discovery::Event re{};construction::Event ce{};
-#ifdef PG_SHELTER_PROBE
+#ifdef PG_SETTLEMENT_PROBE
+        if(!settlement::step(w,knowledge,sites,reserve,cooked,sheltered,home,p,re,ce,discovery::probe_cadence)) {
+#elif defined(PG_SHELTER_PROBE)
         if(!shelter::step(w,knowledge,sites,reserve,cooked,sheltered,p,re,ce,discovery::probe_cadence)) {
 #elif defined(PG_COOKING_PROBE)
         if(!cooking::step(w,knowledge,sites,reserve,cooked,p,re,ce,discovery::probe_cadence)) {
@@ -71,6 +79,11 @@ inline bool construction_probe(World& w) {
 #ifdef PG_SHELTER_PROBE
     Serial.printf("SHELTER_RESULT extra_recovery=%llu state_bytes=%u\n",
         static_cast<unsigned long long>(sheltered.extra_recovery),unsigned(sizeof(sheltered)));
+#endif
+#ifdef PG_SETTLEMENT_PROBE
+    Serial.printf("SETTLEMENT_RESULT homeward_steps=%llu arrivals=%llu state_bytes=%u\n",
+        static_cast<unsigned long long>(home.steps),static_cast<unsigned long long>(home.arrivals),unsigned(sizeof(home)));
+    if(!settlement::valid(home)) {Serial.println("ERROR settlement accounting");return false;}
 #endif
     return valid_population(w)&&construction::completed(sites)>0&&births>0;
 }

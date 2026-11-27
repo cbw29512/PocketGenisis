@@ -127,3 +127,5 @@ Storage prototype adds uint64 assisted counter (subset of withdrawn). Recipient 
 Disposable cooking state: uint64 meals, wood consumed, additional hunger relief counters. No canonical World fields. See COOKING_CONTRACT.md.
 
 Disposable shelter state: uint64 cumulative extra recovery grants. Recovery slots are temporary per tick, not saved. See SHELTER_CONTRACT.md.
+
+Disposable settlement state: uint64 homeward steps and arrivals; derive initial home from completed hut tile, no canonical residency fields. See SETTLEMENT_CONTRACT.md.

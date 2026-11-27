@@ -61,3 +61,5 @@ Default CI runs 16 seeds x 3600 ticks via tests/civilization_diversity_test.cpp.
 `elecrow_s3_cooking_probe` extends storage with local campfire cooking. COOKING_RESULT reports meals, fuel, extra hunger relief and bytes; absence of actual cooking in an unforced world is reported. Controlled host tests exercise benefit. CI/device pending.
 
 `elecrow_s3_shelter_probe` extends cooking with local bounded shelter recovery. SHELTER_RESULT counts actual extra recovery; zero can occur naturally. Host fixtures exercise recovery and mortality guards. No official world, rendering or saves.
+
+`elecrow_s3_settlement_probe` extends shelter with local viable home-return policy; SETTLEMENT_RESULT reports steps and arrivals. No forced settlement or official save; host tests and device run pending.
