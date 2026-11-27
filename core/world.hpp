@@ -7,13 +7,14 @@ namespace genesis {
 inline constexpr std::uint16_t width = 100, height = 60;
 inline constexpr std::uint64_t ticks_per_year = 43200; // 1 tick/real second
 // Stable numeric stream order is part of the versioned replay contract.
-enum Stream : std::size_t { terrain, traits, environment, decisions, reproduction, research, stream_count };
+enum Stream : std::size_t { terrain, traits, environment, decisions, reproduction, research, health_events, stream_count };
 struct Tile {
     std::uint16_t food{}, wood{}, water{}, stone{};
 };
 enum class Action : std::uint8_t { idle, move, eat, drink, care };
 enum class Purpose : std::uint8_t { none, gatherer, builder, inventor };
 enum class LifeStage : std::uint8_t { infant, child, adolescent, adult, elder };
+enum class BirthOutcome : std::uint8_t { normal, complicated, fatal };
 struct Citizen {
     std::uint64_t id{};
     std::uint16_t x{}, y{};
@@ -24,11 +25,12 @@ struct Citizen {
     std::uint64_t guardian_id{}, guardian_since_tick{};
     Purpose purpose{Purpose::none};
     std::uint8_t health{100}, lifespan_years{70};
+    BirthOutcome birth_outcome{BirthOutcome::normal};
 };
 using Founder = Citizen;
 inline constexpr std::size_t descendant_capacity=254;
 inline constexpr std::size_t history_capacity=512;
-enum class DeathCause : std::uint8_t { starvation=1, dehydration=2, old_age=3 };
+enum class DeathCause : std::uint8_t { starvation=1, dehydration=2, old_age=3, childbirth=4 };
 struct DeathRecord {
     Citizen citizen{};
     std::uint64_t death_tick{};

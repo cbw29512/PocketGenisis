@@ -1,5 +1,6 @@
 #pragma once
 #include "population.hpp"
+#include "birth_health.hpp"
 #include <algorithm>
 #include <cstdlib>
 
@@ -56,6 +57,12 @@ inline void deliver(World& w,const Citizen& a,const Citizen& b) noexcept {
     std::uint32_t roll{};
     w.streams[reproduction].bounded(21,roll);
     child.lifespan_years=static_cast<std::uint8_t>(60+roll);
+    apply_birth_health(w,child,a,b);
+    if(child.birth_outcome==BirthOutcome::fatal) {
+        archive_death(w,child,DeathCause::childbirth);
+        child=Citizen{};
+        --w.descendant_count;
+    }
 }
 inline void update_lifecycle(World& w) noexcept {
     for(std::size_t i=0;i<w.descendant_count;++i) {

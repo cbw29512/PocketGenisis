@@ -10,6 +10,9 @@ inline void update_health(Citizen& c,bool immortal) noexcept {
     }
 }
 // Admission reserves archive capacity. No allocation or overwrite on death.
+inline void archive_death(World& w,const Citizen& c,DeathCause cause) noexcept {
+    w.archive[w.archive_count++]={c,w.tick,cause};
+}
 inline void update_mortality(World& w) noexcept {
     for(auto& f:w.founders) update_health(f,true);
     std::size_t write=0;
@@ -21,7 +24,7 @@ inline void update_mortality(World& w) noexcept {
         if(c.health==0||expired) {
             const auto cause=c.health!=0?DeathCause::old_age:
                 c.thirst==100?DeathCause::dehydration:DeathCause::starvation;
-            w.archive[w.archive_count++]={c,w.tick,cause};
+            archive_death(w,c,cause);
         } else {
             if(write!=i) w.descendants[write]=c;
             ++write;

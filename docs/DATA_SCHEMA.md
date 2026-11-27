@@ -64,3 +64,6 @@ Orphan status is derived from two biological parent IDs and absence of both from
 
 ### Increment 12 implementation subset
 Citizen.guardian_id and guardian_since_tick store latest successful adoptive-care relationship independently of biological parent IDs. Zero pair means no recorded guardian. Guardian can refer to a valid archived person; retain through maturation and death, replace only after guardian dies and another local carer actually provides care during infancy. Assignment chronology and adult age checked at the relationship's start; both biological parents must have died by that tick. Preserve prior guardian transitions in the eventual durable journal (not yet implemented). This is a provisional state addition, not a finalized save format.
+
+### Increment 13 implementation subset
+Append health_events stream index 6; persist state with other RNG streams in future checkpoint format. Citizen.birth_outcome: normal 0, complicated 1, fatal 2. Founders must be normal; fatal cannot be live and corresponds exactly to archived DeathCause childbirth=4 at birth_tick. Complicated provenance persists through recovery. Fatal newborn consumes a lifetime identity and archives immediately, not an active population slot; prenatal gestation loss remains distinct. Provisional state/rules changes require versioned migration before official saves.

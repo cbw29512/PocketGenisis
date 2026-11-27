@@ -44,3 +44,6 @@ Reuse existing validated live-citizen lookup, local care requests, compassion tr
 
 ## G3 persistent guardian
 Reused local orphan-care selection, authoritative resource consumption and existing genealogy/archive index; no imported source or new dependency.
+
+## G3 newborn health
+Reused existing seeded RNG, birth inheritance, health recovery and archive primitives; no imported source or dependency. Provisional risk model is original simulation tuning.

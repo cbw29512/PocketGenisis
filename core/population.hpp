@@ -4,7 +4,8 @@
 namespace genesis {
 inline bool valid_agent(const Citizen& c) noexcept {
     if(c.x>=width || c.y>=height || c.hunger>100 || c.thirst>100 || c.health>100 ||
-       static_cast<unsigned>(c.action)>static_cast<unsigned>(Action::care)) return false;
+       static_cast<unsigned>(c.action)>static_cast<unsigned>(Action::care)||
+       static_cast<unsigned>(c.birth_outcome)>static_cast<unsigned>(BirthOutcome::fatal)) return false;
     for(auto trait:c.personality) if(trait>100) return false;
     return static_cast<unsigned>(c.purpose)<=static_cast<unsigned>(Purpose::inventor);
 }
@@ -40,12 +41,14 @@ inline bool valid_population(const World& w) noexcept {
     for(std::size_t i=0;i<w.founders.size();++i) {
         const auto& c=w.founders[i];
         if(!valid_agent(c)||c.id!=i+1||c.parent1||c.parent2||c.birth_tick||
-           c.purpose==Purpose::none||c.health==0||c.guardian_id||c.guardian_since_tick) return false;
+           c.purpose==Purpose::none||c.health==0||c.guardian_id||c.guardian_since_tick||
+           c.birth_outcome!=BirthOutcome::normal) return false;
     }
     std::uint64_t last_id=2;
     for(std::size_t i=0;i<w.descendant_count;++i) {
         const auto& c=w.descendants[i];
-        if(!identity(c,static_cast<std::uint16_t>(i+1))||c.id<=last_id||c.health==0) return false;
+        if(!identity(c,static_cast<std::uint16_t>(i+1))||c.id<=last_id||c.health==0||
+           c.birth_outcome==BirthOutcome::fatal) return false;
         if(life_stage(c,w.tick)<LifeStage::adult && c.purpose!=Purpose::none) return false;
         last_id=c.id;
     }
@@ -53,8 +56,10 @@ inline bool valid_population(const World& w) noexcept {
         const auto& d=w.archive[i]; const auto& c=d.citizen;
         if(!identity(c,static_cast<std::uint16_t>(archived|(i+1)))||
            d.death_tick<c.birth_tick||d.death_tick>w.tick||
-           static_cast<unsigned>(d.cause)<1||static_cast<unsigned>(d.cause)>3||
+           static_cast<unsigned>(d.cause)<1||static_cast<unsigned>(d.cause)>4||
            (d.cause==DeathCause::old_age?c.health==0:c.health!=0)) return false;
+        if((d.cause==DeathCause::childbirth)!=(c.birth_outcome==BirthOutcome::fatal)||
+           (d.cause==DeathCause::childbirth&&d.death_tick!=c.birth_tick)) return false;
         if(i) {
             const auto& previous=w.archive[i-1];
             if(d.death_tick<previous.death_tick ||
