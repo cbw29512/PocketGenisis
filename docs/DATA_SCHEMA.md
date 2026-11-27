@@ -94,3 +94,6 @@ Separate host-only PGAW magic uint32 0x57414750, version uint16 1, rules uint16 
 
 ### Increment 22 — bounded advancement
 PGAW payload/version unchanged; consecutive generations may represent exact retirement at equal tick or deterministic advancement at unchanged external prefix, with 1–3600 ticks per advancement. No persisted slot indices. next_citizen_id remains monotonic uint64; reserve remaining IDs for active pregnancies and refuse conception at exhaustion. Existing temporary resident live/death reservation remains bounded; cumulative external identities are not counted against resident capacity.
+
+### Increment 23 — automatic host cycle
+No saved schema or rules changes. CycleAction advanced/retired/resumed_retirement and returned retired count are transient host diagnostics. Each call loads authoritative checkpoint and returns a single verified new generation. Maximum 600 ticks per advancing call; full batch size 64; pending segment exact record count determines retry size. Device timer, persistent UUID and independent backup remain separate gates.

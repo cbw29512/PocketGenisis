@@ -65,3 +65,6 @@ Reuse original shared genealogy checks, canonical death codec and validated immu
 
 ## G6 checkpoint-bound retirement
 Reuse original canonical field visitor, CRC, immutable batch publication, historical identity index and POSIX alternating checkpoint publication. No new third-party dependency or source imported.
+
+## G6 automatic archive cycle
+Reuse original host recovery, immutable publication, transactional retirement and bounded deterministic replay. No imported source or new dependency.

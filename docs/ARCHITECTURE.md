@@ -31,3 +31,6 @@ Create explicitly from a validated legacy world in a separate directory. Write i
 
 ## External-history-aware host ticks
 Shared authoritative step with storage-specific validator; legacy rejects retired worlds. Host advancement begins from exact verified disk checkpoint, refuses pending segment at watermark, advances scratch world, publishes alternate slot and validates deterministic replay on recovery. No arbitrary candidate accepted. Full history validation/replay expensive; bounded trusted index and automatic admission/cadence needed for device.
+
+## Automatic host archival cycle
+storage/host_archive_cycle.hpp provides a synchronous single-operation scheduler primitive. Recover first; refuse degraded/missing checkpoints; resume a published segment at the committed ordinal by exact retirement, else retire one full 64-record batch, else advance at most 600 ticks through verified checkpoint replay. Caller invokes repeatedly; no timer, service, concurrency, or real-time catchup implied. The 600-tick window and below-64 resident death threshold leave room under existing reservation rules; no new population quota. Existing immutable publication and readback verification remain authoritative. Host full-history validation still scales with lifetime records.

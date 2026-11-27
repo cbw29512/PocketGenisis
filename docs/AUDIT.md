@@ -37,3 +37,6 @@ Natural density/resource regulation explicitly approved. First local crowding an
 
 ## Follow-up — increment 21
 Baseline remote portable CI 45931720560 passed. Added host checkpoint-bound archive retirement candidate and regression test, pending new-head CI verification. Lifetime population admission still blocked; no closure claimed until actual simulation above 512 and recovery verified. See ordered checklist in MASTER_TRACKER.md.
+
+## Follow-up — increments 22–23
+Host replay past the lifetime ceiling verified in CI 46011106294: 512 synthetic archived deaths followed by actual conception and delivery, with preserved identities. Automatic bounded archival cycle candidate added, pending exact new-head CI. P0 remains open at release scope: bounded-memory device index, real storage capacity/admission, physical durability, independent backup/UUID and sustained organic long-run tests.
