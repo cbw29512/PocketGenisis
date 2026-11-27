@@ -60,6 +60,17 @@ int main() {
         check(actual.attempts>0&&actual.successes>0&&discovered(actual)>0,"live founders must discover");
         check(actual.known[0]!=0&&actual.known[1]!=0,"both live founders acquire knowledge in seed 42");
         check(actual.attempts==actual.successes+actual.failures+actual.abandoned+unsigned(actual.job.active),"live accounting");
+        // Keep the original 3600-tick discovery test, then exercise a full simulated year.
+        for(unsigned i=3600;i<43200;++i) {
+            Event live_event{};
+            check(step_with_research(*w,actual,production,live_event,probe_cadence),"family world tick");
+            if(w->descendant_count) {
+                const auto& child=w->descendants[0];
+                check(child.parent1==1&&child.parent2==2&&child.birth_tick>=gestation_ticks,"founder genealogy");
+                if(w->founders[0].action==Action::care||w->founders[1].action==Action::care) break;
+            }
+        }
+        check(w->descendant_count>0&&(w->founders[0].action==Action::care||w->founders[1].action==Action::care),"seed42 integrated birth and care");
         // A highly curious founder can work without needing a lucky idle roll.
         genesis::initialize(*w,42);State reserved{};w->tick=60;
         w->founders[0].personality[0]=100;
