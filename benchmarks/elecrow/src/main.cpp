@@ -1,5 +1,8 @@
 #include "../fixture.hpp"
 #include "../profile.hpp"
+#ifdef PG_WILDLIFE_PROBE
+#include "../../../core/wildlife.hpp"
+#endif
 #include <Arduino.h>
 #include <esp_heap_caps.h>
 #include <esp_timer.h>
@@ -11,7 +14,10 @@ using namespace genesis;
 
 namespace {
 constexpr unsigned samples=600;
-#if defined(PG_DISPOSABLE_4096_PROBE)
+#if defined(PG_WILDLIFE_PROBE)
+constexpr unsigned populations[]={2048,4096};
+wildlife::Wildlife* animals=nullptr;
+#elif defined(PG_DISPOSABLE_4096_PROBE)
 constexpr unsigned populations[]={4096};
 #elif defined(PG_DISPOSABLE_SCALE_PROBE)
 constexpr unsigned populations[]={256,512,1024,2048};
@@ -41,6 +47,13 @@ bool measure(World& w,std::size_t total,bool contact) {
         static_cast<unsigned>(total),static_cast<unsigned>(contact));
     Production p{};
     benchmark::Profile profile{};
+#ifdef PG_WILDLIFE_PROBE
+    wildlife::initialize(*animals,w.seed);
+    wildlife::Totals ecology{};
+    const auto initial_animals=wildlife::population(*animals);
+    std::uint64_t animal_peak=0,animal_sum=0;
+    Serial.printf("WILDLIFE_START animals=%llu bytes=%u\n",initial_animals,static_cast<unsigned>(sizeof(*animals)));
+#endif
     std::uint64_t elapsed=0,max_us=0;
     unsigned above_budget=0,above_second=0;
     std::size_t min_living=total;
@@ -51,6 +64,12 @@ bool measure(World& w,std::size_t total,bool contact) {
             Serial.printf("ERROR rejected tick %u\n",i);
             return false;
         }
+#ifdef PG_WILDLIFE_PROBE
+        const auto begin=esp_timer_get_time();
+        wildlife::advance(w,*animals,ecology);
+        const auto animal_us=static_cast<std::uint64_t>(esp_timer_get_time()-begin);
+        animal_peak=std::max(animal_peak,animal_us);animal_sum+=animal_us;us+=animal_us;
+#endif
         elapsed+=us;
         max_us=std::max(max_us,us);
         above_budget+=us>200000;
@@ -73,6 +92,13 @@ bool measure(World& w,std::size_t total,bool contact) {
         static_cast<unsigned>(min_living),above_budget,above_second,
         static_cast<unsigned>(uxTaskGetStackHighWaterMark(nullptr)));
     profile.report(samples);
+#ifdef PG_WILDLIFE_PROBE
+    if(!wildlife::valid(*animals)||initial_animals+ecology.births!=wildlife::population(*animals)+ecology.deaths) {
+        Serial.println("ERROR wildlife accounting");return false;
+    }
+    Serial.printf("WILDLIFE final=%llu births=%llu deaths=%llu hunted=%llu meals=%llu predation=%llu mean_us=%llu max_us=%llu\n",
+        wildlife::population(*animals),ecology.births,ecology.deaths,ecology.hunted,ecology.meals,ecology.predation,animal_sum/samples,animal_peak);
+#endif
     memory_report("after_case");
     return true;
 }
@@ -92,11 +118,19 @@ void setup() {
         return;
     }
     auto* w=construct_world(raw);
+#ifdef PG_WILDLIFE_PROBE
+    void* animal_raw=heap_caps_malloc(sizeof(wildlife::Wildlife),MALLOC_CAP_SPIRAM|MALLOC_CAP_8BIT);
+    if(!animal_raw) {Serial.println("ERROR wildlife PSRAM allocation");w->~World();heap_caps_free(raw);return;}
+    animals=new(animal_raw) wildlife::Wildlife;
+#endif
     memory_report("allocated");
     bool ok=true;
     for(auto n:populations) {
         if(!measure(*w,n,false)||!measure(*w,n,true)) {ok=false;break;}
     }
+#ifdef PG_WILDLIFE_PROBE
+    animals->~Wildlife();heap_caps_free(animal_raw);animals=nullptr;
+#endif
     w->~World();
     heap_caps_free(raw);
     memory_report("released");
