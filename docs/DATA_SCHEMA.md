@@ -100,3 +100,6 @@ No saved schema or rules changes. CycleAction advanced/retired/resumed_retiremen
 
 ### Increment 24 — derived disk identity rows
 No authoritative schema/version changes. Scratch file has fixed canonical death-record fields plus CRC32 per row, position (citizen_id-3)*encoded_row_width, little endian via existing visitor. All-zero sparse row indicates no archived identity; scratch size derived from next ID after validating count and maximum resident remainder. This is disposable derived data, not an independent archive. PGHS segments and PGAW committed prefix remain authoritative. Only one lookup row is borrowed until next find; visit uses separate local row. Future persistent FAT32 index requires a verified manifest, storage allocation and power-loss recovery.
+
+### Increment 25 — transient replay lineage
+No persisted field changes. ArchiveState uses disk-derived history instead of lifetime RAM map. ReplayLineage stores initial next ID, seed, committed prefix count, last death record, up to history_capacity resident IDs, and at most three external references per resident identity. Direct references only; new parents and guardians originate from living citizens. Cache scoped to one closed replay and discarded at end. Full checkpoint audits remain authoritative.

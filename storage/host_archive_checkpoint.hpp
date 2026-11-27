@@ -26,7 +26,7 @@ inline ArchiveState create_archive_host(const std::string& dir,const World& orig
     if(!valid_population(original)) throw std::runtime_error("legacy world invalid");
     if(!read_file(slot_path(dir,0)).missing||!read_file(slot_path(dir,1)).missing)
         throw std::runtime_error("archive destination already contains a checkpoint");
-    auto index=HistoryIndex::load(dir,original.seed,0);
+    auto index=DiskHistoryIndex::load(dir,original.seed,0,original.next_citizen_id);
     publish_file(dir,0,encode_archive_checkpoint(original,index,1));
     return load_archive_host(dir);
 }
@@ -59,7 +59,7 @@ inline ArchiveState retire_archive_host(const std::string& dir,const ArchiveStat
     }
     auto candidate=std::make_unique<World>(*disk.world);
     remove_resident_prefix(*candidate,count);
-    auto index=HistoryIndex::load(dir,candidate->seed,prefix+count);
+    auto index=DiskHistoryIndex::load(dir,candidate->seed,prefix+count,candidate->next_citizen_id);
     const auto bytes=encode_archive_checkpoint(*candidate,index,disk.generation+1);
     publish_file(dir,1-disk.slot,bytes);
     auto verified=load_archive_host(dir);

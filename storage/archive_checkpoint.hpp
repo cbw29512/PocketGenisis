@@ -1,5 +1,5 @@
 #pragma once
-#include "history_index.hpp"
+#include "disk_history_index.hpp"
 
 namespace genesis::storage {
 // Distinct host prototype format, never silently opened by the legacy loader.
@@ -7,7 +7,7 @@ inline constexpr std::uint32_t archive_checkpoint_magic=0x57414750; // PGAW
 inline constexpr std::uint16_t archive_checkpoint_version=1;
 struct ArchiveState {
     std::unique_ptr<World> world;
-    std::unique_ptr<HistoryIndex> history;
+    std::unique_ptr<DiskHistoryIndex> history;
     std::uint64_t generation{};
     int slot{-1};
     bool degraded{};
@@ -20,7 +20,7 @@ inline Bytes death_payload(const DeathRecord& d) {
     Writer out;citizen_fields(out,d.citizen);out.field(d.death_tick);out.field(d.cause);
     return std::move(out.bytes);
 }
-inline Bytes encode_archive_checkpoint(const World& w,const HistoryIndex& history,std::uint64_t generation) {
+template<class Index> inline Bytes encode_archive_checkpoint(const World& w,const Index& history,std::uint64_t generation) {
     if(!generation||!valid_history_view(w,history)) throw std::runtime_error("invalid archive checkpoint state");
     Writer out;out.field(archive_checkpoint_magic);out.field(archive_checkpoint_version);
     out.field(checkpoint_rules);out.field(generation);out.field(history.count());
@@ -48,7 +48,7 @@ inline ArchiveState decode_archive_checkpoint(const std::string& dir,const Bytes
     if(in.pos!=end||w->next_citizen_id<3||prefix>w->next_citizen_id-3||
        w->next_citizen_id-3-prefix!=w->descendant_count+w->archive_count)
         throw std::runtime_error("archive checkpoint identity count invalid");
-    auto history=std::make_unique<HistoryIndex>(HistoryIndex::load(dir,w->seed,prefix));
+    auto history=std::make_unique<DiskHistoryIndex>(DiskHistoryIndex::load(dir,w->seed,prefix,w->next_citizen_id));
     if(!valid_history_view(*w,*history)) throw std::runtime_error("archive checkpoint semantics invalid");
     ArchiveState result;result.world=std::move(w);result.history=std::move(history);
     result.generation=generation;result.committed=bytes;return result;
