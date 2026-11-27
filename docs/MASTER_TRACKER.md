@@ -1,7 +1,7 @@
 # Master tracker
 | Gate | Status | Exit criteria |
 |---|---|---|
-| G0 MVP/schema | Review | Owner approves baseline and finalized schema |
+| G0 MVP/schema | Design approved; schema pending | Ten owner decisions recorded; finalize numeric rules, schemas and test fixtures |
 | G1 hardware | Blocked | Exact PCB and safe USB backup/flash path verified |
 | G2 core | In progress | Initial RNG, seeded resource grid, founder traits and clock host-tested; full transition loop and state fixtures pending |
 | G3 citizens | In progress | Founder gestation, maturation, health, basic mortality and bounded RAM archive implemented; CI pending; durable archive, disease, accidents, multigeneration reproduction implemented but unverified; care and recovery remain |
@@ -50,3 +50,6 @@ G5/G8/G8a: rare/epic/legendary catalog entries require meaningful causal world i
 G3/G4/G5/G6/G8a: implement reusable beneficial/adverse effects alongside existing health, ecology, work and knowledge primitives, not one resolver per event. Verify source-linked scope, deterministic stacking and caps, temporary/conditional expiration, resource conservation, founder invariants, one-shot application and replay. Genesis and later exceptional events use the same primitives; rarity itself is not a modifier. Documented design extension only; no code or test-pass claim; preserve current G3 priority and pending CI verification.
 
 Increment 8: dependent infant needs, real parent-provided resources, care priority and dependent movement; shared consumption transaction and regression fixtures. Previous CI (45913542762, 45912224859) still queued; direct clone rechecked and fails DNS. New tests not yet executed. Next verify entire suite and correct failures, then concurrent gestation, orphan care/viability, disease and founder recovery. G3 incomplete; no production flash. All approved rare events, origins, effects, culture and wonders remain scoped to shared primitives after core prerequisites. Physical G1 requires board label/PCB revision and safe USB backup method before target configuration.
+
+## Owner decisions frozen — 2026-11-26
+All ten foundational choices approved in MVP.md. G2/G5: fixed geography and permanent personal founder knowledge, explicit teaching, no magical sharing. G4/G5: abandoned ruins fully decay while history persists. G5/G8: basic procedural naming/culture, separate beliefs from factual events; quiet normal display and significant-event-only sound; official observer cannot intervene. G6/G9: immutable geometry, founder knowledge and observer archive across migrations. Later staged milestones: independent societies, diplomacy/alliance/war, richer language and religion, industrial and space ages; preserve scientific setting and ultra-rare alien encounters. These are design requirements, not implemented mechanics. No new first-release scope beyond existing approved primitives; no change to current G3 test/fix priorities or hardware gate.
