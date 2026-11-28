@@ -29,7 +29,7 @@ int main(){
         sites.sites[build::field].stage=build::Stage::complete;sites.sites[build::field].tile=tile;
         for(auto& t:w->tiles){t.food=100;t.water=100;}
         auto& stock=w->tiles[tile];stock.food=98;auto& crop=farms.crops[0];
-        check(farm::task(*w,sites,crop,w->tick)==farm::Task::none,"no false demand");
+        check(farm::task(*w,sites,crop,w->tick)==farm::Task::plant,"planting does not require future harvest capacity");
         w->tiles[tile+1].food=40;w->tiles[tile-1].food=20;
         check(farm::task(*w,sites,crop,w->tick)==farm::Task::distribute,"real overflow demand");
         check(farm::work(*w,knowledge,sites,crop,a)==farm::Task::distribute&&

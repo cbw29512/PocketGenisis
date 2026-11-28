@@ -50,15 +50,19 @@ inline Task task(const World& w,const construction::State& sites,const State& s,
     const auto& stock=w.tiles[plot.tile];
     const bool winter=(tick%ticks_per_year)/(ticks_per_year/4)==3;
 #ifdef PG_LIVESTOCK_PROBE
-    // Clear genuinely blocked planting/harvest storage only when a
-    // neighboring tile has actual demand. No overflow destruction.
+    // A seed debit creates space rather than consuming storage capacity.
+    // Planting at high stock is legitimate. Prefer distribution if a
+    // real neighbor needs food, but do not require room for future output.
     if(((!s.stage&&!winter)||(s.stage==4&&tick>=s.last_work&&tick-s.last_work>=work_interval))&&
        stock.food>stock_cap-harvest_yield&&farm_distribution::destination(w,sites,plot.tile)>=0)
         return Task::distribute;
-#endif
+    if(!s.stage)
+        return !winter&&stock.food>=12+seed_cost&&stock.water?Task::plant:Task::none;
+#else
     if(!s.stage)
         return !winter&&stock.food>=12+seed_cost&&stock.food<=stock_cap-harvest_yield&&stock.water?
             Task::plant:Task::none;
+#endif
     if(tick<s.last_work||tick-s.last_work<work_interval) return Task::none;
     if(s.stage==4) return stock.food<=stock_cap-harvest_yield?Task::harvest:Task::none;
     return !winter&&stock.water?Task::tend:Task::none;
@@ -115,7 +119,15 @@ inline bool viable_tending(const World& w,const construction::State& sites,const
     const auto& plot=sites.sites[slot];
     if(!farm.stage||farm.stage>4||plot.stage!=construction::Stage::complete||plot.tile>=w.tiles.size()) return false;
     const auto& stock=w.tiles[plot.tile];
-    if(farm.stage==4) return stock.food<=stock_cap-harvest_yield;
+    if(farm.stage==4) {
+#ifdef PG_LIVESTOCK_PROBE
+        // A full ripe plot remains a viable workplace when the farmer can
+        // distribute surplus or consume its actual stock during normal needs.
+        return stock.food>=12&&stock.water>=12;
+#else
+        return stock.food<=stock_cap-harvest_yield;
+#endif
+    }
     return (tick%ticks_per_year)/(ticks_per_year/4)!=3&&stock.food>=12&&stock.water>=12;
 }
 struct Work {

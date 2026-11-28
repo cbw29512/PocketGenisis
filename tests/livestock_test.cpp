@@ -79,6 +79,7 @@ int main(){
                 const auto& pen_stock=w->tiles[pen.tile];
                 std::cout<<"LIVESTOCK_QUARTER tick="<<w->tick<<" field="<<unsigned(plot.stage)
                     <<" plants="<<crop.plants<<" tended="<<crop.tended<<" stage="<<unsigned(crop.stage)
+                    <<" distributed="<<crop.distributed<<" harvests="<<crop.harvests
                     <<" crop_losses="<<crop.drought_losses+crop.spoilage_losses
                     <<" food="<<stock.food<<" water="<<stock.water
                     <<" distance1="<<std::abs(int(w->founders[0].x)-int(plot.tile%width))+std::abs(int(w->founders[0].y)-int(plot.tile/width))

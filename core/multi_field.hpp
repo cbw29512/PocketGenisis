@@ -71,7 +71,11 @@ struct Work {
     // can precede optional wandering/return-home without copying crop logic.
     bool locality(const World& w,Citizen& c) const noexcept {
         if(agriculture::farmer(research,c)&&c.hunger<=8&&c.thirst<=8) {
+#ifdef PG_LIVESTOCK_PROBE
+            int best=width+height,near=-1;
+#else
             int best=settlement::home_radius+1,near=-1;
+#endif
             for(unsigned i=0;i<construction::field_count;++i) {
                 const auto slot=construction::field_slot(i);
                 if(!agriculture::viable_tending(w,sites,farms.crops[i],w.tick+1,slot)) continue;
