@@ -1,4 +1,4 @@
-#include "../core/terrain_probe.hpp"
+#include "../core/terrain_resources.hpp"
 #include <iostream>
 #include <memory>
 #include <set>
@@ -29,6 +29,38 @@ int main(){
         check(tp::fingerprint(*a)!=tp::fingerprint(*b),"high seed bits influence terrain");
         std::cout<<"TERRAIN_PROBE distinct="<<fingerprints.size()<<" bytes="<<sizeof(*a)
                  <<" seed42="<<tp::fingerprint(*a)<<'\n';
+        namespace tr=genesis::terrain_resources;
+        const Tile base{100,100,100,100};
+        const auto forest=tr::stock_for(base,tp::Biome::forest);
+        const auto dry=tr::stock_for(base,tp::Biome::dryland);
+        const auto mountain=tr::stock_for(base,tp::Biome::highland);
+        check(forest.wood>dry.wood&&forest.food>dry.food&&forest.water>dry.water&&
+              mountain.stone>forest.stone,"differentiated natural stocks");
+        auto m=std::make_unique<tr::State>();auto n=std::make_unique<tr::State>();
+        auto w=std::make_unique<World>();initialize(*w,42);
+        const auto rng=w->streams[terrain].state;
+        tr::generate(*m,*a,42);tr::generate(*n,*a,42);
+        check(tr::valid(*m)&&tr::valid(*n),"valid bounded finite deposits");
+        std::array<unsigned,static_cast<unsigned>(tr::Mineral::count)> deposits{};
+        for(std::size_t i=0;i<m->deposits.size();++i) {
+            const auto& d=m->deposits[i];const auto& e=n->deposits[i];
+            check(d.kind==e.kind&&d.remaining==e.remaining&&!d.discovered&&!e.discovered,"same seed hidden deposits");
+            ++deposits[static_cast<unsigned>(d.kind)];
+        }
+        check(deposits[0]>0&&deposits[0]<m->deposits.size(),"uneven finite mineral distribution");
+        tr::generate(*n,*a,42+(1ULL<<32));
+        bool distinct=false;
+        for(std::size_t i=0;i<m->deposits.size();++i)
+            distinct|=m->deposits[i].kind!=n->deposits[i].kind||m->deposits[i].remaining!=n->deposits[i].remaining;
+        check(distinct,"mineral seed changes deposits");
+        const auto expected=tr::stock_for(w->tiles[0],a->cells[0].biome);
+        tr::initialize_stocks(*w,*a);
+        check(w->tiles[0].food==expected.food&&w->tiles[0].wood==expected.wood&&
+              w->tiles[0].water==expected.water&&w->tiles[0].stone==expected.stone&&
+              w->streams[terrain].state==rng,"explicit terrain stock initialization preserves RNG");
+        std::cout<<"RESOURCE_GEOGRAPHY bytes="<<sizeof(*m)<<" deposits=";
+        for(auto count:deposits) std::cout<<count<<',';
+        std::cout<<'\n';
         return 0;
     }catch(const std::exception& e){std::cerr<<"FAIL "<<e.what()<<'\n';return 1;}
 }
