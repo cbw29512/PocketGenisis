@@ -1,5 +1,8 @@
 #pragma once
-#include "history_index.hpp"
+#include "history_validation.hpp"
+#include <algorithm>
+#include <stdexcept>
+#include <vector>
 
 namespace genesis::storage {
 // Short-lived cache for one closed replay transaction. It is not persisted or
