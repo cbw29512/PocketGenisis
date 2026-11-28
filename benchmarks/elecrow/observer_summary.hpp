@@ -1,6 +1,7 @@
 #pragma once
 #include "observer_render.hpp"
 #include "observer_settings.hpp"
+#include "observer_detail_pages.hpp"
 #include <cstdio>
 #include <cstring>
 namespace genesis::observer {
@@ -17,7 +18,7 @@ inline WorldSummary summarize(const integrated::State& s) noexcept {
     out.deaths=s.world.archive_count;
     out.pregnancies=s.world.pregnancy_count;
     const auto count=[&](const Citizen& c){++out.stages[static_cast<unsigned>(life_stage(c,out.tick))];};
-    for(const auto& c:s.world.founders)count(c);
+    // Founders are immortal adults by design; mortal stages exclude them.
     for(std::size_t i=0;i<s.world.descendant_count;++i)count(s.world.descendants[i]);
     for(const auto& tile:s.world.tiles){
         out.food+=tile.food;out.water+=tile.water;out.wood+=tile.wood;out.stone+=tile.stone;
@@ -53,15 +54,18 @@ inline void draw_world_button(GenesisPanel& lcd) {
 }
 // Paint the static panel once. Opaque, padded text updates only changed rows.
 class SummaryPainter {
-    std::array<std::array<char,64>,16> previous_{};
+    std::array<std::array<char,64>,32> previous_{};
     std::uint8_t previous_brightness_{},previous_speed_{255},previous_reset_{};
     bool initialized_{};
+    StatsPage previous_page_{StatsPage::world};
+    unsigned previous_death_page_{};
 public:
     void invalidate() noexcept {initialized_=false;}
     void draw(GenesisPanel& lcd,const WorldSummary& s,
-              const DisplaySettings& settings,const SaveStatus& saved) {
+              const DisplaySettings& settings,const SaveStatus& saved,const integrated::State& state) {
         const auto bg=rgb(12,22,30),fg=rgb(245,245,235),muted=rgb(151,181,190);
-        const bool first=!initialized_||previous_reset_!=settings.reset_stage;
+        const bool first=!initialized_||previous_reset_!=settings.reset_stage||previous_page_!=settings.page||previous_death_page_!=settings.death_page;
+        previous_page_=settings.page;previous_death_page_=settings.death_page;
         previous_reset_=settings.reset_stage;
         lcd.startWrite();
         if(settings.reset_stage){
@@ -83,9 +87,8 @@ public:
             for(auto& row:previous_)row.fill(0);
             lcd.fillRect(30,30,740,420,bg);lcd.drawRect(30,30,740,420,fg);
             lcd.setTextColor(fg,bg);lcd.setTextSize(3);
-            lcd.setCursor(48,48);lcd.print("World / Settings");
-            lcd.fillRoundRect(48,264,312,32,5,rgb(115,40,37));
-            lcd.setTextSize(2);lcd.setCursor(60,272);lcd.print("Nuclear option");
+            lcd.setCursor(48,48);lcd.print("World statistics");
+            lcd.setTextSize(2);
             lcd.drawFastHLine(48,298,704,muted);
         }
         lcd.setTextSize(2);lcd.setTextColor(fg,bg);
@@ -100,24 +103,44 @@ public:
             std::snprintf(padded,sizeof(padded),"%-*.*s",width,width,next);
             lcd.setCursor(x,y);lcd.print(padded);
         };
-        line(0,48,90,58,"Year %llu | Tick %llu",(unsigned long long)(s.tick/ticks_per_year+1),(unsigned long long)s.tick);
-        line(1,48,126,30,"Living: %u",unsigned(s.living));
-        line(2,48,150,30,"Pregnancies: %u",unsigned(s.pregnancies));
-        line(3,48,174,30,"Recorded deaths: %u",unsigned(s.deaths));
-        line(4,48,198,30,"Infants: %u  Children: %u",s.stages[0],s.stages[1]);
-        line(5,48,222,30,"Teens: %u  Adults: %u",s.stages[2],s.stages[3]);
-        line(6,48,246,30,"Elders: %u",s.stages[4]);
-        line(7,420,126,27,"Food: %llu",(unsigned long long)s.food);
-        line(8,420,150,27,"Water: %llu",(unsigned long long)s.water);
-        line(9,420,174,27,"Wood %llu  Stone %llu",(unsigned long long)s.wood,(unsigned long long)s.stone);
-        line(10,420,198,27,"Wild animals: %llu",(unsigned long long)s.wild);
-        line(11,420,222,27,"Fish: %llu",(unsigned long long)s.fish);
-        line(12,420,246,27,"Discoveries: %u",unsigned(s.discoveries));
-        line(13,420,270,27,"Buildings: %u",unsigned(s.buildings));
-        line(14,48,310,58,"SD card: %.1f GB",(double)saved.card_bytes/1000000000.0);
-        if(saved.generation)line(15,48,334,58,"Verified save #%llu | Tick %llu | Slot %c",
+        if(settings.page==StatsPage::world){
+            line(0,48,90,58,"Year %llu | Tick %llu",(unsigned long long)(s.tick/ticks_per_year+1),(unsigned long long)s.tick);
+            line(1,48,126,30,"Living: %u",unsigned(s.living));
+            line(2,48,150,30,"Immortal founders: 2");
+            line(3,48,174,30,"Recorded deaths: %u",unsigned(s.deaths));
+            line(4,48,198,30,"Infants: %u Children: %u",s.stages[0],s.stages[1]);
+            line(5,48,222,30,"Teens: %u Adults: %u",s.stages[2],s.stages[3]);
+            line(6,48,246,30,"Elders: %u",s.stages[4]);
+            line(7,420,126,27,"Food: %llu",(unsigned long long)s.food);
+            line(8,420,150,27,"Water: %llu",(unsigned long long)s.water);
+            line(9,420,174,27,"Wood %llu Stone %llu",(unsigned long long)s.wood,(unsigned long long)s.stone);
+            line(10,420,198,27,"Wild animals: %llu",(unsigned long long)s.wild);
+            line(11,420,222,27,"Fish: %llu",(unsigned long long)s.fish);
+            line(12,420,246,27,"Discoveries: %u",unsigned(s.discoveries));
+            line(13,420,270,27,"Buildings: %u",unsigned(s.buildings));
+            line(14,48,270,30,"Pregnancies: %u",unsigned(s.pregnancies));
+        }else if(settings.page==StatsPage::people)people_page(state,line);
+        else if(settings.page==StatsPage::deaths){
+            deaths_page(state,settings.death_page,line);
+            if(first){
+                lcd.fillRoundRect(420,264,140,32,5,rgb(36,53,62));
+                lcd.fillRoundRect(600,264,152,32,5,rgb(36,53,62));
+                lcd.setCursor(432,272);lcd.print("Newer");
+                lcd.setCursor(612,272);lcd.print("Older");
+            }
+        }else if(settings.page==StatsPage::progress)progress_page(state,line);
+        else {
+            line(0,48,90,58,"Display and maintenance");
+            line(1,48,150,58,"Brightness");
+            if(first){
+                lcd.fillRoundRect(48,264,312,32,5,rgb(115,40,37));
+                lcd.setCursor(60,272);lcd.print("Nuclear option");
+            }
+        }
+        line(30,48,310,58,"SD capacity: %.1f GB",(double)saved.card_bytes/1000000000.0);
+        if(saved.generation)line(31,48,334,58,"Verified save #%llu | Tick %llu | Slot %c",
             (unsigned long long)saved.generation,(unsigned long long)saved.tick,saved.slot==0?'A':'B');
-        else line(15,48,334,58,"No verified checkpoint");
+        else line(31,48,334,58,"No verified checkpoint");
         if(first||previous_speed_!=settings.speed){
             lcd.fillRect(400,44,352,44,bg);
             lcd.fillRoundRect(400,44,56,44,5,rgb(36,53,62));
@@ -128,16 +151,23 @@ public:
             lcd.setCursor(468,58);lcd.print(rate_labels[settings.speed]);
             previous_speed_=settings.speed;
         }
-        if(first||previous_brightness_!=settings.brightness){
-            const auto button=[&](int x,int w,const char* label,bool active){
-                lcd.fillRoundRect(x,376,w,44,5,active?rgb(58,105,80):rgb(36,53,62));
-                lcd.setTextColor(fg);lcd.setCursor(x+12,390);lcd.print(label);
+        if(settings.page==StatsPage::settings&&(first||previous_brightness_!=settings.brightness)){
+            const auto button=[&](int x,const char* label,bool active){
+                lcd.fillRoundRect(x,198,168,44,5,active?rgb(58,105,80):rgb(36,53,62));
+                lcd.setTextColor(fg);lcd.setCursor(x+12,212);lcd.print(label);
             };
-            button(48,168,"Dim",settings.brightness==64);
-            button(232,168,"Normal",settings.brightness==128);
-            button(416,168,"Bright",settings.brightness==255);
-            button(600,152,"Close",false);
+            button(48,"Dim",settings.brightness==64);
+            button(232,"Normal",settings.brightness==128);
+            button(416,"Bright",settings.brightness==255);
             previous_brightness_=settings.brightness;
+        }
+        if(first){
+            constexpr const char* labels[]={"World","People","Deaths","Progress","Settings","Close"};
+            for(unsigned i=0;i<6;++i){
+                const int x=48+int(i)*118;
+                lcd.fillRoundRect(x,376,114,44,5,i==unsigned(settings.page)?rgb(58,105,80):rgb(36,53,62));
+                lcd.setTextColor(fg);lcd.setCursor(x+6,390);lcd.print(labels[i]);
+            }
         }
         initialized_=true;
         lcd.endWrite();
