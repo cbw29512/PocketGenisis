@@ -12,12 +12,12 @@ struct DisplaySettings {
     bool touch(int x,int y) noexcept {
         if(!overview)return false;
         if(reset_stage){
-            if(y>=376&&y<420&&x>=48&&x<350){reset_stage=0;return true;}
-            if(y>=376&&y<420&&x>=450&&x<752){
-                if(reset_stage==1)reset_stage=2;
-                else {reset_requested=true;reset_stage=0;}
-                return true;
-            }
+            const bool left=y>=376&&y<420&&x>=48&&x<350;
+            const bool right=y>=376&&y<420&&x>=450&&x<752;
+            // Final erase moves to the opposite side: double-tap cannot erase.
+            if((reset_stage==1&&left)||(reset_stage==2&&right)){reset_stage=0;return true;}
+            if(reset_stage==1&&right){reset_stage=2;return true;}
+            if(reset_stage==2&&left){reset_requested=true;reset_stage=0;return true;}
             return false;
         }
         if(y>=44&&y<88&&x>=400&&x<456){if(speed>0)--speed;return true;}
