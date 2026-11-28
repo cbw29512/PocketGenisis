@@ -34,8 +34,22 @@ void report(const char* label,std::uint64_t generation,int slot){
         static_cast<unsigned long long>(state.world.tick),
         static_cast<unsigned>(state.world.descendant_count+2),
         static_cast<unsigned>(ESP.getFreePsram()),static_cast<unsigned>(ESP.getFreeHeap()));
+    Serial.print("WORLD_UUID ");
+    for(auto byte:identity.uuid)Serial.printf("%02x",static_cast<unsigned>(byte));
+    Serial.println();
+    Serial.printf("WORLD_STACK_FREE %u\n",static_cast<unsigned>(uxTaskGetStackHighWaterMark(nullptr)));
+}
+// Recheck the independent identity before each transaction, rather than
+// trusting an earlier mount after a card removal or replacement.
+void require_identity(){
+    const auto manifest=slots.manifest();
+    const auto decoded=m::decode(manifest.bytes);
+    if(manifest.missing||!decoded.valid||!w::equal(decoded.identity,identity))
+        throw std::runtime_error("persisted world identity changed or unavailable");
 }
 void arm(){
+    if(sim->state().cadence&&sim->state().cadence!=cadence)
+        throw std::runtime_error("restored world cadence incompatible");
     const auto now=now_ms();
     if(!clock_state.arm(now,sim->state().world.tick))throw std::runtime_error("arm failed");
     next_tick_ms=now+1000;ready=true;awaiting_creation=false;
@@ -51,6 +65,7 @@ void create_test(){
     slots.create_manifest(identity);
     const auto result=c::save(slots,identity,*sim,true);
     if(!result.generation)throw std::runtime_error(result.error);
+    require_identity();
     report("WORLD_CREATED",result.generation,result.slot);arm();
 }
 void boot(){
@@ -104,7 +119,10 @@ void loop(){
             if(status==a::Status::fault)throw std::runtime_error("autosave clock fault");
             if(status==a::Status::due){
                 const auto begin=esp_timer_get_time();
+                require_identity();
+                Serial.printf("WORLD_SAVE_BEGIN tick=%llu\n",static_cast<unsigned long long>(tick));
                 const auto result=c::save(slots,identity,*sim);
+                if(result.generation)require_identity();
                 if(!clock_state.complete(now_ms(),tick,result.generation!=0))
                     throw std::runtime_error(result.error.empty()?"autosave completion fault":result.error);
                 report("WORLD_AUTOSAVED",result.generation,result.slot);
