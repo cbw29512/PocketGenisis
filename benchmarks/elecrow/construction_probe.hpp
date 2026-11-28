@@ -64,7 +64,7 @@ inline bool construction_probe(World& w
     Serial.println("FUNCTIONAL FOOD STORAGE PROBE");
 #endif
     Serial.println("CONSTRUCTION PROBE TEST ONLY: 43200 ticks; accelerated research; normal lifecycle; no save");
-    constexpr const char* events[]={"none","started","completed","abandoned"};
+    constexpr const char* events[]={"none","started","completed","abandoned","resumed"};
     for(unsigned i=0;i<43200;++i) {
         discovery::Event re{};construction::Event ce{};
 #ifdef PG_LIVESTOCK_PROBE

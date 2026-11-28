@@ -72,7 +72,7 @@ inline unsigned housing_demand(const World& w,const State& s) noexcept {
     const auto capacity=completed_huts(s)*housing_capacity;
     return living>capacity?living-capacity:0;
 }
-enum class EventKind : std::uint8_t { none,started,completed,abandoned };
+enum class EventKind : std::uint8_t { none,started,completed,abandoned,resumed };
 struct Event {EventKind kind{};std::uint8_t type{};std::uint16_t tile{};std::uint64_t builder{};};
 inline std::uint16_t location(const Citizen& c) noexcept {
     return static_cast<std::uint16_t>(std::size_t(c.y)*width+c.x);
@@ -110,12 +110,13 @@ inline int thirsty_field(const World& w,const State& s,std::uint16_t source) noe
     return best;
 }
 #endif
-// Evaluate the exact admission rule at a prospective location without moving a citizen.
-inline bool can_start_at(const World& w,const discovery::State& research,const State& s,
-                         unsigned owner,unsigned k,const Citizen& c) noexcept {
-    if(owner>=w.founders.size()||k>=site_count||c.x>=width||c.y>=height) return false;
-    const auto& bp=blueprints[kind_at(k)];
+// Shared physical demand conditions: both new construction and resumption
+// evaluate the current need at the prospective site.
+inline bool site_needed_at(const World& w,const State& s,unsigned k,const Citizen& c) noexcept {
+    if(k>=site_count||c.x>=width||c.y>=height) return false;
     const auto tile=location(c);const auto& stock=w.tiles[tile];
+    // Some legacy profiles have no resource-dependent site demand.
+    (void)stock;
     if(k>=kind_count&&kind_at(k)==hut&&(!housing_demand(w,s)||stock.food<12||stock.water<12||
                        !near_completed_hut(s,c))) return false;
 #ifdef PG_AGRICULTURE_PROBE
@@ -143,10 +144,35 @@ inline bool can_start_at(const World& w,const discovery::State& research,const S
         if(!farm||!w.descendant_count||stock.food<24||stock.water<24||!near_completed_hut(s,c)) return false;
     }
 #endif
+    return true;
+}
+// Evaluate the exact admission rule at a prospective location without moving a citizen.
+inline bool can_start_at(const World& w,const discovery::State& research,const State& s,
+                         unsigned owner,unsigned k,const Citizen& c) noexcept {
+    if(owner>=w.founders.size()||!site_needed_at(w,s,k,c)) return false;
+    const auto& bp=blueprints[kind_at(k)];
+    const auto tile=location(c);const auto& stock=w.tiles[tile];
     return s.sites[k].stage==Stage::empty&&!occupied(s,tile)&&
         discovery::available(c)&&(research.known[owner]&discovery::tech_bit(bp.knowledge))&&
         stock.wood>=bp.wood&&stock.stone>=bp.stone;
 }
+#ifdef PG_LIVESTOCK_PROBE
+inline constexpr std::uint64_t resume_cooldown=600;
+inline bool can_resume_at(const World& w,const discovery::State& research,const State& s,
+                          unsigned owner,unsigned k,const Citizen& c) noexcept {
+    if(owner>=w.founders.size()||k>=site_count||active(s)>=0||research.job.active) return false;
+    const auto& site=s.sites[k];const auto& bp=blueprints[kind_at(k)];
+    // Only genuine, unfinished paid projects may resume. Empty records,
+    // completed structures and abandoned test placeholders cannot qualify.
+    if(site.stage!=Stage::abandoned||!site.started||site.last_work<site.started||
+       site.finished<site.last_work||site.finished>w.tick||w.tick-site.finished<resume_cooldown||
+       site.tile>=w.tiles.size()||site.work>=bp.work||c.x>=width||c.y>=height||
+       location(c)!=site.tile||!discovery::available(c)||
+       !(research.known[owner]&discovery::tech_bit(bp.knowledge))) return false;
+    const auto& stock=w.tiles[site.tile];
+    return stock.food>=12&&stock.water>=12&&site_needed_at(w,s,k,c);
+}
+#endif
 inline bool can_start(const World& w,const discovery::State& research,const State& s,
                       unsigned owner,unsigned k) noexcept {
     return owner<w.founders.size()&&can_start_at(w,research,s,owner,k,w.founders[owner]);
@@ -171,6 +197,18 @@ inline Event advance(World& w,const discovery::State& research,State& s) noexcep
         }
         return {};
     }
+#ifdef PG_LIVESTOCK_PROBE
+    // Prefer finishing paid work over starting a new project. A different
+    // qualified local founder can take responsibility without buying it twice.
+    for(unsigned i=0;i<2;++i) for(unsigned j=0;j<site_count;++j) {
+        const auto& c=w.founders[i];
+        if(!can_resume_at(w,research,s,i,j,c)) continue;
+        auto& site=s.sites[j];
+        site.owner=static_cast<std::uint8_t>(i);
+        site.stage=Stage::building;site.finished=0;site.last_work=w.tick;
+        return {EventKind::resumed,static_cast<std::uint8_t>(kind_at(j)),site.tile,c.id};
+    }
+#endif
     // Stable small catalog and founder order; no population-wide scan.
     for(unsigned i=0;i<2;++i) for(unsigned j=0;j<site_count;++j) {
         if(!can_start(w,research,s,i,j)) continue;

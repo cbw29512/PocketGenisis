@@ -15,6 +15,23 @@ inline bool seek(World const& w,const discovery::State& research,
         move_toward(c,job.tile%width,job.tile/width);return true;
     }
     if(research.job.active) return false;
+#ifdef PG_LIVESTOCK_PROBE
+    // Resume a known paid structure before surveying new land. Scan only
+    // existing sites; movement is still a normal one-tile action.
+    int resume_distance=width+height;std::uint16_t resume_tile{};
+    for(unsigned k=0;k<construction::site_count;++k) {
+        const auto& site=sites.sites[k];
+        if(site.stage!=construction::Stage::abandoned||site.tile>=w.tiles.size()) continue;
+        Citizen probe=c;probe.x=site.tile%width;probe.y=site.tile/width;
+        if(!construction::can_resume_at(w,research,sites,owner,k,probe)) continue;
+        const int d=std::abs(int(c.x)-int(probe.x))+std::abs(int(c.y)-int(probe.y));
+        if(d<resume_distance) {resume_distance=d;resume_tile=site.tile;}
+    }
+    if(resume_distance<width+height) {
+        if(!resume_distance) return false; // Local ReserveWork handles admission.
+        move_toward(c,resume_tile%width,resume_tile/width);return true;
+    }
+#endif
     // Only search for a needed first farm (or extra farm in a larger family).
     // Bounded scan around the existing settlement, not the entire world.
     if(!(research.known[owner]&discovery::tech_bit(discovery::farming))) return false;

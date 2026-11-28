@@ -25,3 +25,5 @@ PB-01 predator CI 46087693295 passed with reduced predation and actual capture/b
 PB-01 supply CI 46087927287 passed but natural run still no harvest/delivery. Field food98 exceeds planting limit92; founders outside previous eight-tile work radius. Added real surplus distribution, shared resource transfer and longer known-workplace return, controlled tests. CI pending. PB-01 remains open.
 
 PB-01 CI 46088259498 passed; actual livestock capture/birth/food delivery/meat production improved but end-year managed extinction and no crops. Split planting requirements from future harvest capacity and preserve return to viable ripe fields in combined profile, full-stock controlled and real-tick tests. New CI pending; gate remains open.
+
+PB-01 planting correction CI 46088508146 passed (26 combined harvests); enclosure abandonment blocked livestock. Actual resumable paid construction and qualified local takeover implemented; CI pending. Gate remains open.
