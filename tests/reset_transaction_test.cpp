@@ -31,7 +31,9 @@ int main(){
         auto valid=m::prepare_reset(io.id,true);io.interrupt=true;
         check(m::execute_reset(io,valid,valid.confirmation,true).status==m::ResetStatus::incomplete&&io.pending(),"interrupted reset marker");
         check(m::resume_reset(io,"bad",true).status==m::ResetStatus::refused&&io.world,"resume requires confirmation");
-        io.interrupt=false;
+        io.interrupt=false;io.id="foreign";
+        check(m::resume_reset(io,valid.confirmation,true).status==m::ResetStatus::incomplete&&io.world&&io.erases==0,"foreign world not erased on resume");
+        io.id="old-world";
         check(m::resume_reset(io,valid.confirmation,true).status==m::ResetStatus::empty&&!io.pending()&&!io.world&&io.unrelated,"resume preserves unrelated data");
         Fake fresh;auto p=m::prepare_reset(fresh.id,true);
         check(m::execute_reset(fresh,p,p.confirmation,true).status==m::ResetStatus::empty&&fresh.unrelated,"normal reset leaves empty world");
