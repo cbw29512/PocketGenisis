@@ -25,16 +25,34 @@ inline WorldSummary summarize(const integrated::State& s) noexcept {
     for(const auto& site:s.sites.sites)if(site.stage==construction::Stage::complete)++out.buildings;
     return out;
 }
+// A compact globe, with a larger invisible touch target. Stippled
+// shading leaves the actual map visible between pixels (RGB565, no alpha).
+inline constexpr int globe_left=744,globe_top=0,globe_size=56;
+inline bool globe_hit(int x,int y) noexcept {
+    return x>=globe_left&&x<globe_left+globe_size&&
+           y>=globe_top&&y<globe_top+globe_size;
+}
 inline void draw_world_button(GenesisPanel& lcd) {
-    lcd.fillRoundRect(680,4,116,36,5,rgb(17,28,35));
-    lcd.setTextColor(rgb(245,245,235));lcd.setTextSize(2);
-    lcd.setCursor(695,13);lcd.print("WORLD");
+    constexpr int cx=772,cy=28,r=21;
+    const auto line=rgb(220,236,229),shade=rgb(22,42,51);
+    for(int y=-r;y<=r;++y)for(int x=-r;x<=r;++x){
+        const int d=x*x+y*y;
+        if(d>r*r)continue;
+        const bool rim=d>=(r-2)*(r-2);
+        const bool meridian=(4*x*x+y*y>=r*r-40&&4*x*x+y*y<=r*r+40);
+        const bool latitude=(y==0||y==-10||y==10);
+        // Half-tone strokes and quarter-density shading retain map detail.
+        if((rim||meridian||latitude)&&((x+y)&1)==0)
+            lcd.drawPixel(cx+x,cy+y,line);
+        else if((x&1)==0&&(y&1)==0)
+            lcd.drawPixel(cx+x,cy+y,shade);
+    }
 }
 inline void draw_summary(GenesisPanel& lcd,const WorldSummary& s) {
     const auto bg=rgb(12,22,30),fg=rgb(245,245,235);
     lcd.fillRect(30,30,740,420,bg);lcd.drawRect(30,30,740,420,fg);
     lcd.setTextColor(fg,bg);lcd.setTextSize(3);
-    lcd.setCursor(48,48);lcd.print("World overview");
+    lcd.setCursor(48,48);lcd.print("World / Settings");
     lcd.setTextSize(2);
     lcd.setCursor(48,90);lcd.printf("Year %llu | Tick %llu",static_cast<unsigned long long>(s.tick/ticks_per_year+1),static_cast<unsigned long long>(s.tick));
     lcd.setCursor(48,130);lcd.printf("Living: %u  Pregnancies: %u",unsigned(s.living),unsigned(s.pregnancies));
