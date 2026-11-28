@@ -31,3 +31,11 @@ All three reported PSRAM free 8038027, internal free 310900, stack watermark 592
 
 ## Combined persistent observer — owner hardware evidence
 Candidate 0c07803, build/upload SUCCESS 14.535s, all flash hashes verified, static RAM 24972/327680 and flash 718473/3145728. COM3 WORLD_AUTOSAVED generation=20 slot=1 tick=1132 population=2 psram_free=7269827 internal_free=296940, UUID 595cd572864b4544b42b78941b281581, stack watermark 62004, save time 3382802us. Owner explicitly confirmed visible map and tapping citizens opened their statistics. Pass: existing identity retained across upgrade, visible world, touch inspection, automatic save while graphical firmware active. Full combined power-on recovery log, long-run testing, peak memory and interrupted-write recovery remain open. Preserve this known-good firmware candidate.
+
+## Accelerated observer qualification — owner COM3 evidence
+Owner confirmed settings interface visible and incremental renderer ba76137 satisfactory. Candidate b61ae7b compiled/uploaded in 237.096s, all flash hashes verified; static RAM 50116/327680, flash 730533/3145728. Subsequent COM3 logs:
+| Generation | Slot | Tick | Save microseconds |
+|---|---|---|---|
+|52|1|3588|3384128|
+|53|0|4308|3385321|
+Both saves report UUID 595cd572864b4544b42b78941b281581, population 2, PSRAM free 7269827, internal free 271696, stack watermark 57820. Tick delta 720 is consistent with the 12 ticks/s default pacing target per 60-second autosave interval; serial timestamps not captured, so exact wall-clock year duration is not certified. Existing world identity and alternating checkpoints preserved. Speed adjustment touch controls, reset cancellation/deletion, interrupted FAT reset, mature population and long-run memory/performance remain unqualified. Do not erase the running world for the overnight observation.
