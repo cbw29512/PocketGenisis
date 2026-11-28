@@ -76,26 +76,34 @@ struct Route {
     std::uint16_t next{unreachable},total{unreachable};
     bool found{};
 };
-// Bounded deterministic Dijkstra search. A positive edge cost ensures a
-// settled tile cannot improve later; stable tile ordering resolves ties.
-inline Route route(const Terrain& terrain,std::size_t from,std::size_t to,Scratch& s) noexcept {
-    if(from>=count||to>=count||!walkability::walkable(terrain.surface[from])||
-       !walkability::walkable(terrain.surface[to]))return {};
-    if(from==to)return {static_cast<std::uint16_t>(from),0,true};
+struct GoalRoute {
+    Route path{};
+    std::uint16_t destination{unreachable};
+};
+// Search once for the least-cost reachable goal, including the origin.
+// A turn budget bounds expansion; stable tile ordering breaks equal-cost ties.
+template<class Goal>
+inline GoalRoute route_to(const Terrain& terrain,std::size_t from,Scratch& s,
+                          const Goal& goal,unsigned budget=unreachable-1) noexcept {
+    if(from>=count||!walkability::walkable(terrain.surface[from]))return {};
     s.reset();s.distance[from]=0;s.changed(static_cast<std::uint16_t>(from));
     while(s.used){
         const auto here=s.pop();
-        if(here==to)return {s.first[here],s.distance[here],true};
+        if(goal(here))return {{here==from?here:s.first[here],s.distance[here],true},here};
         hydrology::neighbors(here,[&](std::size_t next) noexcept {
             const auto edge=cost(terrain,here,next);
             if(!edge)return;
             const unsigned candidate=unsigned(s.distance[here])+edge;
-            if(candidate>=s.distance[next])return;
+            if(candidate>budget||candidate>=s.distance[next])return;
             s.distance[next]=static_cast<std::uint16_t>(candidate);
             s.first[next]=here==from?static_cast<std::uint16_t>(next):s.first[here];
             s.changed(static_cast<std::uint16_t>(next));
         });
     }
     return {};
+}
+inline Route route(const Terrain& terrain,std::size_t from,std::size_t to,Scratch& s) noexcept {
+    if(to>=count||!walkability::walkable(terrain.surface[to]))return {};
+    return route_to(terrain,from,s,[to](std::size_t i) noexcept {return i==to;}).path;
 }
 }
