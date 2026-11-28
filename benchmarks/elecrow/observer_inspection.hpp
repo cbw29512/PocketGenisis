@@ -46,10 +46,10 @@ public:
         }
 #ifdef PG_PERSISTENT_OBSERVER
         if(overview_){overview_=false;return true;}
-        if(p.x>=680&&p.y<40){overview_=true;selected_=0;return true;}
+        if(globe_hit(p.x,p.y)){overview_=true;selected_=0;return true;}
 #endif
-        // No permanent HUD or reserved button area: every visible map
-        // position is inspectable unless the temporary panel covers it.
+        // Outside the small globe target, map positions remain inspectable
+        // unless the temporary citizen panel covers them.
         if(selected_&&p.x<300&&p.y<176) selected_=0;
         else {
             selected_=0;int best=25*25;
