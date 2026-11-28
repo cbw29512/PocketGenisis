@@ -49,3 +49,6 @@ Shared founder_recovery.hpp derives incapacitation and travel eligibility from e
 
 ## Parental complications
 Reuse existing birth risk proxy, separate appended RNG stream and health floor. Resolve child outcome using pre-injury parents, then apply one parental event per delivery. All due pregnancies resolve before compaction; fatal parental records append through existing archive primitive and current tick suffix sorts by ID. Shared death_validation.hpp reused by RAM and history validators. No new resource, timer or storage architecture.
+
+## Open-source development policy
+Owner-approved: evaluate existing internal and external implementations before each substantial capability. Follow [OPEN_SOURCE_REUSE.md](OPEN_SOURCE_REUSE.md) for license/revision review, attribution, deterministic integration, dependency pinning and Elecrow measurement. Preserve the authoritative core and read-only renderer separation. No external dependency admitted by documentation review alone.
