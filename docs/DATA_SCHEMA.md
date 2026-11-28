@@ -145,3 +145,5 @@ Livestock profile only: appended husbandry tech/enclosure site, two managed Grou
 Terrain evaluation sidecar only: 6000 three-byte cells (uint8 elevation, uint8 moisture, uint8 biome enum), generated once from isolated seed, not yet in canonical save. See TERRAIN_PROBE_CONTRACT.md.
 
 Livestock State adds uint64 supplied_food and supplied_water cumulative adjacent handoffs (not new production); no canonical serialization yet. See LIVESTOCK_CONTRACT.md.
+
+Combined livestock profile: agriculture::State adds uint64 distributed, actual existing plot stock sent to adjacent non-field tiles; no new food production or stage/time changes. Shared resource_transfer::move preserves bounded stock. No canonical save changes.

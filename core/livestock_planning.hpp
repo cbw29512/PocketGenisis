@@ -12,12 +12,12 @@ inline bool seek_work(const World& w,const discovery::State& knowledge,
     const auto pen=sites.sites[construction::enclosure].tile;
     const int px=pen%width,py=pen/width;
     constexpr int dx[]={0,-1,1,0,0},dy[]={0,0,0,-1,1};
-    int best=settlement::home_radius+1;unsigned priority=4;std::uint16_t target=0;
+    int best=width+height;unsigned priority=4;std::uint16_t target=0;
     for(unsigned i=0;i<5;++i) {
         const int x=px+dx[i],y=py+dy[i];
         if(x<0||x>=width||y<0||y>=height) continue;
         const int d=std::abs(int(c.x)-x)+std::abs(int(c.y)-y);
-        if(!d||d>settlement::home_radius) continue;
+        if(!d) continue;
         Citizen probe=c;probe.x=static_cast<std::uint16_t>(x);probe.y=static_cast<std::uint16_t>(y);
         const auto task=choose(w,knowledge,sites,wild,s,probe).task;
         if(task==Task::none) continue;

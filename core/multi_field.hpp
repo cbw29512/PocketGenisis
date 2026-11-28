@@ -43,7 +43,13 @@ struct Work {
         if(farm_planning::seek(w,research,sites,c)) return true;
 #endif
         if(!chosen&&agriculture::farmer(research,c)) {
+#ifdef PG_LIVESTOCK_PROBE
+            // A known completed workplace is a bounded catalog lookup,
+            // not a local exploration search. Walk back even from far away.
+            int best=width+height,ready=-1;
+#else
             int best=settlement::home_radius+1,ready=-1;
+#endif
             for(unsigned i=0;i<construction::field_count;++i) {
                 const auto slot=construction::field_slot(i);
                 if(agriculture::task(w,sites,farms.crops[i],w.tick+1,slot)==agriculture::Task::none) continue;

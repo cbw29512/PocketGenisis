@@ -3,6 +3,9 @@
 #error "Agriculture is an isolated probe profile"
 #endif
 #include "settlement.hpp"
+#ifdef PG_LIVESTOCK_PROBE
+#include "farm_distribution.hpp"
+#endif
 #ifdef PG_IRRIGATION_PROBE
 #include "farm_planning.hpp"
 #endif
@@ -16,6 +19,9 @@ struct State {
     std::uint64_t last_work{},plants{},tended{},water{},harvests{},food{};
 #ifdef PG_CROP_LOSS_PROBE
     std::uint64_t drought_losses{},spoilage_losses{},lost_water{},dry_since{};
+#endif
+#ifdef PG_LIVESTOCK_PROBE
+    std::uint64_t distributed{}; // actual existing food moved; not harvested yield
 #endif
 };
 inline bool valid(const State& s) noexcept {
@@ -31,7 +37,11 @@ inline bool valid(const State& s) noexcept {
         s.water==s.harvests*4+s.stage+lost&&s.tended==s.harvests*3+(s.stage?s.stage-1:0)+lost-losses&&
         s.food==s.harvests*harvest_yield;
 }
-enum class Task : std::uint8_t { none,plant,tend,harvest };
+enum class Task : std::uint8_t { none,plant,tend,harvest
+#ifdef PG_LIVESTOCK_PROBE
+    ,distribute
+#endif
+};
 inline Task task(const World& w,const construction::State& sites,const State& s,
                  std::uint64_t tick,unsigned slot=construction::field) noexcept {
     if(slot>=construction::site_count||construction::kind_at(slot)!=construction::field) return Task::none;
@@ -39,6 +49,13 @@ inline Task task(const World& w,const construction::State& sites,const State& s,
     if(plot.stage!=construction::Stage::complete||plot.tile>=w.tiles.size()||s.stage>4) return Task::none;
     const auto& stock=w.tiles[plot.tile];
     const bool winter=(tick%ticks_per_year)/(ticks_per_year/4)==3;
+#ifdef PG_LIVESTOCK_PROBE
+    // Clear genuinely blocked planting/harvest storage only when a
+    // neighboring tile has actual demand. No overflow destruction.
+    if(((!s.stage&&!winter)||(s.stage==4&&tick>=s.last_work&&tick-s.last_work>=work_interval))&&
+       stock.food>stock_cap-harvest_yield&&farm_distribution::destination(w,sites,plot.tile)>=0)
+        return Task::distribute;
+#endif
     if(!s.stage)
         return !winter&&stock.food>=12+seed_cost&&stock.food<=stock_cap-harvest_yield&&stock.water?
             Task::plant:Task::none;
@@ -58,6 +75,15 @@ inline Task work(World& w,const discovery::State& knowledge,const construction::
     const auto action=task(w,sites,s,w.tick,slot);
     if(action==Task::none) return action;
     auto& stock=w.tiles[sites.sites[slot].tile];
+#ifdef PG_LIVESTOCK_PROBE
+    if(action==Task::distribute) {
+        const auto moved=farm_distribution::deliver(w,sites,sites.sites[slot].tile);
+        if(!moved) return Task::none;
+        s.distributed+=moved;
+        // Distribution does not water, grow, reset drought or advance the crop timer.
+        return action;
+    }
+#endif
     if(action==Task::plant) {
         stock.food-=seed_cost;--stock.water;s.stage=1;++s.plants;++s.water;
     } else if(action==Task::tend) {

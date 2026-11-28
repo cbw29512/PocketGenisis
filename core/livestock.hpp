@@ -4,6 +4,7 @@
 #endif
 #include "crop_loss.hpp"
 #include "wildlife.hpp"
+#include "resource_transfer.hpp"
 
 namespace genesis::livestock {
 inline constexpr unsigned capacity=8,breeding_floor=3;
@@ -76,9 +77,8 @@ inline Task work(World& w,const discovery::State& knowledge,const construction::
         auto& to=w.tiles[sites.sites[construction::enclosure].tile];
         const bool food=choice.task==Task::supply_food;
         auto& source=food?from.food:from.water;auto& dest=food?to.food:to.water;
-        const auto moved=std::min({supply_batch,unsigned(source-supply_reserve),
-                                   unsigned(supply_target-dest)});
-        source-=moved;dest+=moved;
+        const auto moved=resource_transfer::move(source,dest,supply_reserve,supply_target,supply_batch);
+        if(!moved) return Task::none;
         (food?s.supplied_food:s.supplied_water)+=moved;
         return choice.task;
     }
