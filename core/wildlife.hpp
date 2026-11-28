@@ -6,6 +6,15 @@ namespace genesis::wildlife {
 // Disposable sidecar: explicit ecology state, no changes to existing World saves.
 enum Species : std::size_t { deer,rabbit,boar,cattle,chicken,wolf,bear,species_count };
 inline constexpr unsigned group_limit=64, meat_limit=100;
+// Local ecology cadence is independent of the human simulation clock.
+// Preserve the original benchmark rules; the combined civilization uses
+// a provisional slower consumption/breeding candidate pending calibration.
+struct Cadence {std::uint64_t feeding,breeding;};
+inline constexpr Cadence original_cadence{60,600};
+inline constexpr Cadence sustainable_candidate{600,3600};
+inline bool valid_cadence(Cadence c) noexcept {
+    return c.feeding&&c.breeding&&c.feeding%60==0&&c.breeding%c.feeding==0;
+}
 inline constexpr std::array<unsigned,5> yield{{6,2,5,8,2}};
 struct WildlifeTile {
     std::array<std::uint16_t,species_count> count{};
@@ -105,7 +114,8 @@ inline void hunt(Citizen& c,WildlifeTile& tile,std::uint64_t tick,Totals& out,bo
 #include "wildlife_movement.hpp"
 namespace genesis::wildlife {
 // Caller must first complete a validated human tick. No new RNG draws.
-inline void advance(World& w,Wildlife& state,Totals& out) noexcept {
+inline void advance(World& w,Wildlife& state,Totals& out,Cadence cadence=original_cadence) noexcept {
+    if(!valid_cadence(cadence)||!w.tick) return;
     auto act=[&](Citizen& c) noexcept {
         const auto i=std::size_t(c.y)*width+c.x;
         hunt(c,state.tiles[i],w.tick,out,state.developed[i]!=0);
@@ -121,7 +131,12 @@ inline void advance(World& w,Wildlife& state,Totals& out) noexcept {
             // escape this local pulse cannot feed or breed on developed land.
             for(auto& n:tile.count) {out.deaths+=n;out.displaced_deaths+=n;n=0;}
             if(tile.meat) {--tile.meat;++out.spoiled;}
-        } else pulse(tile,w.tiles[i],w.tick%600==0,out);
+        } else if(w.tick%cadence.feeding==0) {
+            pulse(tile,w.tiles[i],w.tick%cadence.breeding==0,out);
+        } else if(tile.meat) {
+            // Preserve the existing minute-by-minute meat spoilage schedule.
+            --tile.meat;++out.spoiled;
+        }
     }
 }
 } // namespace genesis::wildlife

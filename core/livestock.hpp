@@ -72,15 +72,17 @@ inline Task work(World& w,const discovery::State& knowledge,const construction::
     }
     return choice.task;
 }
-inline void pulse(World& w,const construction::State& sites,State& s) noexcept {
-    if(!w.tick||w.tick%60||w.tick<=s.last_pulse||!ready_pen(w,sites)) return;
+inline void pulse(World& w,const construction::State& sites,State& s,
+                  wildlife::Cadence cadence=wildlife::original_cadence) noexcept {
+    if(!wildlife::valid_cadence(cadence)||!w.tick||w.tick%cadence.feeding||
+       w.tick<=s.last_pulse||!ready_pen(w,sites)) return;
     auto& stock=w.tiles[sites.sites[construction::enclosure].tile];
     s.last_pulse=w.tick;
     for(auto& g:s.groups) {
         // Existing wildlife graze debits food and water, no new resource system.
         const auto surviving=wildlife::graze(stock,g.count,s.resources);
         g.deaths+=g.count-surviving;g.count=static_cast<std::uint16_t>(surviving);
-        if(w.tick%600==0) {
+        if(w.tick%cadence.breeding==0) {
             const auto born=wildlife::graze(stock,wildlife::offspring_request(surviving,capacity),s.resources);
             g.count+=born;g.births+=born;
         }

@@ -14,3 +14,6 @@ Each item remains open until integrated evidence meets its exit criteria. Checkb
 
 ## Work sequencing
 Prioritize actual source changes and tests, not just documentation. Close PB-01/PB-02 and consolidate the combined simulation while extending remaining MVP mechanics; tackle storage and renderer independently if a dependency blocks another item. Avoid accumulating sidecars without a shared state/persistence plan. Review source/CI and open-source reuse policy each run. Mark precise subtask verification in MASTER_TRACKER; do not label a release-level gate complete from a host smoke alone. No forced milestones, no Tab5 work, no livestream before the approved world. 
+
+### PB-01 active increment
+Wildlife cadence candidate 600/3600 vs original 60/600; actual stock-renewal mismatch reviewed. Comparative seasonal conservation tests and species/death diagnostics added. See WILDLIFE_BALANCE_CONTRACT.md. CI and outcome comparison pending; PB-01 remains open.

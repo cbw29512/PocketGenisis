@@ -72,6 +72,13 @@ int main(){
         }
         check(wildlife::valid(*wild)&&valid_population(*w)&&
               initial+ecology.births==wildlife::population(*wild)+ecology.deaths+herd::captures(animals),"wild transfer accounting");
+        std::cout<<"LIVESTOCK_ECOLOGY initial="<<initial<<" births="<<ecology.births
+                 <<" deaths="<<ecology.deaths<<" shortage="
+                 <<ecology.deaths-ecology.predation-ecology.hunted-ecology.displaced_deaths
+                 <<" predation="<<ecology.predation<<" hunted="<<ecology.hunted
+                 <<" displaced="<<ecology.displaced_deaths<<" food="<<ecology.food
+                 <<" water="<<ecology.water<<" managed_births="<<animals.groups[0].births+animals.groups[1].births
+                 <<" managed_deaths="<<animals.groups[0].deaths+animals.groups[1].deaths<<'\n';
         std::cout<<"LIVESTOCK_SMOKE discovered="<<discovery::discovered(knowledge)
                  <<" pen="<<(sites.sites[build::enclosure].stage==build::Stage::complete)
                  <<" captures="<<herd::captures(animals)<<" living_animals="<<herd::population(animals)
