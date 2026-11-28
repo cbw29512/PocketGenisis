@@ -48,3 +48,5 @@ PX-20 CI 46091527200 passed finite geology prototype. PX-10 optional combined te
 PX-10 terrain ecology CI 46091929332 passed both seeds (55/58 harvests,6/6 managed survivors, founders health100). PX-09 optional regional weather changes real renewable growth; controlled replay and paired weather comparisons added, CI pending. All PB gates remain open.
 
 PX-14 optional freshwater habitat and fish conservation candidate integrated with terrain/weather survival; CI pending. Not full river/lake routing or fishing technology. All gates open.
+
+CI 46092755205 passed weather and actual integrated fishing (53 caught,576 surviving from1898 initial), but aquatic population decline warrants calibration. Added optional seasonal feeding/migration candidate and separate mortality accounting; controlled and comparative seed-year tests pending CI. No beta readiness claim.

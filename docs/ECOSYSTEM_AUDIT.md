@@ -25,3 +25,5 @@ CI 46091527200 passed mineral geography candidate; 24KB map, seed42 has all eigh
 CI 46091929332 passed integrated terrain two seed-years: wild12840/10005, hunts195/184, harvests55/58, managed6/6, founders health100. Next regional weather optional renewal modifier with deterministic cache, paired controlled and natural comparisons pending. Full ecosystem still not beta-ready; hydrology, fishing, forestry/mining, drives and unified persistence open.
 
 Freshwater candidate adds optional local habitat/fish/forage transactions to terrain/weather ecology, controlled and natural annual tests pending. No full hydrology, fish migration, gear or production integration.
+
+CI 46092755205 passed: natural fish catch53, final576, severe fish loss; combined crops60 managed8. Weather paired results passed. New optional cold-season feeding and threatened local migration candidate, separate food/water death diagnostics, paired seeds0/42. CI pending; full hydrology and long-term stability still open.

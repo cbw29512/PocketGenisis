@@ -159,3 +159,5 @@ Proposed terrain resource sidecar (isolated host candidate): Deposit {uint16 rem
 Regional weather candidate: derived Cache stores seed, cached epoch uint64, 60 uint8 region conditions; exact reconstruction from versioned rule/seed/tick, no canonical new weather RNG/timer. Existing tile stocks record actual weather-dependent production. See REGIONAL_WEATHER_CONTRACT.md. Not yet serialized/integrated in production.
 
 Freshwater candidate: Cell uint8 habitat,fish,forage ×6000=18000 bytes plus uint64 initial,births,deaths,caught,forage_initial,forage_grown,forage_eaten,last_pulse. Actual grouped fish, no canonical save change.
+
+Freshwater balance candidate extends optional State counters with uint64 water_deaths,food_deaths,migrated; deaths=sum of water and food deaths; actual migration is internal transfer not births/deaths. No additional cell fields or canonical serialization. Cold-season feeding rule optional and versioned before release.
