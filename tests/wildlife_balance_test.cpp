@@ -56,6 +56,7 @@ int main(){
         for(const auto seed:{0ULL,42ULL}) {
             observe(*w,*animals,seed,wild::original_cadence,"original");
             observe(*w,*animals,seed,wild::sustainable_candidate,"candidate");
+            observe(*w,*animals,seed,wild::predator_candidate,"predator_candidate");
         }
         return 0;
     }catch(const std::exception& e){std::cerr<<"FAIL "<<e.what()<<'\n';return 1;}

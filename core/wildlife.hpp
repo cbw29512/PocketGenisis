@@ -9,11 +9,18 @@ inline constexpr unsigned group_limit=64, meat_limit=100;
 // Local ecology cadence is independent of the human simulation clock.
 // Preserve the original benchmark rules; the combined civilization uses
 // a provisional slower consumption/breeding candidate pending calibration.
-struct Cadence {std::uint64_t feeding,breeding;};
+struct Cadence {
+    std::uint64_t feeding,breeding;
+    // Zero inherits the ordinary interval, retaining older profile behavior.
+    std::uint64_t predator_breeding{};
+    bool prey_avoidance{};
+};
 inline constexpr Cadence original_cadence{60,600};
 inline constexpr Cadence sustainable_candidate{600,3600};
+inline constexpr Cadence predator_candidate{600,3600,10800,true};
 inline bool valid_cadence(Cadence c) noexcept {
-    return c.feeding&&c.breeding&&c.feeding%60==0&&c.breeding%c.feeding==0;
+    return c.feeding&&c.breeding&&c.feeding%60==0&&c.breeding%c.feeding==0&&
+        (!c.predator_breeding||(c.predator_breeding>=c.breeding&&c.predator_breeding%c.feeding==0));
 }
 inline constexpr std::array<unsigned,5> yield{{6,2,5,8,2}};
 struct WildlifeTile {
@@ -80,7 +87,10 @@ inline unsigned feed(WildlifeTile& tile,Tile& resources,std::size_t k,unsigned r
 inline unsigned offspring_request(unsigned surviving,unsigned capacity) noexcept {
     return surviving<2||surviving>=capacity?0:std::min(capacity-surviving,std::max(1u,surviving/4));
 }
-inline void pulse(WildlifeTile& tile,Tile& resources,bool breeding,Totals& out) noexcept {
+// One feeding transaction per group. Newborns require actual additional
+// resources; predators may have a separate, slower reproduction interval.
+inline void pulse_species(WildlifeTile& tile,Tile& resources,bool breeding,
+                          bool predator_breeding,Totals& out) noexcept {
     if(tile.meat) {--tile.meat;++out.spoiled;}
     for(std::size_t k=0;k<species_count;++k) {
         const auto before=unsigned(tile.count[k]);
@@ -88,12 +98,15 @@ inline void pulse(WildlifeTile& tile,Tile& resources,bool breeding,Totals& out) 
         const auto surviving=feed(tile,resources,k,before,out);
         tile.count[k]=static_cast<std::uint16_t>(surviving);
         out.deaths+=before-surviving;
-        if(breeding&&surviving>=2) {
+        if((k<wolf?breeding:predator_breeding)&&surviving>=2) {
             const auto requested=offspring_request(surviving,group_limit);
             const auto born=feed(tile,resources,k,requested,out);
             tile.count[k]+=born;out.births+=born;
         }
     }
+}
+inline void pulse(WildlifeTile& tile,Tile& resources,bool breeding,Totals& out) noexcept {
+    pulse_species(tile,resources,breeding,breeding,out);
 }
 inline void hunt(Citizen& c,WildlifeTile& tile,std::uint64_t tick,Totals& out,bool developed=false) noexcept {
     if(!c.health||c.action!=Action::idle||c.hunger<24||life_stage(c,tick)!=LifeStage::adult) return;
@@ -123,7 +136,7 @@ inline void advance(World& w,Wildlife& state,Totals& out,Cadence cadence=origina
     for(auto& c:w.founders) act(c);
     for(std::size_t i=0;i<w.descendant_count;++i) act(w.descendants[i]);
     if(w.tick%60) return;
-    migrate(w,state,out);
+    migrate(w,state,out,cadence.prey_avoidance);
     for(std::size_t i=0;i<state.tiles.size();++i) {
         auto& tile=state.tiles[i];
         if(state.developed[i]) {
@@ -132,7 +145,9 @@ inline void advance(World& w,Wildlife& state,Totals& out,Cadence cadence=origina
             for(auto& n:tile.count) {out.deaths+=n;out.displaced_deaths+=n;n=0;}
             if(tile.meat) {--tile.meat;++out.spoiled;}
         } else if(w.tick%cadence.feeding==0) {
-            pulse(tile,w.tiles[i],w.tick%cadence.breeding==0,out);
+            const auto predator_interval=cadence.predator_breeding?cadence.predator_breeding:cadence.breeding;
+            pulse_species(tile,w.tiles[i],w.tick%cadence.breeding==0,
+                          w.tick%predator_interval==0,out);
         } else if(tile.meat) {
             // Preserve the existing minute-by-minute meat spoilage schedule.
             --tile.meat;++out.spoiled;

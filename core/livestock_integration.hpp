@@ -27,7 +27,7 @@ inline bool step(World& w,discovery::State& research,construction::State& sites,
        re.kind==discovery::EventKind::none&&ce.kind==construction::EventKind::none&&deposits==reserve.deposited)
         work(w,research,sites,wild,animals,w.founders[policy.handler-1]);
     pulse(w,sites,animals,wildlife::sustainable_candidate);
-    wildlife::advance(w,wild,ecology,wildlife::sustainable_candidate);
+    wildlife::advance(w,wild,ecology,wildlife::predator_candidate);
     crop_loss::evaluate_fields(w,sites,farms);
     return true;
 }
