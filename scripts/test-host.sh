@@ -11,7 +11,7 @@ for source in tests/*_test.cpp; do
     # FastNoiseLite's audited Perlin hash uses intentional signed wrap.
     # Apply flags only to the isolated candidate; keep all other tests strict.
     extra=()
-    if [[ "$name" == terrain_probe_test || "$name" == terrain_ecology_test ]]; then
+    if [[ "$name" == terrain_probe_test || "$name" == terrain_ecology_test || "$name" == freshwater_test ]]; then
         extra=(-fwrapv -ffp-contract=off)
     fi
     "${CXX:-g++}" -std=c++17 -Wall -Wextra -Werror -pedantic "${extra[@]}" \

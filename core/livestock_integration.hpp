@@ -25,11 +25,11 @@ inline bool step_with_renewal(World& w,discovery::State& research,construction::
                  settlement::State& home,multi_field::State& farms,irrigation::State& water,
                  wildlife::Wildlife& wild,wildlife::Totals& ecology,State& animals,
                  Production& p,discovery::Event& re,construction::Event& ce,std::uint64_t cadence,
-                 const Renewal& renewal) noexcept {
+                 const Renewal& renewal,freshwater::State* fish=nullptr) noexcept {
     const bool busy=research.job.active||construction::active(sites)>=0;
     const auto deposits=reserve.deposited;
     const Work policy{{research,sites,reserve,farms,home,cadence},wild,animals};
-    const wildlife::MealPolicy food{{research,sites,reserve,cooked},wild,ecology};
+    const wildlife::MealPolicy food{{research,sites,reserve,cooked},wild,ecology,fish};
     if(!multi_field::step_with_renewal(w,research,sites,reserve,sheltered,farms,water,p,re,ce,cadence,policy,food,renewal)) return false;
     mark_development(w,sites,wild);
     if(policy.handler&&!policy.chosen&&!busy&&!research.job.active&&construction::active(sites)<0&&
@@ -38,6 +38,7 @@ inline bool step_with_renewal(World& w,discovery::State& research,construction::
     pulse(w,sites,animals,wildlife::sustainable_candidate,true);
     wildlife::advance(w,wild,ecology,wildlife::predator_candidate,false);
     crop_loss::evaluate_fields(w,sites,farms);
+    if(fish) freshwater::pulse(w,*fish);
     return true;
 }
 inline bool step(World& w,discovery::State& research,construction::State& sites,

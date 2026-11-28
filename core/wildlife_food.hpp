@@ -1,6 +1,7 @@
 #pragma once
 #include "wildlife.hpp"
 #include "cooking.hpp"
+#include "freshwater.hpp"
 
 namespace genesis::wildlife {
 // Candidate food policy, no new individual state or RNG. Existing meat
@@ -10,6 +11,7 @@ struct MealPolicy {
     cooking::MealPolicy cooked;
     Wildlife& wild;
     Totals& totals;
+    freshwater::State* fish=nullptr;
     bool operator()(World& w,Citizen& recipient,const Citizen& provider) const noexcept {
         return cooked(w,recipient,provider);
     }
@@ -34,6 +36,14 @@ inline bool preferred_food(World& w,Citizen& recipient,const Citizen& provider,
     if(i>=w.tiles.size()) return false;
     const bool allowed=recipient.id==provider.id&&hunter(provider,w.tick)&&
                        !policy.wild.developed[i]&&w.tiles[i].food<=hunting_food_threshold;
+    // Existing meat first; fish before taking a new terrestrial animal.
+    if(take_meat(policy.wild.tiles[i],policy.totals,false)) {
+        satisfy_need(recipient,false);return true;
+    }
+    if(policy.fish&&recipient.id==provider.id&&hunter(provider,w.tick)&&
+       w.tiles[i].food<=hunting_food_threshold&&freshwater::catch_one(*policy.fish,i)) {
+        satisfy_need(recipient,false);return true;
+    }
     if(!take_meat(policy.wild.tiles[i],policy.totals,allowed)) return false;
     satisfy_need(recipient,false);return true;
 }
@@ -42,7 +52,8 @@ inline bool preferred_food(World& w,Citizen& recipient,const Citizen& provider,
 inline ResourceTarget seek_food(const World& w,const Citizen& c,const MealPolicy& policy) noexcept {
     return find_local_resource(w,c.x,c.y,[&](std::size_t i,const Tile& t) noexcept {
         return t.food>0||policy.wild.tiles[i].meat>0||
-               (hunter(c,w.tick)&&!policy.wild.developed[i]&&prey_available(policy.wild.tiles[i]));
+               (hunter(c,w.tick)&&((policy.fish&&freshwater::available(*policy.fish,i))||
+                                   (!policy.wild.developed[i]&&prey_available(policy.wild.tiles[i]))));
     });
 }
 }

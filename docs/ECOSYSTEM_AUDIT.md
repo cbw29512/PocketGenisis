@@ -23,3 +23,5 @@ CI 46091151689: controlled winter reserve passed, natural seed42 eight managed a
 CI 46091527200 passed mineral geography candidate; 24KB map, seed42 has all eight deposit types. New optional combined terrain renewal uses real biome stock differences throughout ticks, existing food/wildlife/farm/livestock mechanics, controlled and two seed-year tests. CI pending. Evaluate founder viability, crop and herd outcomes against prior baseline; no assumptions that geographical scarcity improves all outcomes. No official save/device changes.
 
 CI 46091929332 passed integrated terrain two seed-years: wild12840/10005, hunts195/184, harvests55/58, managed6/6, founders health100. Next regional weather optional renewal modifier with deterministic cache, paired controlled and natural comparisons pending. Full ecosystem still not beta-ready; hydrology, fishing, forestry/mining, drives and unified persistence open.
+
+Freshwater candidate adds optional local habitat/fish/forage transactions to terrain/weather ecology, controlled and natural annual tests pending. No full hydrology, fish migration, gear or production integration.

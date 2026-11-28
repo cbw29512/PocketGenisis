@@ -67,7 +67,8 @@ int main(){
             }
             check(climate.at(tick,0)==climate.at(tick,9)&&
                   climate.at(tick,0)==climate.at(tick,9*width),"coherent local weather");
-            changed+=climate.regions[0]!=climate.at(tick+weather::interval,0);
+            const auto prior=climate.regions[0];
+            changed+=prior!=climate.at(tick+weather::interval,0);
         }
         check(changed>0&&occurrences[0]&&occurrences[1]&&occurrences[2]&&occurrences[3],"varying regional weather");
         // Controlled identical empty forest stocks during one weather pulse.
