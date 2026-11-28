@@ -19,3 +19,12 @@ WORLD_UUID 595cd572864b4544b42b78941b281581
 WORLD_STACK_FREE 62588
 ```
 Pass: integrated compilation/upload, explicit disposable creation, initial verified checkpoint, automatic advancement and alternating verified writes, normal power-on restoration of latest generation and identity. Still open: post-recovery autosave, interruption during active write, deterministic replay equivalence on target, mature population storage and memory peaks, combined display/storage, segmented history, reset adapter, 72h soak. No official world, no production certification, no merge. Keep physical candidate pinned during qualification.
+
+## Post-recovery continuation — owner COM3 evidence
+After restoring generation 6 at tick 300, same UUID and population 2, automatic saves continued:
+| Generation | Slot | Tick | Save microseconds |
+|---|---|---|---|
+|7|0|360|3324363|
+|8|1|420|3325626|
+|9|0|480|3327054|
+All three reported PSRAM free 8038027, internal free 310900, stack watermark 59296. UUID unchanged. Post-recovery continuation and alternating checkpoint writes passed. Eight completed automatic writes observed in total. This is short-run evidence only; peak memory, active-write interruption, deterministic replay, larger populations and soak remain open. Preserve the disposable world and pinned firmware; no official founding.
