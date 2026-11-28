@@ -1,5 +1,6 @@
 #pragma once
 #include "wildlife.hpp"
+#include "hydrology.hpp"
 namespace genesis::freshwater {
 // Accessible freshwater shoreline proxy, not an impassable water tile.
 inline constexpr unsigned fish_cap=8,forage_cap=32;
@@ -19,6 +20,18 @@ inline void initialize(State& s,const Terrain& terrain) noexcept {
         if(t.elevation>105||t.moisture<140) continue;
         auto& c=s.cells[i];
         c={1,static_cast<std::uint8_t>(2+t.moisture%3),16};
+        s.initial+=c.fish;s.forage_initial+=c.forage;
+    }
+}
+// Connected catchment profile: actual fish are initialized only once,
+// on mapped wet channels and terminal lake cells with local water support.
+inline void initialize(State& s,const World& w,const hydrology::State& network) noexcept {
+    s=State{};
+    for(std::size_t i=0;i<s.cells.size();++i) {
+        if(!hydrology::wet(network.cells[i])) continue;
+        auto& c=s.cells[i];c.habitat=1;c.forage=16;
+        c.fish=static_cast<std::uint8_t>(std::min({4u,unsigned(w.tiles[i].water)/4,
+                                   2u+unsigned(network.cells[i].runoff)%3}));
         s.initial+=c.fish;s.forage_initial+=c.forage;
     }
 }
@@ -53,18 +66,24 @@ inline unsigned support(const World& w,const State& s,std::size_t i,bool cold) n
     const auto forage=unsigned(c.forage)*(cold?3u:1u);
     return std::min({fish_cap,unsigned(w.tiles[i].water)/4,forage});
 }
-inline void migrate(const World& w,State& s,bool cold) noexcept {
+inline void migrate(const World& w,State& s,bool cold,
+                    const hydrology::State* network=nullptr) noexcept {
     const auto color=(w.tick/600)%2;
     for(std::size_t i=0;i<s.cells.size();++i) {
         auto& from=s.cells[i];
         const auto x=i%width,y=i/width;
         if(!from.habitat||!from.fish||(x+y)%2!=color) continue;
         const auto supported=support(w,s,i,cold);
-        // Only threatened groups move. Keep fish in viable habitats
-        // instead of forcing perpetual redistribution.
-        if(from.fish<=supported) continue;
+        // Threatened groups seek real refuge. Connected viable groups
+        // may also recolonize an empty reach at breeding opportunities,
+        // leaving a breeding-size source. No introduction from zero fish.
+        const bool recolonize=network&&!cold&&w.tick%3600==0&&
+                              from.fish>=4&&from.fish<=supported;
+        if(from.fish<=supported&&!recolonize) continue;
         std::size_t best=i;unsigned room=0;
         const auto consider=[&](std::size_t j) noexcept {
+            if(network&&!hydrology::connected(*network,i,j)) return;
+            if(recolonize&&s.cells[j].fish) return;
             const auto limit=support(w,s,j,cold);
             const auto occupied=unsigned(s.cells[j].fish);
             const auto free=limit>occupied?limit-occupied:0;
@@ -74,12 +93,13 @@ inline void migrate(const World& w,State& s,bool cold) noexcept {
         if(x+1<width) consider(i+1);
         if(y) consider(i-width);
         if(y+1<height) consider(i+width);
-        if(best==i) continue;
-        const auto moved=std::min(room,unsigned(from.fish)-supported);
+        if(best==i||(recolonize&&room<2)) continue;
+        const auto moved=recolonize?2u:std::min(room,unsigned(from.fish)-supported);
         from.fish-=moved;s.cells[best].fish+=moved;s.migrated+=moved;
     }
 }
-inline void pulse(const World& w,State& s,bool balanced=false) noexcept {
+inline void pulse(const World& w,State& s,bool balanced=false,
+                  const hydrology::State* network=nullptr) noexcept {
     constexpr std::uint64_t feeding=600,breeding=3600;
     if(!w.tick||w.tick%feeding||w.tick<=s.last_pulse) return;
     s.last_pulse=w.tick;
@@ -88,7 +108,7 @@ inline void pulse(const World& w,State& s,bool balanced=false) noexcept {
     // Cold-season candidate: lower feeding demand, not free food.
     // One forage unit supports up to three fish per pulse in winter.
     const unsigned per_unit=cold?3u:1u;
-    if(balanced) migrate(w,s,cold);
+    if(balanced) migrate(w,s,cold,network);
     for(std::size_t i=0;i<s.cells.size();++i) {
         auto& c=s.cells[i];if(!c.habitat) continue;
         // Drinking-water stock is a habitat proxy, not an extra debit.

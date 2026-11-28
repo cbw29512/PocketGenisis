@@ -13,7 +13,7 @@ struct Report {
     std::array<unsigned,static_cast<unsigned>(terrain_resources::Mineral::count)> ore{};
     std::array<unsigned,wildlife::species_count> groups{};
     std::array<unsigned,4> water_regions{},fish_regions{};
-    unsigned fish_tiles{},founder_pairs{};
+    unsigned fish_tiles{},founder_pairs{},wet_sinks{};
     std::size_t spawn_a{no_tile},spawn_b{no_tile};
     bool valid_data{},accepted{};
 };
@@ -32,10 +32,11 @@ inline unsigned occupied_regions(const std::array<unsigned,4>& r) noexcept {
 // new candidates, never to judge or repair a civilization after launch.
 inline Report inspect(const World& w,const terrain_probe::State& terrain,
                       const terrain_resources::State& minerals,
-                      const wildlife::Wildlife& wild,const freshwater::State& fish) noexcept {
+                      const wildlife::Wildlife& wild,const freshwater::State& fish,
+                      const hydrology::State* network=nullptr) noexcept {
     Report r{};
     if(w.tick||!terrain_resources::valid(minerals)||!wildlife::valid(wild)||
-       !freshwater::valid(fish)) return r;
+       !freshwater::valid(fish)||(network&&!hydrology::valid(*network,terrain))) return r;
     Rng spawn{w.seed^0x535041574e5f3031ULL};
     for(std::size_t i=0;i<w.tiles.size();++i) {
         const auto& cell=terrain.cells[i];
@@ -47,8 +48,10 @@ inline Report inspect(const World& w,const terrain_probe::State& terrain,
         if(d.discovered||wild.developed[i]) return Report{};
         r.ore[static_cast<unsigned>(d.kind)]+=d.remaining;
         if(t.water>=40) ++r.water_regions[region(i)];
+        if(network&&bool(fish.cells[i].habitat)!=hydrology::wet(network->cells[i])) return Report{};
         if(fish.cells[i].fish>=2&&t.water>=12) {
             ++r.fish_tiles;++r.fish_regions[region(i)];
+            if(network&&hydrology::lake(network->cells[i])) ++r.wet_sinks;
         }
         // Count existing breeding-size groups in locally provisioned
         // habitat. Predator prey-chain viability requires further tests.
@@ -68,7 +71,7 @@ inline Report inspect(const World& w,const terrain_probe::State& terrain,
     r.accepted=r.biomes[unsigned(B::forest)]>=min_biome_tiles&&
         r.biomes[unsigned(B::grassland)]>=min_biome_tiles&&
         occupied_regions(r.water_regions)>=2&&occupied_regions(r.fish_regions)>=2&&
-        r.fish_tiles>=min_fish_tiles&&r.founder_pairs>0;
+        r.fish_tiles>=min_fish_tiles&&r.founder_pairs>0&&(!network||r.wet_sinks>=2);
     for(unsigned k=1;k<r.ore.size();++k) r.accepted&=r.ore[k]>=min_mineral_units;
     for(auto n:r.groups) r.accepted&=n>=min_species_groups;
     return r;
@@ -85,7 +88,7 @@ struct Selection {
 inline Selection generate_candidate(World& w,terrain_probe::State& terrain,
                     terrain_resources::State& minerals,wildlife::Wildlife& wild,
                     freshwater::State& fish,std::uint64_t seed,
-                    unsigned attempts=max_attempts) noexcept {
+                    unsigned attempts=max_attempts,hydrology::State* network=nullptr) noexcept {
     Selection result{};result.requested_seed=seed;
     Rng alternatives{seed^0x574f524c4447454eULL};
     for(unsigned n=0;n<std::min(attempts,max_attempts);++n) {
@@ -95,9 +98,12 @@ inline Selection generate_candidate(World& w,terrain_probe::State& terrain,
         terrain_resources::generate(minerals,terrain,candidate);
         terrain_resources::initialize_stocks(w,terrain);
         wildlife::initialize(wild,candidate);
-        freshwater::initialize(fish,terrain);
+        if(network) {
+            hydrology::generate(*network,terrain);
+            freshwater::initialize(fish,w,*network);
+        } else freshwater::initialize(fish,terrain);
         result.attempts=n+1;
-        result.report=inspect(w,terrain,minerals,wild,fish);
+        result.report=inspect(w,terrain,minerals,wild,fish,network);
         if(!result.report.accepted) continue;
         result.accepted=true;result.accepted_seed=candidate;
         for(unsigned i=0;i<2;++i) {

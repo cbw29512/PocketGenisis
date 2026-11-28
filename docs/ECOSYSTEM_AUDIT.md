@@ -31,3 +31,5 @@ CI 46092755205 passed: natural fish catch53, final576, severe fish loss; combine
 CI 46093443337 passed freshwater balanced seed0/42 surviving2364/2296 caught0/164. Permanent extinction retained. PX-26 optional fertility-linked farming/fallow candidate, tests pending. PX-27–31 tracked; no beta readiness.
 
 CI 46095278474 passed all 66 host test programs. Soil seed42 crops12, fertility64, managed6, fish2399; controlled manure chain passed; fatigue-enabled seed42 crops12, managed0, manure applied0, fish2429, rest2678. Reproductive feedback passed separate paired tests low9/high58. Audit follow-up combines reproductive/fatigue/soil/manure/terrain/weather/fish in one regression, pending CI, without asserting positive herd or population quotas. See READINESS_AUDIT_20261127.md for updated project-wide blockers.
+
+CI 46095940535 passed 67 programs, baseline balanced founding 32 distinct worlds in45 attempts (max3). New optional connected drainage candidate and actual fish recolonization integrated with all latest drives and ecology in two annual tests, pending CI. No full hydrology or release certification; existing scope retained.
