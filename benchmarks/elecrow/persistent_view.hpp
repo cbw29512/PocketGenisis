@@ -12,6 +12,8 @@ class PersistentView {
     std::uint32_t last_frame_{};
     bool overview_was_open_{},citizen_was_open_{};
 public:
+    unsigned ticks_per_second() const noexcept {return inspection_.ticks_per_second();}
+    bool take_reset() noexcept {return inspection_.take_reset();}
     void save_status(const SaveStatus& saved) noexcept {inspection_.save_status(saved);}
     void begin(){
         if(!lcd_.init())throw std::runtime_error("LCD initialization failed");
