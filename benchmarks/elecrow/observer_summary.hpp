@@ -1,5 +1,6 @@
 #pragma once
 #include "observer_render.hpp"
+#include "observer_settings.hpp"
 namespace genesis::observer {
 // Derived counters only. No RNG, state mutation or checkpoint format change.
 struct WorldSummary {
@@ -48,21 +49,40 @@ inline void draw_world_button(GenesisPanel& lcd) {
             lcd.drawPixel(cx+x,cy+y,shade);
     }
 }
-inline void draw_summary(GenesisPanel& lcd,const WorldSummary& s) {
-    const auto bg=rgb(12,22,30),fg=rgb(245,245,235);
+inline void draw_summary(GenesisPanel& lcd,const WorldSummary& s,
+                         const DisplaySettings& settings,const SaveStatus& saved) {
+    const auto bg=rgb(12,22,30),fg=rgb(245,245,235),muted=rgb(151,181,190);
     lcd.fillRect(30,30,740,420,bg);lcd.drawRect(30,30,740,420,fg);
     lcd.setTextColor(fg,bg);lcd.setTextSize(3);
     lcd.setCursor(48,48);lcd.print("World / Settings");
     lcd.setTextSize(2);
-    lcd.setCursor(48,90);lcd.printf("Year %llu | Tick %llu",static_cast<unsigned long long>(s.tick/ticks_per_year+1),static_cast<unsigned long long>(s.tick));
-    lcd.setCursor(48,130);lcd.printf("Living: %u  Pregnancies: %u",unsigned(s.living),unsigned(s.pregnancies));
-    lcd.setCursor(48,160);lcd.printf("Recorded deaths: %u",unsigned(s.deaths));
-    lcd.setCursor(48,190);lcd.printf("Infants %u  Children %u  Teens %u",s.stages[0],s.stages[1],s.stages[2]);
-    lcd.setCursor(48,220);lcd.printf("Adults %u  Elders %u",s.stages[3],s.stages[4]);
-    lcd.setCursor(48,260);lcd.printf("Food %llu  Water %llu",(unsigned long long)s.food,(unsigned long long)s.water);
-    lcd.setCursor(48,290);lcd.printf("Wood %llu  Stone %llu",(unsigned long long)s.wood,(unsigned long long)s.stone);
-    lcd.setCursor(48,330);lcd.printf("Wild animals %llu  Fish %llu",(unsigned long long)s.wild,(unsigned long long)s.fish);
-    lcd.setCursor(48,360);lcd.printf("Discoveries %u  Buildings %u",unsigned(s.discoveries),unsigned(s.buildings));
-    lcd.setCursor(48,420);lcd.print("Tap to return to world");
+    lcd.setCursor(48,90);lcd.printf("Year %llu | Tick %llu",(unsigned long long)(s.tick/ticks_per_year+1),(unsigned long long)s.tick);
+    lcd.setCursor(48,126);lcd.printf("Living: %u",unsigned(s.living));
+    lcd.setCursor(48,150);lcd.printf("Pregnancies: %u",unsigned(s.pregnancies));
+    lcd.setCursor(48,174);lcd.printf("Recorded deaths: %u",unsigned(s.deaths));
+    lcd.setCursor(48,198);lcd.printf("Infants: %u  Children: %u",s.stages[0],s.stages[1]);
+    lcd.setCursor(48,222);lcd.printf("Teens: %u  Adults: %u",s.stages[2],s.stages[3]);
+    lcd.setCursor(48,246);lcd.printf("Elders: %u",s.stages[4]);
+    lcd.setCursor(420,126);lcd.printf("Food: %llu",(unsigned long long)s.food);
+    lcd.setCursor(420,150);lcd.printf("Water: %llu",(unsigned long long)s.water);
+    lcd.setCursor(420,174);lcd.printf("Wood: %llu  Stone: %llu",(unsigned long long)s.wood,(unsigned long long)s.stone);
+    lcd.setCursor(420,198);lcd.printf("Wild animals: %llu",(unsigned long long)s.wild);
+    lcd.setCursor(420,222);lcd.printf("Fish: %llu",(unsigned long long)s.fish);
+    lcd.setCursor(420,246);lcd.printf("Discoveries: %u",unsigned(s.discoveries));
+    lcd.setCursor(420,270);lcd.printf("Buildings: %u",unsigned(s.buildings));
+    lcd.drawFastHLine(48,298,704,muted);
+    lcd.setCursor(48,310);lcd.printf("SD card: %.1f GB",(double)saved.card_bytes/1000000000.0);
+    lcd.setCursor(48,334);
+    if(saved.generation)lcd.printf("Verified save #%llu | Tick %llu | Slot %c",
+        (unsigned long long)saved.generation,(unsigned long long)saved.tick,saved.slot==0?'A':'B');
+    else lcd.print("No verified checkpoint");
+    const auto button=[&](int x,int w,const char* label,bool active){
+        lcd.fillRoundRect(x,376,w,44,5,active?rgb(58,105,80):rgb(36,53,62));
+        lcd.setTextColor(fg);lcd.setCursor(x+12,390);lcd.print(label);
+    };
+    button(48,168,"Dim",settings.brightness==64);
+    button(232,168,"Normal",settings.brightness==128);
+    button(416,168,"Bright",settings.brightness==255);
+    button(600,152,"Close",false);
 }
 }
