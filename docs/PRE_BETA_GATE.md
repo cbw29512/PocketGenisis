@@ -34,3 +34,5 @@ Pixel motivation feedback: [PIXEL_DRIVES_CONTRACT.md](PIXEL_DRIVES_CONTRACT.md) 
 
 ### Explicit MVP cross-reference
 MVP.md now contains PX-01–PX-18 acceptance items for approved Pixel needs, environmental feedback, population balance, purposeful exploration, food economy, invention, efficiency, replay and release. MASTER_TRACKER.md tracks their evidence. PB-01/PB-02/PB-03 and integrated PB-04–PB-08 gates remain open; no scope or roadmap deletion. Construction completion failure remains the first blocker.
+
+PX-13 construction recovery: CI 46089679569 failed completion. Shared active-builder return path added, controlled real-tick displaced builder regression and final diagnostics. New CI pending; no pre-beta gate closed.

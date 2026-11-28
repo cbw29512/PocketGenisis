@@ -9,11 +9,7 @@ inline bool seek(World const& w,const discovery::State& research,
     if(!is_founder(c)||!discovery::available(c)||c.hunger>8||c.thirst>8) return false;
     const auto owner=unsigned(c.id-1);
     const auto active=construction::active(sites);
-    if(active>=0) {
-        const auto& job=sites.sites[unsigned(active)];
-        if(job.owner!=owner||job.tile>=w.tiles.size()||job.tile==construction::location(c)) return false;
-        move_toward(c,job.tile%width,job.tile/width);return true;
-    }
+    if(active>=0) return construction::return_to_project(w,sites,c);
     if(research.job.active) return false;
 #ifdef PG_LIVESTOCK_PROBE
     // Resume a known paid structure before surveying new land. Scan only

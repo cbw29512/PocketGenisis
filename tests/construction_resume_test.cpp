@@ -56,14 +56,27 @@ int main(){
         event=build::advance(*w,knowledge,sites);
         check(event.kind==build::EventKind::resumed&&event.builder==2&&pen.owner==1&&
               pen.work==5&&pen.started==started&&!pen.finished&&stock.wood==0&&stock.stone==0,"qualified handoff retains labor and materials");
-        // Real authoritative ticks finish the remaining work.
-        a.hunger=0;a.thirst=0;
+        // Controlled recovery isolates building from discretionary exploration.
+        // The non-builder has low curiosity; the ordinary need, care, reunion,
+        // disease and labor phases still run. Natural worlds retain all traits.
+        a.personality[0]=0;a.hunger=0;a.thirst=0;
+        b.x+=1;b.action=Action::idle;
         check(valid_population(*w),"valid controlled family before real ticks");
-        Production p{};
+        Production p{};discovery::Event re{};build::Event ce{};
+        check(build::step(*w,knowledge,sites,p,re,ce,discovery::probe_cadence),"authoritative displaced builder tick");
+        check(build::location(b)==tile&&b.action==Action::move&&pen.work==5,"ordinary return without remote labor");
+        // Exercise the combined economic work policy for the remaining labor.
+        // No synthetic progress, stock refills or repeated coordinate resets.
+        storage::State reserve{};cooking::State cooked{};shelter::State sheltered{};
+        settlement::State home{};multi_field::State farms{};irrigation::State water{};
         for(unsigned i=0;i<240&&pen.stage!=build::Stage::complete;++i) {
-            discovery::Event re{};build::Event ce{};
-            check(build::step(*w,knowledge,sites,p,re,ce,discovery::probe_cadence),"authoritative resumed construction tick");
+            check(multi_field::step(*w,knowledge,sites,reserve,cooked,sheltered,home,farms,water,p,re,ce,discovery::probe_cadence),"authoritative resumed construction tick");
         }
+        std::cout<<"CONSTRUCTION_RESUME_RESULT tick="<<w->tick<<" stage="<<unsigned(pen.stage)
+                 <<" work="<<unsigned(pen.work)<<" owner="<<unsigned(pen.owner)
+                 <<" builder_tile="<<build::location(b)<<" site="<<pen.tile
+                 <<" hunger="<<unsigned(b.hunger)<<" thirst="<<unsigned(b.thirst)
+                 <<" health="<<unsigned(b.health)<<" food="<<stock.food<<" water="<<stock.water<<'\n';
         check(pen.stage==build::Stage::complete&&pen.work==30&&pen.started==started,"actual completed resumed enclosure");
         check(!build::can_resume_at(*w,knowledge,sites,1,build::enclosure,b),"no repeated completed project");
         std::cout<<"PASS resume paid interrupted construction with qualified local handoff\n";return 0;
