@@ -44,3 +44,5 @@ PX-11 CI 46090442973 passed, actual natural hunting157 and meat meals426 with 26
 PX-14 CI 46091151689 passed, natural herd8 at year-end, fodder126 accumulated but not drawn (controlled release passed), crops25 wild10820. No full sustainability certification. PX-19–22 extend terrain/resource and knowledge gates with actual forestry, finite geological deposits, mining and processing. Isolated geography candidate added; CI/device/integration pending. Existing initial-release boundary preserved.
 
 PX-20 CI 46091527200 passed finite geology prototype. PX-10 optional combined terrain ecology: actual initial stocks and biome renewal policy, no mineral regeneration, existing farming/livestock/hunting integrated through same tick. Two unforced seed-year tests and controlled conservation added; CI pending. No beta readiness or terrain target certification.
+
+PX-10 terrain ecology CI 46091929332 passed both seeds (55/58 harvests,6/6 managed survivors, founders health100). PX-09 optional regional weather changes real renewable growth; controlled replay and paired weather comparisons added, CI pending. All PB gates remain open.

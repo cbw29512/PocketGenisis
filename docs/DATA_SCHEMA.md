@@ -155,3 +155,5 @@ Wildlife Totals adds uint64 meat_created, actual wild prey yield only; managed y
 Combined livestock candidate adds Fodder {uint16 balance; uint64 deposited,released}; cap192; deposited=released+balance. Real stock transfers only; separate from human food and wild meat. No canonical serialization yet.
 
 Proposed terrain resource sidecar (isolated host candidate): Deposit {uint16 remaining; uint8 Mineral kind; uint8 discovered}; 4 bytes ×6000=24000 bytes, none/clay/copper/tin/iron/coal/gold/silver/gem. Finite stock, discovered initially zero, no mineral renewal. Existing Tile stocks scaled by biome only at explicit initialization. Future standing biomass/harvested stock and inventories must avoid duplicate accounting; persist actual generated and depleted state with versioned migration. Not canonical yet.
+
+Regional weather candidate: derived Cache stores seed, cached epoch uint64, 60 uint8 region conditions; exact reconstruction from versioned rule/seed/tick, no canonical new weather RNG/timer. Existing tile stocks record actual weather-dependent production. See REGIONAL_WEATHER_CONTRACT.md. Not yet serialized/integrated in production.

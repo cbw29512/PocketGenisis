@@ -54,9 +54,41 @@ int main(){
         Production winter{};
         renewal::renew_tile(w->tiles[dry],winter,dry,32400,0,2,0,policy);
         check(w->tiles[dry].food==80&&w->tiles[dry].wood==60&&!winter.food&&!winter.wood,"winter and above-cap stock preserved");
-        // Two unforced one-year integrated runs, no stock refills, new
-        // technology grants or relocated founders. Keep geology read-only.
-        for(auto seed:{0ULL,42ULL}) {
+        // Weather cache is derived from seed and epoch, never from live
+        // decision RNG. Rebuilding after a reload gives the same region.
+        namespace weather=genesis::regional_weather;
+        weather::Cache climate(42),reloaded(42);
+        unsigned changed=0;std::array<unsigned,4> occurrences{};
+        for(std::uint64_t tick=0;tick<ticks_per_year;tick+=weather::interval) {
+            climate.refresh(tick);reloaded.refresh(tick);
+            for(unsigned r=0;r<weather::columns*weather::rows;++r) {
+                check(climate.regions[r]==reloaded.regions[r],"weather cache replay");
+                ++occurrences[static_cast<unsigned>(climate.regions[r])];
+            }
+            check(climate.at(tick,0)==climate.at(tick,9)&&
+                  climate.at(tick,0)==climate.at(tick,9*width),"coherent local weather");
+            changed+=climate.regions[0]!=climate.at(tick+weather::interval,0);
+        }
+        check(changed>0&&occurrences[0]&&occurrences[1]&&occurrences[2]&&occurrences[3],"varying regional weather");
+        // Controlled identical empty forest stocks during one weather pulse.
+        // Seed the derived cache explicitly only in this fixture.
+        weather::Cache dry_weather(0),wet_weather(0);
+        dry_weather.epoch=wet_weather.epoch=0;
+        dry_weather.regions.fill(weather::Kind::drought);
+        wet_weather.regions.fill(weather::Kind::rain);
+        const renewal::Policy dry_policy{*terrain,{sites},*wild,&dry_weather};
+        const renewal::Policy wet_policy{*terrain,{sites},*wild,&wet_weather};
+        Tile dry_stock{},wet_stock{};Production dry_total{},wet_total{};
+        for(unsigned n=1;n<30;++n) {
+            renewal::renew_tile(dry_stock,dry_total,forest,n*60,2,3,1,dry_policy);
+            renewal::renew_tile(wet_stock,wet_total,forest,n*60,2,3,1,wet_policy);
+        }
+        check(wet_total.food>dry_total.food&&wet_total.water>dry_total.water&&wet_total.wood>dry_total.wood,
+              "rain and drought change actual resource production");
+        check(dry_total.food==dry_stock.food&&wet_total.water==wet_stock.water,"weather resource conservation");
+        // Preserve both terrain-only baselines, and run the same seeds
+        // with regional weather enabled, without injected technology or food.
+        for(bool weather_enabled:{false,true}) for(auto seed:{0ULL,42ULL}) {
             initialize(*w,seed);tp::generate(*terrain,seed);
             tr::generate(*deposits,*terrain,seed);tr::initialize_stocks(*w,*terrain);
             wildlife::initialize(*wild,seed);sites={};
@@ -66,7 +98,8 @@ int main(){
             irrigation::State channels{};herd::State animals{};wildlife::Totals ecology{};
             Production p{},year{};discovery::Event re{};build::Event ce{};
             const auto initial_terrain=tp::fingerprint(*terrain);
-            const renewal::Policy current{*terrain,{sites},*wild};
+            weather::Cache regional(seed);
+            const renewal::Policy current{*terrain,{sites},*wild,weather_enabled?&regional:nullptr};
             for(unsigned n=0;n<43200;++n) {
                 check(herd::step_with_renewal(*w,knowledge,sites,reserve,cooked,sheltered,
                       home,farms,channels,*wild,ecology,animals,p,re,ce,discovery::probe_cadence,current),"integrated terrain tick");
@@ -78,7 +111,7 @@ int main(){
             check(initial_wild+ecology.births==wildlife::population(*wild)+ecology.deaths+herd::captures(animals),"wild population conservation");
             std::uint64_t meat=0;for(const auto& tile:wild->tiles) meat+=tile.meat;
             check(ecology.meat_created+animals.meat_produced==meat+ecology.meals+ecology.spoiled,"meat accounting");
-            std::cout<<"TERRAIN_ECOSYSTEM seed="<<seed<<" food="<<year.food<<" water="<<year.water
+            std::cout<<"TERRAIN_ECOSYSTEM seed="<<seed<<" weather="<<weather_enabled<<" food="<<year.food<<" water="<<year.water
                      <<" wood="<<year.wood<<" wild="<<wildlife::population(*wild)
                      <<" hunted="<<ecology.hunted<<" meals="<<ecology.meals
                      <<" harvests="<<multi_field::harvests(farms)<<" managed="<<herd::population(animals)
