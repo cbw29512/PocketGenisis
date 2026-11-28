@@ -9,10 +9,13 @@ struct Budget {
 struct Assessment {Budget available{};bool same_region{},accepted{};};
 // Thresholds are explicit caller policy, not hidden balancing constants.
 inline Assessment assess_start(const World& world,const Map& map,
-                               const Regions& regions,std::size_t a,std::size_t b,
+                               Regions& regions,Scratch& scratch,std::size_t a,std::size_t b,
                                const Budget& minimum) noexcept {
     Assessment result{};
-    if(world.tick||!connected(regions,a,b)||
+    if(world.tick) return result;
+    // Rebuild labels from this exact map; stale labels must never admit remote stocks.
+    classify(map,regions,scratch);
+    if(!connected(regions,a,b)||
        map[a]!=Surface::land||map[b]!=Surface::land||a==b) return result;
     bool adjacent=false;
     hydrology::neighbors(a,[&](std::size_t j) noexcept {adjacent|=j==b;});
