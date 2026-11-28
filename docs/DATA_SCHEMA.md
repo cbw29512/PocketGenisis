@@ -141,3 +141,5 @@ Multi-field profile only: three additional Site slots after extra huts; array of
 Crop-loss profile only: per-field uint64 drought_losses, spoilage_losses, lost_water, dry_since. Lost water is a cumulative record of already spent water, not an additional debit. See CROP_LOSS_CONTRACT.md. Earlier profiles unchanged.
 
 Livestock profile only: appended husbandry tech/enclosure site, two managed Group records with count/capture/birth/death/harvest counters, shared grazing totals, meat_produced and last_pulse. Existing Wildlife tile/developed sidecar remains separate. See LIVESTOCK_CONTRACT.md. No canonical save changes.
+
+Terrain evaluation sidecar only: 6000 three-byte cells (uint8 elevation, uint8 moisture, uint8 biome enum), generated once from isolated seed, not yet in canonical save. See TERRAIN_PROBE_CONTRACT.md.

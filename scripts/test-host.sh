@@ -8,7 +8,13 @@ trap 'echo "Host test failed at line $LINENO" >&2' ERR
 for source in tests/*_test.cpp; do
     name=$(basename "$source" .cpp)
     echo "== $name =="
-    "${CXX:-g++}" -std=c++17 -Wall -Wextra -Werror -pedantic \
+    # FastNoiseLite's audited Perlin hash uses intentional signed wrap.
+    # Apply flags only to the isolated candidate; keep all other tests strict.
+    extra=()
+    if [[ "$name" == terrain_probe_test ]]; then
+        extra=(-fwrapv -ffp-contract=off)
+    fi
+    "${CXX:-g++}" -std=c++17 -Wall -Wextra -Werror -pedantic "${extra[@]}" \
         -fsanitize=undefined -fno-sanitize-recover=undefined -Icore "$source" -o "$build_dir/$name"
     "$build_dir/$name"
 done
