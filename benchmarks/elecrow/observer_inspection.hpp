@@ -17,12 +17,16 @@ class Inspection {
 #ifdef PG_PERSISTENT_OBSERVER
     DisplaySettings settings_{};
     SaveStatus saved_{};
+    SummaryPainter summary_painter_{};
 #endif
     std::uint32_t last_poll_{};
 public:
 #ifdef PG_PERSISTENT_OBSERVER
     void save_status(const SaveStatus& saved) noexcept {saved_=saved;}
     std::uint8_t brightness() const noexcept {return settings_.brightness;}
+    bool overview_open() const noexcept {return settings_.overview;}
+    bool citizen_open() const noexcept {return selected_!=0;}
+    void invalidate_summary() noexcept {summary_painter_.invalidate();}
 #endif
     void begin() noexcept {
         auto cfg=touch_.config();
@@ -75,7 +79,7 @@ public:
         for(const auto& c:s.world.founders) add(c);
         for(std::size_t i=0;i<s.world.descendant_count;++i) add(s.world.descendants[i]);
 #ifdef PG_PERSISTENT_OBSERVER
-        if(settings_.overview){draw_summary(lcd,summarize(s),settings_,saved_);return;}
+        if(settings_.overview){summary_painter_.draw(lcd,summarize(s),settings_,saved_);return;}
         draw_world_button(lcd);
 #endif
         // An unselected observer draws nothing over the civilization.
