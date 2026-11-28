@@ -19,3 +19,5 @@ Design baseline approved. Portable C++ simulation is in development; actual ESP3
 Host-only disposable-world checkpoints are implemented and tested under `storage/`; the permanent archive and actual device integration remain release blockers.
 
 - [Open-source reuse policy and candidate register](docs/OPEN_SOURCE_REUSE.md)
+
+- [Integrated world pre-beta readiness gates](docs/PRE_BETA_GATE.md) — not ready for beta installation yet.

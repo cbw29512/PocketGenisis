@@ -52,3 +52,6 @@ Reuse existing birth risk proxy, separate appended RNG stream and health floor. 
 
 ## Open-source development policy
 Owner-approved: evaluate existing internal and external implementations before each substantial capability. Follow [OPEN_SOURCE_REUSE.md](OPEN_SOURCE_REUSE.md) for license/revision review, attribution, deterministic integration, dependency pinning and Elecrow measurement. Preserve the authoritative core and read-only renderer separation. No external dependency admitted by documentation review alone.
+
+## Pre-beta integration
+[PRE_BETA_GATE.md](PRE_BETA_GATE.md) defines owner-required integrated world readiness and explicit installation approval. Accepted prototype mechanics must converge on one authoritative state and tick path, with versioned persistence and observer-only display. Individual profile passes are not beta certification.
