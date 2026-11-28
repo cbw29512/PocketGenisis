@@ -38,6 +38,22 @@ inline void draw(GenesisPanel& lcd,const integrated::State& s) noexcept {
     }
     for(std::size_t i=0;i<s.world.descendant_count;++i) citizen(lcd,s.world.descendants[i],false);
     for(const auto& founder:s.world.founders) citizen(lcd,founder,true);
+#ifdef PG_OBSERVER_TOUCH_PROBE
+    // Oversized contrast rings deliberately extend beyond the tiny sprite.
+    // Clamp the label inside the display; keep actual citizen coordinates.
+    for(const auto& c:s.world.founders) {
+        const int x=c.x*tile_px+4,y=c.y*tile_px+4;
+        lcd.drawCircle(x,y,10,rgb(0,0,0));
+        lcd.drawCircle(x,y,9,rgb(255,255,255));
+        lcd.drawCircle(x,y,8,rgb(255,205,45));
+        const int lx=std::clamp(x+11,0,770),ly=std::clamp(y-12,0,465);
+        lcd.fillRect(lx,ly,24,13,rgb(0,0,0));
+        lcd.setTextSize(1);
+        lcd.setTextColor(rgb(255,230,90),rgb(0,0,0));
+        lcd.setCursor(lx+2,ly+2);
+        lcd.printf("F%u",unsigned(c.id));
+    }
+#endif
     lcd.endWrite();
 }
 }

@@ -6,10 +6,16 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <new>
+#ifdef PG_OBSERVER_TOUCH_PROBE
+#include "../observer_inspection.hpp"
+#endif
 
 namespace {
 using namespace genesis;
 GenesisPanel lcd;
+#ifdef PG_OBSERVER_TOUCH_PROBE
+observer::Inspection inspection;
+#endif
 integrated::Simulation* simulation=nullptr;
 // Explicit disposable acceleration, not production clock or user control.
 constexpr std::uint32_t step_ms=200,frame_ms=1000;
@@ -36,6 +42,9 @@ void halt(const char* why) noexcept {
 void frame() noexcept {
     const auto start=esp_timer_get_time();
     observer::draw(lcd,simulation->state());
+#ifdef PG_OBSERVER_TOUCH_PROBE
+    inspection.draw_overlay(lcd,simulation->state());
+#endif
     const auto us=std::uint64_t(esp_timer_get_time()-start);
     if(us>frame_peak) frame_peak=us;
     ++frames;
@@ -56,6 +65,9 @@ void setup() {
     Serial.println("RGB TEST: RED GREEN BLUE");
     delay(2000);
     memory("lcd_ready");
+#ifdef PG_OBSERVER_TOUCH_PROBE
+    inspection.begin();
+#endif
     void* raw=heap_caps_malloc(sizeof(integrated::Simulation),MALLOC_CAP_SPIRAM|MALLOC_CAP_8BIT);
     if(!raw) {halt("PSRAM allocation failed");return;}
     simulation=construct(raw);
@@ -82,6 +94,9 @@ void loop() {
             Serial.printf("OBSERVER ticks=%llu living=%u frames=%u tick_peak_us=%llu frame_peak_us=%llu\n",
                 static_cast<unsigned long long>(s.world.tick),unsigned(s.world.descendant_count+2),
                 frames,static_cast<unsigned long long>(tick_peak),static_cast<unsigned long long>(frame_peak));
+            for(const auto& c:s.world.founders)
+                Serial.printf("FOUNDER id=%llu x=%u y=%u health=%u\n",
+                    static_cast<unsigned long long>(c.id),unsigned(c.x),unsigned(c.y),unsigned(c.health));
             memory("sample");
         }
         // Finish at the already tested annual boundary; leave final image.
@@ -90,6 +105,9 @@ void loop() {
             simulation->~Simulation();heap_caps_free(simulation);simulation=nullptr;return;
         }
     }
+#ifdef PG_OBSERVER_TOUCH_PROBE
+    if(inspection.poll(millis())) {frame();last_frame=millis();}
+#endif
     if(std::uint32_t(millis()-last_frame)>=frame_ms) {
         last_frame=millis();
         frame();
