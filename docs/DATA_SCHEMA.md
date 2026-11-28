@@ -171,3 +171,5 @@ Optional PG_MANURE_PROBE adds soil::State amended uint64 and manure::Store uint1
 Optional PG_FATIGUE_PROBE: Citizen gains uint8 fatigue (0..100) and uint8 rest_intent (0/1); Action::rest appended to existing enum in probe only. Newborn default zero; stable identity survives active-array compaction. Two logical bytes; actual struct alignment/size measured by host test, target pending. No save format admission; add versioned encoding, archive/renderer coverage before release.
 
 Optional PG_REPRODUCTIVE_DRIVE_PROBE: Citizen uint8 reproductive_drive 0..100, newborn zero. One logical byte; actual alignment measured in candidate test. Derived local TileCounts snapshot only at conception opportunity; no new persistent map or RNG stream. No canonical save/renderer admission.
+
+Audit follow-up: legacy checkpoint_fields.hpp intentionally rejects PG_FATIGUE_PROBE and PG_REPRODUCTIVE_DRIVE_PROBE at compilation because those Citizen fields are not encoded. Add versioned explicit fields, migration and full replay tests before removing this guard. Other probe sidecars are still outside canonical state and must not be treated as persistent production saves.

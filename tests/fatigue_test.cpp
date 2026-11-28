@@ -7,6 +7,7 @@
 #define PG_SOIL_FERTILITY_PROBE
 #define PG_MANURE_PROBE
 #define PG_FATIGUE_PROBE
+#define PG_REPRODUCTIVE_DRIVE_PROBE
 #include "../core/terrain_renewal.hpp"
 #include <iostream>
 #include <memory>
@@ -85,10 +86,36 @@ int main(){
                 const auto& p=w->founders[i];const auto& q=twin->founders[i];
                 rest_ticks+=p.action==Action::rest;
                 check(p.fatigue==q.fatigue&&p.rest_intent==q.rest_intent&&p.action==q.action&&
-                      p.x==q.x&&p.y==q.y&&p.health==q.health,"same-seed fatigue replay");
+                      p.x==q.x&&p.y==q.y&&p.health==q.health&&
+                      p.reproductive_drive==q.reproductive_drive,"same-seed fatigue and reproduction replay");
             }
             for(unsigned i=0;i<stream_count;++i)
                 check(w->streams[i].state==twin->streams[i].state,"same-seed stream replay");
+            check(w->descendant_count==twin->descendant_count&&
+                  w->pregnancy_count==twin->pregnancy_count&&
+                  w->archive_count==twin->archive_count&&
+                  w->next_citizen_id==twin->next_citizen_id,"same-seed lifecycle totals");
+            // Check actual geography and life records periodically, not
+            // just the final economy counters. Never compare struct padding.
+            if(w->tick%600==0) {
+                for(std::size_t i=0;i<w->tiles.size();++i) {
+                    const auto& u=w->tiles[i];const auto& v=twin->tiles[i];
+                    check(u.food==v.food&&u.water==v.water&&u.wood==v.wood&&u.stone==v.stone,
+                          "same-seed tile stocks");
+                }
+                for(std::size_t i=0;i<w->descendant_count;++i) {
+                    const auto& u=w->descendants[i];const auto& v=twin->descendants[i];
+                    check(u.id==v.id&&u.parent1==v.parent1&&u.parent2==v.parent2&&
+                          u.birth_tick==v.birth_tick&&u.x==v.x&&u.y==v.y&&u.health==v.health&&
+                          u.fatigue==v.fatigue&&u.rest_intent==v.rest_intent&&
+                          u.reproductive_drive==v.reproductive_drive,"same-seed living descendants");
+                }
+                for(std::size_t i=0;i<w->pregnancy_count;++i) {
+                    const auto& u=w->pregnancies[i];const auto& v=twin->pregnancies[i];
+                    check(u.parent1==v.parent1&&u.parent2==v.parent2&&u.due_tick==v.due_tick,
+                          "same-seed gestation");
+                }
+            }
         }
         check(rest_ticks>0&&valid_population(*w)&&multi_field::valid(x->farms)&&
               livestock::valid(x->animals)&&freshwater::valid(x->fish),"combined resting and ecosystem accounting");
@@ -99,6 +126,6 @@ int main(){
                  <<" crops="<<multi_field::harvests(x->farms)<<" managed="<<livestock::population(x->animals)
                  <<" manure_applied="<<x->animals.organic.applied<<" fish="<<freshwater::population(x->fish)
                  <<" living="<<w->descendant_count+2<<" citizen_bytes="<<sizeof(Citizen)<<'\n';
-        std::cout<<"PASS fatigue, sleep interruption, care priority and deterministic combined tick\n";return 0;
+        std::cout<<"PASS fatigue, sleep interruption, care priority and deterministic combined drive tick\n";return 0;
     }catch(const std::exception& e){std::cerr<<"FAIL "<<e.what()<<'\n';return 1;}
 }

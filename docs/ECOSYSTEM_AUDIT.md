@@ -29,3 +29,5 @@ Freshwater candidate adds optional local habitat/fish/forage transactions to ter
 CI 46092755205 passed: natural fish catch53, final576, severe fish loss; combined crops60 managed8. Weather paired results passed. New optional cold-season feeding and threatened local migration candidate, separate food/water death diagnostics, paired seeds0/42. CI pending; full hydrology and long-term stability still open.
 
 CI 46093443337 passed freshwater balanced seed0/42 surviving2364/2296 caught0/164. Permanent extinction retained. PX-26 optional fertility-linked farming/fallow candidate, tests pending. PX-27–31 tracked; no beta readiness.
+
+CI 46095278474 passed all 66 host test programs. Soil seed42 crops12, fertility64, managed6, fish2399; controlled manure chain passed; fatigue-enabled seed42 crops12, managed0, manure applied0, fish2429, rest2678. Reproductive feedback passed separate paired tests low9/high58. Audit follow-up combines reproductive/fatigue/soil/manure/terrain/weather/fish in one regression, pending CI, without asserting positive herd or population quotas. See READINESS_AUDIT_20261127.md for updated project-wide blockers.

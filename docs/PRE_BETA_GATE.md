@@ -64,3 +64,5 @@ PX-26/PX-32 optional manure chain candidate implemented with real source feed, l
 PX-03 optional fatigue/rest candidate integrated into shared survival, controlled priority and same-seed annual combined test pending. No canonical state, render or hardware admission. Existing soil/manure CI queued at review; fix manure fixture type error. All gates open.
 
 PX-04/PX-07 optional local reproductive drive candidate preserves existing gestation/capacity and bounded chance; controlled and replay tests added. Prior fatigue CI in progress at review. No full population regulation, compatibility, save or device certification. All gates open.
+
+Audit 408ffe3 / CI 46095278474: 66/66 host programs passed, including controlled soil/manure/fatigue/reproductive feedback. Combined fatigue seed42 managed0 and natural manure0; reproductive previously separate. Audit follow-up prevents unsupported drive save encoding and expands combined regression, CI pending. All 8 release gates remain open; see READINESS_AUDIT_20261127.md. Do not create official world.

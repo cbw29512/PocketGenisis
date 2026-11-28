@@ -23,3 +23,5 @@ Host-only disposable-world checkpoints are implemented and tested under `storage
 - [Integrated world pre-beta readiness gates](docs/PRE_BETA_GATE.md) — not ready for beta installation yet.
 
 - [Pixels and need-driven economic progression](docs/PIXEL_ECONOMY_CONTRACT.md)
+
+- [Latest readiness audit — 2026-11-27](docs/READINESS_AUDIT_20261127.md): baseline 408ffe3 passed 66 host test programs; complete runtime, persistence, renderer and physical release gates remain open. Audit follow-up CI pending.
