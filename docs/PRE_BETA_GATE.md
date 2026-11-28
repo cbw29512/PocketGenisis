@@ -50,3 +50,5 @@ PX-10 terrain ecology CI 46091929332 passed both seeds (55/58 harvests,6/6 manag
 PX-14 optional freshwater habitat and fish conservation candidate integrated with terrain/weather survival; CI pending. Not full river/lake routing or fishing technology. All gates open.
 
 CI 46092755205 passed weather and actual integrated fishing (53 caught,576 surviving from1898 initial), but aquatic population decline warrants calibration. Added optional seasonal feeding/migration candidate and separate mortality accounting; controlled and comparative seed-year tests pending CI. No beta readiness claim.
+
+Owner confirms ecological collapse/depletion is allowed. PB-01/PB-06 validation must assess causal constraints and conservation, not mandatory positive species totals or guaranteed recovery. See MVP ecological depletion and extinction rule. All gates remain open.
