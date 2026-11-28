@@ -1,5 +1,7 @@
 #pragma once
-#ifdef PG_CROP_LOSS_PROBE
+#ifdef PG_LIVESTOCK_PROBE
+#include "../../core/livestock_integration.hpp"
+#elif defined(PG_CROP_LOSS_PROBE)
 #include "../../core/crop_loss.hpp"
 #elif defined(PG_MULTI_FIELD_PROBE)
 #include "../../core/multi_field.hpp"
@@ -20,9 +22,18 @@
 #endif
 #include <Arduino.h>
 namespace genesis::benchmark {
-inline bool construction_probe(World& w) {
+inline bool construction_probe(World& w
+#ifdef PG_LIVESTOCK_PROBE
+    ,wildlife::Wildlife& wild
+#endif
+) {
     initialize(w,42);discovery::State knowledge{};construction::State sites{};Production p{};
     unsigned births=0;
+#ifdef PG_LIVESTOCK_PROBE
+    wildlife::initialize(wild,w.seed);wildlife::Totals ecology{};livestock::State managed{};
+    const auto initial_wild=wildlife::population(wild);
+    Serial.println("LIVESTOCK PROBE");
+#endif
 #ifdef PG_IRRIGATION_PROBE
     irrigation::State irrigation_water{};
     Serial.println("IRRIGATION PROBE");
@@ -56,7 +67,9 @@ inline bool construction_probe(World& w) {
     constexpr const char* events[]={"none","started","completed","abandoned"};
     for(unsigned i=0;i<43200;++i) {
         discovery::Event re{};construction::Event ce{};
-#ifdef PG_CROP_LOSS_PROBE
+#ifdef PG_LIVESTOCK_PROBE
+        if(!livestock::step(w,knowledge,sites,reserve,cooked,sheltered,home,farms,irrigation_water,wild,ecology,managed,p,re,ce,discovery::probe_cadence)) {
+#elif defined(PG_CROP_LOSS_PROBE)
         if(!crop_loss::step(w,knowledge,sites,reserve,cooked,sheltered,home,farms,irrigation_water,p,re,ce,discovery::probe_cadence)) {
 #elif defined(PG_MULTI_FIELD_PROBE)
         if(!multi_field::step(w,knowledge,sites,reserve,cooked,sheltered,home,farms,irrigation_water,p,re,ce,discovery::probe_cadence)) {
@@ -152,6 +165,16 @@ inline bool construction_probe(World& w) {
     Serial.printf("CROP_LOSS_RESULT drought=%llu spoilage=%llu lost_water=%llu\n",
         static_cast<unsigned long long>(drought),static_cast<unsigned long long>(spoilage),
         static_cast<unsigned long long>(lost_water));
+#endif
+#ifdef PG_LIVESTOCK_PROBE
+    Serial.printf("LIVESTOCK_RESULT pen=%u captures=%llu animals=%u meat=%llu wild=%llu state_bytes=%u\n",
+        unsigned(sites.sites[construction::enclosure].stage==construction::Stage::complete),
+        static_cast<unsigned long long>(livestock::captures(managed)),livestock::population(managed),
+        static_cast<unsigned long long>(managed.meat_produced),static_cast<unsigned long long>(wildlife::population(wild)),unsigned(sizeof(managed)));
+    if(!livestock::valid(managed)||!wildlife::valid(wild)||
+       initial_wild+ecology.births!=wildlife::population(wild)+ecology.deaths+livestock::captures(managed)) {
+        Serial.println("ERROR livestock accounting");return false;
+    }
 #endif
     return valid_population(w)&&construction::completed(sites)>0&&births>0;
 }

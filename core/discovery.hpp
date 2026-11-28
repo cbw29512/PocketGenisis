@@ -11,6 +11,9 @@ enum Tech : std::uint8_t { fire,stone_tools,shelter,cooking,food_storage,
 #ifdef PG_IRRIGATION_PROBE
     irrigation,
 #endif
+#ifdef PG_LIVESTOCK_PROBE
+    husbandry,
+#endif
     tech_count };
 using Mask=std::uint16_t;
 inline constexpr Mask tech_bit(Tech t) noexcept {return static_cast<Mask>(1u<<t);}
@@ -30,6 +33,9 @@ inline constexpr std::array<Rule,tech_count> rules{{
 #endif
 #ifdef PG_IRRIGATION_PROBE
     ,{"Irrigation",tech_bit(farming),3,2,2,30}
+#endif
+#ifdef PG_LIVESTOCK_PROBE
+    ,{"Animal husbandry",tech_bit(farming),3,1,3,30}
 #endif
 }};
 inline constexpr unsigned work_required=30;

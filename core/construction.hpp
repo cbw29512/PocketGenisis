@@ -9,6 +9,9 @@ enum Kind : std::uint8_t { campfire,hut,store,
 #ifdef PG_IRRIGATION_PROBE
     channel,
 #endif
+#ifdef PG_LIVESTOCK_PROBE
+    enclosure,
+#endif
     kind_count };
 enum class Stage : std::uint8_t { empty,building,complete,abandoned };
 struct Blueprint {const char* name;discovery::Tech knowledge;unsigned wood,stone,work;};
@@ -21,6 +24,9 @@ inline constexpr std::array<Blueprint,kind_count> blueprints{{
 #endif
 #ifdef PG_IRRIGATION_PROBE
     ,{"Irrigation channel",discovery::irrigation,4,3,30}
+#endif
+#ifdef PG_LIVESTOCK_PROBE
+    ,{"Livestock enclosure",discovery::husbandry,6,2,30}
 #endif
 }};
 struct Site {
@@ -128,6 +134,13 @@ inline bool can_start_at(const World& w,const discovery::State& research,const S
 #ifdef PG_IRRIGATION_PROBE
     if(k==channel) {
         if(stock.water<=irrigation_source_reserve||thirsty_field(w,s,tile)<0) return false;
+    }
+#endif
+#ifdef PG_LIVESTOCK_PROBE
+    if(k==enclosure) {
+        bool farm=false;
+        for(unsigned i=0;i<field_count;++i) farm|=s.sites[field_slot(i)].stage==Stage::complete;
+        if(!farm||!w.descendant_count||stock.food<24||stock.water<24||!near_completed_hut(s,c)) return false;
     }
 #endif
     return s.sites[k].stage==Stage::empty&&!occupied(s,tile)&&

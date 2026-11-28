@@ -67,6 +67,10 @@ inline unsigned feed(WildlifeTile& tile,Tile& resources,std::size_t k,unsigned r
     const auto fed=prey(tile,resources,requested,out);
     return k==bear?fed+graze(resources,requested-fed,out):fed;
 }
+// Shared group reproduction request for wild and managed animals.
+inline unsigned offspring_request(unsigned surviving,unsigned capacity) noexcept {
+    return surviving<2||surviving>=capacity?0:std::min(capacity-surviving,std::max(1u,surviving/4));
+}
 inline void pulse(WildlifeTile& tile,Tile& resources,bool breeding,Totals& out) noexcept {
     if(tile.meat) {--tile.meat;++out.spoiled;}
     for(std::size_t k=0;k<species_count;++k) {
@@ -76,7 +80,7 @@ inline void pulse(WildlifeTile& tile,Tile& resources,bool breeding,Totals& out) 
         tile.count[k]=static_cast<std::uint16_t>(surviving);
         out.deaths+=before-surviving;
         if(breeding&&surviving>=2) {
-            const auto requested=std::min(group_limit-surviving,std::max(1u,surviving/4));
+            const auto requested=offspring_request(surviving,group_limit);
             const auto born=feed(tile,resources,k,requested,out);
             tile.count[k]+=born;out.births+=born;
         }

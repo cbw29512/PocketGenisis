@@ -139,3 +139,5 @@ Irrigation profile only: appended Irrigation technology and channel blueprint/si
 Multi-field profile only: three additional Site slots after extra huts; array of four existing agriculture::State records indexed by field ordinal. No canonical saved fields. See MULTI_FIELD_CONTRACT.md.
 
 Crop-loss profile only: per-field uint64 drought_losses, spoilage_losses, lost_water, dry_since. Lost water is a cumulative record of already spent water, not an additional debit. See CROP_LOSS_CONTRACT.md. Earlier profiles unchanged.
+
+Livestock profile only: appended husbandry tech/enclosure site, two managed Group records with count/capture/birth/death/harvest counters, shared grazing totals, meat_produced and last_pulse. Existing Wildlife tile/developed sidecar remains separate. See LIVESTOCK_CONTRACT.md. No canonical save changes.

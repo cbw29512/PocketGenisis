@@ -38,13 +38,16 @@ inline Cause evaluate(const World& w,const construction::State& sites,
     crop.stage=0;crop.dry_since=0;crop.last_work=w.tick;
     return reason;
 }
+inline void evaluate_fields(const World& w,const construction::State& sites,multi_field::State& farms) noexcept {
+    for(unsigned i=0;i<construction::field_count;++i)
+        evaluate(w,sites,farms.crops[i],construction::field_slot(i));
+}
 inline bool step(World& w,discovery::State& research,construction::State& sites,
                  storage::State& reserve,cooking::State& cooked,shelter::State& sheltered,
                  settlement::State& home,multi_field::State& farms,irrigation::State& water,
                  Production& p,discovery::Event& re,construction::Event& ce,std::uint64_t cadence) noexcept {
     if(!multi_field::step(w,research,sites,reserve,cooked,sheltered,home,farms,water,p,re,ce,cadence)) return false;
-    for(unsigned i=0;i<construction::field_count;++i)
-        evaluate(w,sites,farms.crops[i],construction::field_slot(i));
+    evaluate_fields(w,sites,farms);
     return true;
 }
 }

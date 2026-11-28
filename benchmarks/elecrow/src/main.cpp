@@ -22,13 +22,15 @@ namespace {
 constexpr unsigned samples=600;
 #if defined(PG_WILDLIFE_PROBE)
 constexpr unsigned populations[]={2048,4096};
-wildlife::Wildlife* animals=nullptr;
 #elif defined(PG_DISPOSABLE_4096_PROBE)
 constexpr unsigned populations[]={4096};
 #elif defined(PG_DISPOSABLE_SCALE_PROBE)
 constexpr unsigned populations[]={256,512,1024,2048};
 #else
 constexpr unsigned populations[]={2,32,64,128,256};
+#endif
+#if defined(PG_WILDLIFE_PROBE)||defined(PG_LIVESTOCK_PROBE)
+wildlife::Wildlife* animals=nullptr;
 #endif
 // Default initialization invokes element default constructors without an
 // enormous aggregate brace expansion. Keep setup's code generation bounded.
@@ -125,14 +127,16 @@ void setup() {
         return;
     }
     auto* w=construct_world(raw);
-#ifdef PG_WILDLIFE_PROBE
+#if defined(PG_WILDLIFE_PROBE)||defined(PG_LIVESTOCK_PROBE)
     void* animal_raw=heap_caps_malloc(sizeof(wildlife::Wildlife),MALLOC_CAP_SPIRAM|MALLOC_CAP_8BIT);
     if(!animal_raw) {Serial.println("ERROR wildlife PSRAM allocation");w->~World();heap_caps_free(raw);return;}
     animals=new(animal_raw) wildlife::Wildlife;
 #endif
     memory_report("allocated");
     bool ok=true;
-#ifdef PG_CONSTRUCTION_PROBE
+#ifdef PG_LIVESTOCK_PROBE
+    ok=benchmark::construction_probe(*w,*animals);
+#elif defined(PG_CONSTRUCTION_PROBE)
     ok=benchmark::construction_probe(*w);
 #elif defined(PG_DISCOVERY_PROBE)
     ok=benchmark::discovery_probe(*w);
@@ -141,7 +145,7 @@ void setup() {
         if(!measure(*w,n,false)||!measure(*w,n,true)) {ok=false;break;}
     }
 #endif
-#ifdef PG_WILDLIFE_PROBE
+#if defined(PG_WILDLIFE_PROBE)||defined(PG_LIVESTOCK_PROBE)
     animals->~Wildlife();heap_caps_free(animal_raw);animals=nullptr;
 #endif
     w->~World();

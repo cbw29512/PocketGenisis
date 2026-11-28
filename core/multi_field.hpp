@@ -76,13 +76,15 @@ struct Work {
         return settlement::return_home(w,sites,c,home);
     }
 };
-inline bool step(World& w,discovery::State& research,construction::State& sites,
+// Extended work policies retain the existing selected crop transaction.
+template<class Policy>
+inline bool step_with_policy(World& w,discovery::State& research,construction::State& sites,
                  storage::State& reserve,cooking::State& cooked,shelter::State& sheltered,
-                 settlement::State& home,State& farms,irrigation::State& water,
-                 Production& p,discovery::Event& re,construction::Event& ce,std::uint64_t cadence) noexcept {
+                 State& farms,irrigation::State& water,
+                 Production& p,discovery::Event& re,construction::Event& ce,std::uint64_t cadence,
+                 const Policy& policy) noexcept {
     const bool busy=research.job.active||construction::active(sites)>=0;
     const auto deposits=reserve.deposited;
-    const Work policy{research,sites,reserve,farms,home,cadence};
     if(!storage::step_with_policies(w,research,sites,reserve,p,re,ce,cadence,
         cooking::MealPolicy{research,sites,reserve,cooked},shelter::Recovery{sites,sheltered},
         policy,agriculture::Renewal{sites})) return false;
@@ -94,5 +96,12 @@ inline bool step(World& w,discovery::State& research,construction::State& sites,
     }
     irrigation::transfer(w,sites,water);
     return true;
+}
+inline bool step(World& w,discovery::State& research,construction::State& sites,
+                 storage::State& reserve,cooking::State& cooked,shelter::State& sheltered,
+                 settlement::State& home,State& farms,irrigation::State& water,
+                 Production& p,discovery::Event& re,construction::Event& ce,std::uint64_t cadence) noexcept {
+    return step_with_policy(w,research,sites,reserve,cooked,sheltered,farms,water,p,re,ce,cadence,
+                            Work{research,sites,reserve,farms,home,cadence});
 }
 }

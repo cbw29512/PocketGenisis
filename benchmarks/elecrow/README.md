@@ -73,3 +73,5 @@ Default CI runs 16 seeds x 3600 ticks via tests/civilization_diversity_test.cpp.
 `elecrow_s3_multi_field_probe` extends irrigation with four independent field slots; existing AGRICULTURE_RESULT is field zero, MULTI_FIELD_RESULT reports aggregate completed fields and harvests. CI/device pending.
 
 `elecrow_s3_crop_loss_probe` extends multi-field farming with local shortage and ripe spoilage; CROP_LOSS_RESULT reports causes and sunk water. Zero actual losses is valid in an unforced run. Controlled fixture covers actual loss and irrigation prevention. CI/device pending.
+
+`elecrow_s3_livestock_probe` extends crop-loss with existing wildlife allocated in PSRAM, construction-developed mapping and managed groups. LIVESTOCK_RESULT shows actual local captures, managed animals, meat and wild population. Zero capture is legitimate if no opportunity. CI/device pending.
