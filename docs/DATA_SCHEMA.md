@@ -173,3 +173,5 @@ Optional PG_FATIGUE_PROBE: Citizen gains uint8 fatigue (0..100) and uint8 rest_i
 Optional PG_REPRODUCTIVE_DRIVE_PROBE: Citizen uint8 reproductive_drive 0..100, newborn zero. One logical byte; actual alignment measured in candidate test. Derived local TileCounts snapshot only at conception opportunity; no new persistent map or RNG stream. No canonical save/renderer admission.
 
 Audit follow-up: legacy checkpoint_fields.hpp intentionally rejects PG_FATIGUE_PROBE and PG_REPRODUCTIVE_DRIVE_PROBE at compilation because those Citizen fields are not encoded. Add versioned explicit fields, migration and full replay tests before removing this guard. Other probe sidecars are still outside canonical state and must not be treated as persistent production saves.
+
+PX-33 creation-only Selection: requested_seed uint64, accepted_seed uint64, attempts unsigned, report and accepted flag. Derived report has biome counts, mineral units, provisioned species groups, water/fish quadrant counts and founder pair selection. Future versioned metadata persists accepted/requested seed and generation version; report is transient. No new hot-tick or canonical save fields admitted yet.
