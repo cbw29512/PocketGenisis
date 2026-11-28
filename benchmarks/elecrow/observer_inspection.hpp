@@ -81,7 +81,10 @@ public:
         for(const auto& c:s.world.founders) add(c);
         for(std::size_t i=0;i<s.world.descendant_count;++i) add(s.world.descendants[i]);
 #ifdef PG_PERSISTENT_OBSERVER
-        if(settings_.overview){summary_painter_.draw(lcd,summarize(s),settings_,saved_);return;}
+        if(settings_.overview){
+            settings_.sync_deaths(unsigned(death_pages(s.world.archive_count)));
+            summary_painter_.draw(lcd,summarize(s),settings_,saved_,s);return;
+        }
         draw_world_button(lcd);
 #endif
         // An unselected observer draws nothing over the civilization.
