@@ -1,14 +1,16 @@
 #pragma once
 #include "observer_inspection.hpp"
+#include "observer_dirty_map.hpp"
 // Read-only display facade. The storage runtime owns all simulation state.
 namespace genesis::observer {
 class PersistentView {
     GenesisPanel lcd_;
     Inspection inspection_;
+    MapPainter map_;
     bool ready_{};
     std::uint8_t applied_brightness_{128};
     std::uint32_t last_frame_{};
-    bool overview_was_open_{};
+    bool overview_was_open_{},citizen_was_open_{};
 public:
     void save_status(const SaveStatus& saved) noexcept {inspection_.save_status(saved);}
     void begin(){
@@ -44,10 +46,12 @@ public:
             // Never draw the map under an open settings panel.
             inspection_.draw_overlay(lcd_,state);
         }else{
-            draw(lcd_,state);
+            if(force||overview_was_open_||(citizen_was_open_&&!inspection_.citizen_open()))map_.invalidate();
+            map_.draw(lcd_,state);
             inspection_.draw_overlay(lcd_,state);
         }
         overview_was_open_=overview;
+        citizen_was_open_=inspection_.citizen_open();
         last_frame_=millis();
         if(force)Serial.printf("WORLD_DISPLAY_FRAME tick=%llu us=%llu\n",
             static_cast<unsigned long long>(state.world.tick),
