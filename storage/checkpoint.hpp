@@ -9,14 +9,6 @@ namespace genesis::storage {
 inline constexpr std::uint32_t checkpoint_magic=0x50434750; // PGCP in little endian
 inline constexpr std::uint16_t checkpoint_version=1, checkpoint_rules=17;
 inline constexpr std::size_t checkpoint_limit=128*1024;
-inline std::uint32_t crc32(const Bytes& bytes,std::size_t length) noexcept {
-    std::uint32_t crc=0xffffffffu;
-    for(std::size_t i=0;i<length;++i) {
-        crc^=bytes[i];
-        for(unsigned bit=0;bit<8;++bit) crc=(crc>>1)^((0u-(crc&1u))&0xedb88320u);
-    }
-    return ~crc;
-}
 inline Bytes encode(const World& w,std::uint64_t generation) {
     if(!generation||!valid_population(w)) throw std::runtime_error("invalid checkpoint state or generation");
     Writer out;out.bytes.reserve(checkpoint_limit);
