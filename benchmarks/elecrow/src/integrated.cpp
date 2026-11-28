@@ -11,7 +11,15 @@
 
 namespace {
 using namespace genesis;
+// Preserve the verified short environment and select a full annual run
+// only in the explicitly named annual environment. Rules are unchanged.
+#ifdef PG_INTEGRATED_ANNUAL_PROBE
+constexpr unsigned samples=43200;
+constexpr unsigned report_interval=3600;
+#else
 constexpr unsigned samples=3600;
+constexpr unsigned report_interval=600;
+#endif
 constexpr std::uint64_t seed=42;
 constexpr std::uint64_t budget_us=200000;
 constexpr auto external=MALLOC_CAP_SPIRAM|MALLOC_CAP_8BIT;
@@ -42,7 +50,11 @@ bool measure(integrated::Simulation& sim) noexcept {
         Serial.println("ERROR creation guard or state invariant");
         return false;
     }
-    std::uint64_t sum=0,peak=0;
+    Serial.printf("BASELINE living=%u fish=%llu wild=%llu\n",
+        unsigned(s.world.descendant_count+2),
+        static_cast<unsigned long long>(freshwater::population(s.fish)),
+        static_cast<unsigned long long>(wildlife::population(s.wild)));
+    std::uint64_t sum=0,peak=0,peak_tick=0;
     unsigned over_budget=0,over_second=0;
     for(unsigned n=0;n<samples;++n) {
         const auto before=esp_timer_get_time();
@@ -51,7 +63,8 @@ bool measure(integrated::Simulation& sim) noexcept {
             return false;
         }
         const auto elapsed=static_cast<std::uint64_t>(esp_timer_get_time()-before);
-        sum+=elapsed;peak=std::max(peak,elapsed);
+        sum+=elapsed;
+        if(elapsed>peak) {peak=elapsed;peak_tick=n+1;}
         over_budget+=elapsed>budget_us;over_second+=elapsed>1000000;
         // Boundary validation outside timed ticks, including ecology ledgers.
         if((n+1)%600==0) {
@@ -59,11 +72,15 @@ bool measure(integrated::Simulation& sim) noexcept {
                 Serial.printf("ERROR invalid integrated state at tick=%u\n",n+1);
                 return false;
             }
-            Serial.printf("PROGRESS ticks=%u/%u living=%u fish=%llu wild=%llu\n",
-                n+1,samples,unsigned(s.world.descendant_count+2),
-                static_cast<unsigned long long>(freshwater::population(s.fish)),
-                static_cast<unsigned long long>(wildlife::population(s.wild)));
-            memory("sample");
+            if((n+1)%report_interval==0) {
+                Serial.printf("PROGRESS ticks=%u/%u season=%u living=%u fish=%llu wild=%llu crops=%llu livestock=%u\n",
+                    n+1,samples,season(s.world),unsigned(s.world.descendant_count+2),
+                    static_cast<unsigned long long>(freshwater::population(s.fish)),
+                    static_cast<unsigned long long>(wildlife::population(s.wild)),
+                    static_cast<unsigned long long>(multi_field::harvests(s.farms)),
+                    livestock::population(s.animals));
+                memory("sample");
+            }
         }
         delay(1); // yield outside measured interval
     }
@@ -71,13 +88,40 @@ bool measure(integrated::Simulation& sim) noexcept {
         samples,static_cast<unsigned long long>(sum/samples),static_cast<unsigned long long>(peak),
         over_budget,over_second,discovery::discovered(s.knowledge),
         static_cast<unsigned long long>(multi_field::harvests(s.farms)),livestock::population(s.animals));
-    return !over_budget&&integrated::valid(s);
+    // Observe actual transactions. Do not fabricate positive milestones
+    // or force the annual outcome to match an earlier host run.
+    Serial.printf("LIFECYCLE issued_descendants=%llu living=%u archived=%u pregnancies=%u lost_gestations=%llu sites=%u\n",
+        static_cast<unsigned long long>(s.world.next_citizen_id-3),
+        unsigned(s.world.descendant_count+2),unsigned(s.world.archive_count),
+        unsigned(s.world.pregnancy_count),static_cast<unsigned long long>(s.world.lost_gestations),
+        construction::completed(s.sites));
+    Serial.printf("FISH initial=%llu final=%llu births=%llu deaths=%llu caught=%llu migrated=%llu\n",
+        static_cast<unsigned long long>(s.fish.initial),
+        static_cast<unsigned long long>(freshwater::population(s.fish)),
+        static_cast<unsigned long long>(s.fish.births),static_cast<unsigned long long>(s.fish.deaths),
+        static_cast<unsigned long long>(s.fish.caught),static_cast<unsigned long long>(s.fish.migrated));
+    Serial.printf("WILDLIFE initial=%llu final=%llu births=%llu deaths=%llu captured=%llu hunted=%llu meals=%llu\n",
+        static_cast<unsigned long long>(s.initial_wild),
+        static_cast<unsigned long long>(wildlife::population(s.wild)),
+        static_cast<unsigned long long>(s.ecology.births),static_cast<unsigned long long>(s.ecology.deaths),
+        static_cast<unsigned long long>(livestock::captures(s.animals)),
+        static_cast<unsigned long long>(s.ecology.hunted),static_cast<unsigned long long>(s.ecology.meals));
+    Serial.printf("FARM harvests=%llu manure_produced=%llu manure_applied=%llu fodder=%u\n",
+        static_cast<unsigned long long>(multi_field::harvests(s.farms)),
+        static_cast<unsigned long long>(s.animals.organic.produced),
+        static_cast<unsigned long long>(s.animals.organic.applied),unsigned(s.animals.fodder.balance));
+    const bool consistent=integrated::valid(s);
+    Serial.printf("ANNUAL_EVIDENCE peak_tick=%llu valid=%u\n",
+        static_cast<unsigned long long>(peak_tick),unsigned(consistent));
+    return !over_budget&&consistent;
 }
 }
 void setup() {
     Serial.begin(115200);
-    delay(2000);
-    Serial.println("POCKET GENESIS DISPOSABLE INTEGRATED CPU/PSRAM PROBE");
+    // Allow the owner to open the serial monitor after a USB upload.
+    // This delay is outside all measured simulation ticks.
+    delay(10000);
+    Serial.printf("POCKET GENESIS DISPOSABLE INTEGRATED CPU/PSRAM PROBE ticks=%u\n",samples);
     Serial.printf("CPU_MHZ=%u FLASH_BYTES=%u PSRAM_BYTES=%u SIM_BYTES=%u STATE_BYTES=%u\n",
         unsigned(ESP.getCpuFreqMHz()),unsigned(ESP.getFlashChipSize()),unsigned(ESP.getPsramSize()),
         unsigned(sizeof(integrated::Simulation)),unsigned(sizeof(integrated::State)));
