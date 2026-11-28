@@ -54,20 +54,38 @@ inline void draw_world_button(GenesisPanel& lcd) {
 // Paint the static panel once. Opaque, padded text updates only changed rows.
 class SummaryPainter {
     std::array<std::array<char,64>,16> previous_{};
-    std::uint8_t previous_brightness_{};
+    std::uint8_t previous_brightness_{},previous_speed_{255},previous_reset_{};
     bool initialized_{};
 public:
     void invalidate() noexcept {initialized_=false;}
     void draw(GenesisPanel& lcd,const WorldSummary& s,
               const DisplaySettings& settings,const SaveStatus& saved) {
         const auto bg=rgb(12,22,30),fg=rgb(245,245,235),muted=rgb(151,181,190);
-        const bool first=!initialized_;
+        const bool first=!initialized_||previous_reset_!=settings.reset_stage;
+        previous_reset_=settings.reset_stage;
         lcd.startWrite();
+        if(settings.reset_stage){
+            if(first){
+                lcd.fillRect(30,30,740,420,bg);lcd.drawRect(30,30,740,420,rgb(210,75,65));
+                lcd.setTextColor(fg,bg);lcd.setTextSize(3);lcd.setCursor(48,48);lcd.print("Nuclear option");
+                lcd.setTextSize(2);lcd.setCursor(48,110);lcd.print("Permanently erase this test world?");
+                lcd.setCursor(48,150);lcd.print("All citizens, history and checkpoints will be lost.");
+                lcd.setCursor(48,190);lcd.print("Other SD card files will not be touched.");
+                lcd.setCursor(48,240);lcd.print(settings.reset_stage==1?"Continue to final confirmation.":"FINAL confirmation: deletion cannot be undone.");
+                lcd.fillRoundRect(48,376,302,44,5,rgb(36,53,62));
+                lcd.fillRoundRect(450,376,302,44,5,rgb(148,42,38));
+                lcd.setCursor(65,390);lcd.print("Cancel");
+                lcd.setCursor(470,390);lcd.print(settings.reset_stage==1?"Continue":"Erase world");
+            }
+            initialized_=true;lcd.endWrite();return;
+        }
         if(first){
             for(auto& row:previous_)row.fill(0);
             lcd.fillRect(30,30,740,420,bg);lcd.drawRect(30,30,740,420,fg);
             lcd.setTextColor(fg,bg);lcd.setTextSize(3);
             lcd.setCursor(48,48);lcd.print("World / Settings");
+            lcd.fillRoundRect(48,264,312,32,5,rgb(115,40,37));
+            lcd.setTextSize(2);lcd.setCursor(60,272);lcd.print("Nuclear option");
             lcd.drawFastHLine(48,298,704,muted);
         }
         lcd.setTextSize(2);lcd.setTextColor(fg,bg);
@@ -100,6 +118,16 @@ public:
         if(saved.generation)line(15,48,334,58,"Verified save #%llu | Tick %llu | Slot %c",
             (unsigned long long)saved.generation,(unsigned long long)saved.tick,saved.slot==0?'A':'B');
         else line(15,48,334,58,"No verified checkpoint");
+        if(first||previous_speed_!=settings.speed){
+            lcd.fillRect(400,44,352,44,bg);
+            lcd.fillRoundRect(400,44,56,44,5,rgb(36,53,62));
+            lcd.fillRoundRect(696,44,56,44,5,rgb(36,53,62));
+            lcd.setTextSize(2);lcd.setTextColor(fg,bg);
+            lcd.setCursor(420,58);lcd.print("-");
+            lcd.setCursor(716,58);lcd.print("+");
+            lcd.setCursor(468,58);lcd.print(rate_labels[settings.speed]);
+            previous_speed_=settings.speed;
+        }
         if(first||previous_brightness_!=settings.brightness){
             const auto button=[&](int x,int w,const char* label,bool active){
                 lcd.fillRoundRect(x,376,w,44,5,active?rgb(58,105,80):rgb(36,53,62));
