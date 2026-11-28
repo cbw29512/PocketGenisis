@@ -8,6 +8,8 @@
 #include "../../../storage/autosave_clock.hpp"
 #ifdef PG_PERSISTENT_OBSERVER
 #include "../persistent_view.hpp"
+#include "../../../maintenance/reset_transaction.hpp"
+#include "../../../maintenance/reset_files.hpp"
 #endif
 
 // Disposable world only. Dedicated directory, no formatting or deletion.
@@ -26,6 +28,20 @@ a::Clock clock_state;
 #ifdef PG_PERSISTENT_OBSERVER
 genesis::observer::PersistentView display;
 genesis::observer::TickPacer pacer;
+namespace maintenance=genesis::maintenance;
+std::string identity_text(const w::Identity& id){
+    const char hex[]="0123456789abcdef";std::string result;
+    for(auto b:id.uuid){result+=hex[b>>4];result+=hex[b&15];}
+    return result;
+}
+maintenance::ResetFiles reset_files{std::string(directory),[](){
+    const auto record=slots.manifest();
+    const auto decoded=m::decode(record.bytes);
+    if(record.missing||!decoded.valid||decoded.identity.official)
+        throw std::runtime_error("reset identity invalid or official");
+    return identity_text(decoded.identity);
+}};
+bool reset_pending=false;
 #endif
 bool ready=false,awaiting_creation=false;
 std::uint64_t next_tick_ms{};
@@ -85,13 +101,44 @@ void create_test(){
     require_identity();
     report("WORLD_CREATED",result.generation,result.slot);arm();
 }
+#ifdef PG_PERSISTENT_OBSERVER
+void empty_world(){
+    sim.reset();clock_state=a::Clock{};identity={};
+    ready=false;awaiting_creation=true;reset_pending=false;
+    display.status("World erased. USB N creates a new test world.");
+    Serial.println("WORLD_RESET_COMPLETE; type N for explicit new test world");
+}
+void reset_current(){
+    // Runtime owns the only simulation and SD writer. Stop it before
+    // accepting a confirmed request; no background autosave can race.
+    require_identity();reset_files.preflight();
+    ready=false;
+    auto permit=maintenance::prepare_reset(identity_text(identity),true);
+    const auto result=maintenance::execute_reset(reset_files,permit,permit.confirmation,true);
+    if(result.status!=maintenance::ResetStatus::empty){
+        reset_pending=reset_files.pending();
+        throw std::runtime_error(result.error);
+    }
+    empty_world();
+}
+#endif
 void boot(){
+#ifdef PG_PERSISTENT_OBSERVER
+    if(reset_files.pending()){
+        reset_pending=true;
+        display.status("Reset interrupted. USB R resumes; no new world.");
+        Serial.println("WORLD_RESET_PENDING; type R to resume confirmed test reset");
+        return;
+    }
+#endif
     struct stat st{};
     if(::stat(directory,&st)!=0){
         if(errno!=ENOENT)throw std::runtime_error("test directory stat failed");
 #ifdef PG_PERSISTENT_OBSERVER
-        // This build is recovery-only: never create an accidental replacement.
-        throw std::runtime_error("Saved test world absent; creation disabled");
+        awaiting_creation=true;
+        display.status("No saved world. USB N creates a new test world.");
+        Serial.println("WORLD_ABSENT; type N for explicit test world");
+        return;
 #else
         awaiting_creation=true;
         Serial.println("WORLD_ABSENT type N to create disposable test world");
@@ -130,6 +177,16 @@ void setup(){
 }
 void loop(){
     try{
+#ifdef PG_PERSISTENT_OBSERVER
+        if(reset_pending&&Serial.available()){
+            if(Serial.read()=='R'){
+                const auto id=reset_files.reset_identity();
+                const auto result=maintenance::resume_reset(reset_files,"DELETE POCKET GENESIS "+id,true);
+                if(result.status!=maintenance::ResetStatus::empty)throw std::runtime_error(result.error);
+                empty_world();
+            }
+        }
+#endif
         if(awaiting_creation&&Serial.available()){
             if(Serial.read()=='N')create_test();
         }
@@ -162,6 +219,7 @@ void loop(){
             }
 #ifdef PG_PERSISTENT_OBSERVER
             display.update(sim->state());
+            if(display.take_reset())reset_current();
 #endif
         }
     }catch(const std::exception& e){halt(e.what());}
