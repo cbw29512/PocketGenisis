@@ -25,6 +25,7 @@ c::FatSlots slots(directory);
 a::Clock clock_state;
 #ifdef PG_PERSISTENT_OBSERVER
 genesis::observer::PersistentView display;
+genesis::observer::TickPacer pacer;
 #endif
 bool ready=false,awaiting_creation=false;
 std::uint64_t next_tick_ms{};
@@ -66,6 +67,7 @@ void arm(){
     if(!clock_state.arm(now,sim->state().world.tick))throw std::runtime_error("arm failed");
     next_tick_ms=now+1000;ready=true;awaiting_creation=false;
 #ifdef PG_PERSISTENT_OBSERVER
+    pacer.arm(esp_timer_get_time(),display.ticks_per_second());
     display.update(sim->state(),true);
 #endif
 }
@@ -132,11 +134,18 @@ void loop(){
             if(Serial.read()=='N')create_test();
         }
         if(ready){
+#ifdef PG_PERSISTENT_OBSERVER
+            // Bounded batches keep touch and real-time autosave responsive.
+            for(unsigned n=0;n<4&&pacer.due(esp_timer_get_time(),display.ticks_per_second());++n){
+                if(!sim->step(cadence))throw std::runtime_error("simulation step failed");
+            }
+#else
             auto now=now_ms();
             if(now>=next_tick_ms){
                 if(!sim->step(cadence))throw std::runtime_error("simulation step failed");
                 next_tick_ms=now+1000;
             }
+#endif
             const auto tick=sim->state().world.tick;
             const auto status=clock_state.poll(now_ms(),tick);
             if(status==a::Status::fault)throw std::runtime_error("autosave clock fault");
