@@ -29,3 +29,5 @@ PB-01 CI 46088259498 passed; actual livestock capture/birth/food delivery/meat p
 PB-01 planting correction CI 46088508146 passed (26 combined harvests); enclosure abandonment blocked livestock. Actual resumable paid construction and qualified local takeover implemented; CI pending. Gate remains open.
 
 PB-01 construction resume CI 46088804865 failed on invalid synthetic child (birth_tick=0). Fixture corrected, new CI pending; no validator relaxation. Owner-approved Pixels terminology and needs-driven food/economy progression in PIXEL_ECONOMY_CONTRACT.md. Next fix actual survival hunting access and evaluate natural coexistence.
+
+Pixel motivation feedback: [PIXEL_DRIVES_CONTRACT.md](PIXEL_DRIVES_CONTRACT.md) informs PB-01/PB-03/PB-06. Add bounded needs/local-context policies with real action constraints and deterministic comparison before release. Corrected construction resume CI 46089019770 still failed actual completion; unresolved, not verified.

@@ -11,3 +11,6 @@ The owner wants Pixels to have a reason to travel, gather varied resources, hunt
 - Compare diverse seeds and meaningful behaviors, not just total population. Track food-source meals, hunts, capture/breeding, harvests, local shortages, travel, seasonal stock, species extinctions, resource debits, health, births/deaths and historical milestones. No arbitrary target counts or forced progression; provisional rates need calibration. Include long-run and device evidence before beta.
  
 Immediate order: repair failed construction recovery regression without weakening population validation; then authoritative survival hunting and bounded food-source search, followed by measured coexistence of hunting/farming/livestock, terrain and fishing. No external code necessary for reuse of existing food/animal/movement primitives. No beta installation or official founding.
+
+## Environmental feedback
+Owner-approved direction: [PIXEL_DRIVES_CONTRACT.md](PIXEL_DRIVES_CONTRACT.md). Local scarcity, low population, crowding, hazards and prosperity influence personal motivations and action scores; all actual survival/reproductive/resource constraints remain. No imposed global population target or scripted migration.

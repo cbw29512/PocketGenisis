@@ -147,3 +147,5 @@ Terrain evaluation sidecar only: 6000 three-byte cells (uint8 elevation, uint8 m
 Livestock State adds uint64 supplied_food and supplied_water cumulative adjacent handoffs (not new production); no canonical serialization yet. See LIVESTOCK_CONTRACT.md.
 
 Combined livestock profile: agriculture::State adds uint64 distributed, actual existing plot stock sent to adjacent non-field tiles; no new food production or stage/time changes. Shared resource_transfer::move preserves bounded stock. No canonical save changes.
+
+Proposed Pixel drives (not serialized or implemented yet): retain existing hunger/thirst and traits; evaluate additional bounded uint8 fatigue, reproductive motivation, social need, curiosity, comfort, ambition. Derived local context (crowding, food, risk, weather) is transient unless persistent memory is justified; no duplicate health/needs. See PIXEL_DRIVES_CONTRACT.md. Canonical migration and measured memory/performance required before admission.

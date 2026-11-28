@@ -97,3 +97,6 @@ Complete a functioning integrated autonomous world before installing the user-fa
 
 ## Pixels and meaningful economic progression
 Owner terminology: inhabitants are Pixels (Founders are the immortal original Pixels). Build need-driven gathering, hunting before learned agriculture, settlement and complementary food/resource economies, not scripted unlocks. See [PIXEL_ECONOMY_CONTRACT.md](PIXEL_ECONOMY_CONTRACT.md). Existing internal Citizen identities and persistence contracts unchanged.
+
+## Needs-driven Pixels and local feedback
+See [PIXEL_DRIVES_CONTRACT.md](PIXEL_DRIVES_CONTRACT.md). Individual drives, personality and actual local context shape behavior. Low population may increase reproductive motivation; crowding may motivate exploration, without forced reproduction or migration. Numeric rates remain provisional and must be calibrated.
