@@ -14,6 +14,14 @@ struct Scratch {std::array<std::uint16_t,count> queue{};};
 inline bool walkable(Surface s) noexcept {
     return s==Surface::land||s==Surface::shallow;
 }
+// The same edge check must be used by resource seekers, work travel,
+// exploration and dependents. No diagonal or nonadjacent land jumps.
+inline bool can_step(const Map& map,std::size_t from,std::size_t to) noexcept {
+    if(from>=count||to>=count||!walkable(map[from])||!walkable(map[to]))return false;
+    const auto fx=from%width,fy=from/width,tx=to%width,ty=to/width;
+    const auto dx=fx>tx?fx-tx:tx-fx,dy=fy>ty?fy-ty:ty-fy;
+    return dx+dy==1;
+}
 // Caller owns scratch; bounded linear flood fill, no recursion or live RNG.
 // Four-neighbor connectivity prevents diagonal jumps across water.
 inline void classify(const Map& map,Regions& out,Scratch& scratch) noexcept {
