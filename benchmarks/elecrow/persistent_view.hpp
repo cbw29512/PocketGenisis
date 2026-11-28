@@ -8,6 +8,7 @@ class PersistentView {
     bool ready_{};
     std::uint8_t applied_brightness_{128};
     std::uint32_t last_frame_{};
+    bool overview_was_open_{};
 public:
     void save_status(const SaveStatus& saved) noexcept {inspection_.save_status(saved);}
     void begin(){
@@ -37,8 +38,16 @@ public:
         }
         if(!force&&!touched&&std::uint32_t(now-last_frame_)<1000)return;
         const auto start=esp_timer_get_time();
-        draw(lcd_,state);
-        inspection_.draw_overlay(lcd_,state);
+        const bool overview=inspection_.overview_open();
+        if(overview){
+            if(!overview_was_open_||force)inspection_.invalidate_summary();
+            // Never draw the map under an open settings panel.
+            inspection_.draw_overlay(lcd_,state);
+        }else{
+            draw(lcd_,state);
+            inspection_.draw_overlay(lcd_,state);
+        }
+        overview_was_open_=overview;
         last_frame_=millis();
         if(force)Serial.printf("WORLD_DISPLAY_FRAME tick=%llu us=%llu\n",
             static_cast<unsigned long long>(state.world.tick),
