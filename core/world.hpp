@@ -32,6 +32,9 @@ struct Citizen {
 #ifdef PG_FATIGUE_PROBE
     std::uint8_t fatigue{}, rest_intent{};
 #endif
+#ifdef PG_REPRODUCTIVE_DRIVE_PROBE
+    std::uint8_t reproductive_drive{};
+#endif
     Action action{Action::idle};
     std::uint64_t parent1{}, parent2{}, birth_tick{};
     std::uint64_t guardian_id{}, guardian_since_tick{};

@@ -2,6 +2,9 @@
 #include "population.hpp"
 #include "parental_health.hpp"
 #include "parent_tiles.hpp"
+#ifdef PG_REPRODUCTIVE_DRIVE_PROBE
+#include "reproductive_drive.hpp"
+#endif
 #include <algorithm>
 #include <cstdlib>
 
@@ -13,7 +16,11 @@ inline const Citizen& active_at(const World& w,std::size_t i) noexcept {
     return i<2?w.founders[i]:w.descendants[i-2];
 }
 inline void attempt_conception(World& w) noexcept {
-    if(w.tick%600||w.pregnancy_count>=std::numeric_limits<std::uint64_t>::max()-w.next_citizen_id||
+    if(w.tick%600) return;
+#ifdef PG_REPRODUCTIVE_DRIVE_PROBE
+    if(w.tick) reproductive_drive::advance(w);
+#endif
+    if(w.pregnancy_count>=std::numeric_limits<std::uint64_t>::max()-w.next_citizen_id||
        w.pregnancy_count>=pregnancy_capacity||
        w.descendant_count+w.pregnancy_count>=descendant_capacity||
        w.descendant_count+w.archive_count+w.pregnancy_count>=history_capacity||
@@ -31,7 +38,11 @@ inline void attempt_conception(World& w) noexcept {
     const auto n=w.descendant_count+2;
     for(std::size_t i=0;i<n;++i) {
         const auto& c=active_at(w,i);
-        if(!busy[i]&&eligible_parent(c,w.tick)) index.add(c,i);
+        if(!busy[i]&&eligible_parent(c,w.tick)
+#ifdef PG_REPRODUCTIVE_DRIVE_PROBE
+           &&reproductive_drive::viable(w,c)
+#endif
+          ) index.add(c,i);
         else busy[i]=true; // Reuse scratch as an eligibility mask.
     }
     index.sort();
@@ -46,9 +57,19 @@ inline void attempt_conception(World& w) noexcept {
             }
         });
     }
+#ifdef PG_REPRODUCTIVE_DRIVE_PROBE
+    if(count&&w.streams[reproduction].bounded(100,roll)&&
+       roll<reproductive_drive::chance(active_at(w,first),active_at(w,second))) {
+        auto& a=first<2?w.founders[first]:w.descendants[first-2];
+        auto& b=second<2?w.founders[second]:w.descendants[second-2];
+        w.pregnancies[w.pregnancy_count++]={a.id,b.id,w.tick+gestation_ticks};
+        reproductive_drive::conceived(a);reproductive_drive::conceived(b);
+    }
+#else
     if(count&&w.streams[reproduction].bounded(4,roll)&&roll==0)
         w.pregnancies[w.pregnancy_count++]={active_at(w,first).id,active_at(w,second).id,
                                            w.tick+gestation_ticks};
+#endif
 }
 inline void deliver(World& w,Citizen& a,Citizen& b) noexcept {
     // Parents are read from existing slots; fixed array never reallocates.

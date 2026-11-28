@@ -169,3 +169,5 @@ Optional PG_SOIL_FERTILITY_PROBE per field: soil::State uint8 fertility initial1
 Optional PG_MANURE_PROBE adds soil::State amended uint64 and manure::Store uint16 balance, uint8 carried[2], uint64 feed,produced,applied,lost. Derived source feed/2=produced; produced=balance+carried+applied+lost. Soil ledger initial+restored+amended=spent+fertility. Appended soil_amendment tech; no canonical serialization yet.
 
 Optional PG_FATIGUE_PROBE: Citizen gains uint8 fatigue (0..100) and uint8 rest_intent (0/1); Action::rest appended to existing enum in probe only. Newborn default zero; stable identity survives active-array compaction. Two logical bytes; actual struct alignment/size measured by host test, target pending. No save format admission; add versioned encoding, archive/renderer coverage before release.
+
+Optional PG_REPRODUCTIVE_DRIVE_PROBE: Citizen uint8 reproductive_drive 0..100, newborn zero. One logical byte; actual alignment measured in candidate test. Derived local TileCounts snapshot only at conception opportunity; no new persistent map or RNG stream. No canonical save/renderer admission.

@@ -11,6 +11,9 @@ inline bool valid_agent(const Citizen& c) noexcept {
 #else
        static_cast<unsigned>(c.action)>static_cast<unsigned>(Action::care)||
 #endif
+#ifdef PG_REPRODUCTIVE_DRIVE_PROBE
+       c.reproductive_drive>100||
+#endif
        static_cast<unsigned>(c.birth_outcome)>static_cast<unsigned>(BirthOutcome::fatal)) return false;
     if(!valid_diseases(c)) return false;
     for(auto trait:c.personality) if(trait>100) return false;
