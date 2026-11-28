@@ -72,10 +72,10 @@ public:
                 lcd.setCursor(48,150);lcd.print("All citizens, history and checkpoints will be lost.");
                 lcd.setCursor(48,190);lcd.print("Other SD card files will not be touched.");
                 lcd.setCursor(48,240);lcd.print(settings.reset_stage==1?"Continue to final confirmation.":"FINAL confirmation: deletion cannot be undone.");
-                lcd.fillRoundRect(48,376,302,44,5,rgb(36,53,62));
-                lcd.fillRoundRect(450,376,302,44,5,rgb(148,42,38));
-                lcd.setCursor(65,390);lcd.print("Cancel");
-                lcd.setCursor(470,390);lcd.print(settings.reset_stage==1?"Continue":"Erase world");
+                lcd.fillRoundRect(48,376,302,44,5,settings.reset_stage==1?rgb(36,53,62):rgb(148,42,38));
+                lcd.fillRoundRect(450,376,302,44,5,settings.reset_stage==1?rgb(148,42,38):rgb(36,53,62));
+                lcd.setCursor(65,390);lcd.print(settings.reset_stage==1?"Cancel":"Erase world");
+                lcd.setCursor(470,390);lcd.print(settings.reset_stage==1?"Continue":"Cancel");
             }
             initialized_=true;lcd.endWrite();return;
         }
