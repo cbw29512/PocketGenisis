@@ -38,6 +38,9 @@ void halt(const char* reason){
 }
 void report(const char* label,std::uint64_t generation,int slot){
     const auto& state=sim->state();
+#ifdef PG_PERSISTENT_OBSERVER
+    display.save_status({generation,state.world.tick,SD.cardSize(),slot});
+#endif
     Serial.printf("%s generation=%llu slot=%d tick=%llu population=%u psram_free=%u internal_free=%u\n",
         label,static_cast<unsigned long long>(generation),slot,
         static_cast<unsigned long long>(state.world.tick),
