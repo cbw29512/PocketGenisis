@@ -1,6 +1,8 @@
 #pragma once
 #include "observer_render.hpp"
 #include "observer_settings.hpp"
+#include <cstdio>
+#include <cstring>
 namespace genesis::observer {
 // Derived counters only. No RNG, state mutation or checkpoint format change.
 struct WorldSummary {
@@ -49,40 +51,68 @@ inline void draw_world_button(GenesisPanel& lcd) {
             lcd.drawPixel(cx+x,cy+y,shade);
     }
 }
-inline void draw_summary(GenesisPanel& lcd,const WorldSummary& s,
-                         const DisplaySettings& settings,const SaveStatus& saved) {
-    const auto bg=rgb(12,22,30),fg=rgb(245,245,235),muted=rgb(151,181,190);
-    lcd.fillRect(30,30,740,420,bg);lcd.drawRect(30,30,740,420,fg);
-    lcd.setTextColor(fg,bg);lcd.setTextSize(3);
-    lcd.setCursor(48,48);lcd.print("World / Settings");
-    lcd.setTextSize(2);
-    lcd.setCursor(48,90);lcd.printf("Year %llu | Tick %llu",(unsigned long long)(s.tick/ticks_per_year+1),(unsigned long long)s.tick);
-    lcd.setCursor(48,126);lcd.printf("Living: %u",unsigned(s.living));
-    lcd.setCursor(48,150);lcd.printf("Pregnancies: %u",unsigned(s.pregnancies));
-    lcd.setCursor(48,174);lcd.printf("Recorded deaths: %u",unsigned(s.deaths));
-    lcd.setCursor(48,198);lcd.printf("Infants: %u  Children: %u",s.stages[0],s.stages[1]);
-    lcd.setCursor(48,222);lcd.printf("Teens: %u  Adults: %u",s.stages[2],s.stages[3]);
-    lcd.setCursor(48,246);lcd.printf("Elders: %u",s.stages[4]);
-    lcd.setCursor(420,126);lcd.printf("Food: %llu",(unsigned long long)s.food);
-    lcd.setCursor(420,150);lcd.printf("Water: %llu",(unsigned long long)s.water);
-    lcd.setCursor(420,174);lcd.printf("Wood: %llu  Stone: %llu",(unsigned long long)s.wood,(unsigned long long)s.stone);
-    lcd.setCursor(420,198);lcd.printf("Wild animals: %llu",(unsigned long long)s.wild);
-    lcd.setCursor(420,222);lcd.printf("Fish: %llu",(unsigned long long)s.fish);
-    lcd.setCursor(420,246);lcd.printf("Discoveries: %u",unsigned(s.discoveries));
-    lcd.setCursor(420,270);lcd.printf("Buildings: %u",unsigned(s.buildings));
-    lcd.drawFastHLine(48,298,704,muted);
-    lcd.setCursor(48,310);lcd.printf("SD card: %.1f GB",(double)saved.card_bytes/1000000000.0);
-    lcd.setCursor(48,334);
-    if(saved.generation)lcd.printf("Verified save #%llu | Tick %llu | Slot %c",
-        (unsigned long long)saved.generation,(unsigned long long)saved.tick,saved.slot==0?'A':'B');
-    else lcd.print("No verified checkpoint");
-    const auto button=[&](int x,int w,const char* label,bool active){
-        lcd.fillRoundRect(x,376,w,44,5,active?rgb(58,105,80):rgb(36,53,62));
-        lcd.setTextColor(fg);lcd.setCursor(x+12,390);lcd.print(label);
-    };
-    button(48,168,"Dim",settings.brightness==64);
-    button(232,168,"Normal",settings.brightness==128);
-    button(416,168,"Bright",settings.brightness==255);
-    button(600,152,"Close",false);
-}
+// Paint the static panel once. Opaque, padded text updates only changed rows.
+class SummaryPainter {
+    std::array<std::array<char,64>,16> previous_{};
+    std::uint8_t previous_brightness_{};
+    bool initialized_{};
+public:
+    void invalidate() noexcept {initialized_=false;}
+    void draw(GenesisPanel& lcd,const WorldSummary& s,
+              const DisplaySettings& settings,const SaveStatus& saved) {
+        const auto bg=rgb(12,22,30),fg=rgb(245,245,235),muted=rgb(151,181,190);
+        const bool first=!initialized_;
+        lcd.startWrite();
+        if(first){
+            for(auto& row:previous_)row.fill(0);
+            lcd.fillRect(30,30,740,420,bg);lcd.drawRect(30,30,740,420,fg);
+            lcd.setTextColor(fg,bg);lcd.setTextSize(3);
+            lcd.setCursor(48,48);lcd.print("World / Settings");
+            lcd.drawFastHLine(48,298,704,muted);
+        }
+        lcd.setTextSize(2);lcd.setTextColor(fg,bg);
+        const auto line=[&](unsigned index,int x,int y,int width,const char* fmt,auto... args){
+            char next[64]{};
+            std::snprintf(next,sizeof(next),fmt,args...);
+            if(!first&&std::strcmp(previous_[index].data(),next)==0)return;
+            std::strncpy(previous_[index].data(),next,previous_[index].size()-1);
+            previous_[index].back()=0;
+            // Default built-in font: 6 pixels per glyph at text size 1.
+            char padded[64]{};
+            std::snprintf(padded,sizeof(padded),"%-*.*s",width,width,next);
+            lcd.setCursor(x,y);lcd.print(padded);
+        };
+        line(0,48,90,58,"Year %llu | Tick %llu",(unsigned long long)(s.tick/ticks_per_year+1),(unsigned long long)s.tick);
+        line(1,48,126,30,"Living: %u",unsigned(s.living));
+        line(2,48,150,30,"Pregnancies: %u",unsigned(s.pregnancies));
+        line(3,48,174,30,"Recorded deaths: %u",unsigned(s.deaths));
+        line(4,48,198,30,"Infants: %u  Children: %u",s.stages[0],s.stages[1]);
+        line(5,48,222,30,"Teens: %u  Adults: %u",s.stages[2],s.stages[3]);
+        line(6,48,246,30,"Elders: %u",s.stages[4]);
+        line(7,420,126,27,"Food: %llu",(unsigned long long)s.food);
+        line(8,420,150,27,"Water: %llu",(unsigned long long)s.water);
+        line(9,420,174,27,"Wood %llu  Stone %llu",(unsigned long long)s.wood,(unsigned long long)s.stone);
+        line(10,420,198,27,"Wild animals: %llu",(unsigned long long)s.wild);
+        line(11,420,222,27,"Fish: %llu",(unsigned long long)s.fish);
+        line(12,420,246,27,"Discoveries: %u",unsigned(s.discoveries));
+        line(13,420,270,27,"Buildings: %u",unsigned(s.buildings));
+        line(14,48,310,58,"SD card: %.1f GB",(double)saved.card_bytes/1000000000.0);
+        if(saved.generation)line(15,48,334,58,"Verified save #%llu | Tick %llu | Slot %c",
+            (unsigned long long)saved.generation,(unsigned long long)saved.tick,saved.slot==0?'A':'B');
+        else line(15,48,334,58,"No verified checkpoint");
+        if(first||previous_brightness_!=settings.brightness){
+            const auto button=[&](int x,int w,const char* label,bool active){
+                lcd.fillRoundRect(x,376,w,44,5,active?rgb(58,105,80):rgb(36,53,62));
+                lcd.setTextColor(fg);lcd.setCursor(x+12,390);lcd.print(label);
+            };
+            button(48,168,"Dim",settings.brightness==64);
+            button(232,168,"Normal",settings.brightness==128);
+            button(416,168,"Bright",settings.brightness==255);
+            button(600,152,"Close",false);
+            previous_brightness_=settings.brightness;
+        }
+        initialized_=true;
+        lcd.endWrite();
+    }
+};
 }
