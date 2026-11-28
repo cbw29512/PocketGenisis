@@ -30,13 +30,14 @@ struct Observation {
 };
 // Expensive cross-system boundary audit; not an extra per-tick scan.
 // A valid running world may have zero fish or animals.
-inline bool valid(const State& s) noexcept {
+template<class PopulationValidator>
+inline bool valid_with_population(const State& s,const PopulationValidator& population) {
     if(!s.founding.accepted||!s.founding.report.accepted||!s.founding.report.valid_data||
        !s.founding.attempts||s.founding.attempts>world_admission::max_attempts||
        s.founding.report.spawn_a>=s.world.tiles.size()||
        s.founding.report.spawn_b>=s.world.tiles.size()||
        (s.world.tick&&!s.cadence)||s.world.seed!=s.founding.accepted_seed||
-       !valid_population(s.world)||!hydrology::valid(s.drainage,s.terrain)||
+       !population(s.world)||!hydrology::valid(s.drainage,s.terrain)||
        !terrain_resources::valid(s.minerals)||!wildlife::valid(s.wild)||
        !freshwater::valid(s.fish)||!multi_field::valid(s.farms)||
        !livestock::valid(s.animals)) return false;
@@ -80,6 +81,11 @@ inline bool valid(const State& s) noexcept {
                s.ecology.deaths+livestock::captures(s.animals)&&
            s.ecology.meat_created+s.animals.meat_produced==
                meat+s.ecology.meals+s.ecology.spoiled;
+}
+// The existing checkpoint and simulation paths retain the strict legacy
+// validator. External history can only be admitted by a future transaction.
+inline bool valid(const State& s) noexcept {
+    return valid_with_population(s,valid_population);
 }
 class Simulation {
     State state_{};
