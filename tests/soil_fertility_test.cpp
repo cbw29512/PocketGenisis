@@ -46,12 +46,12 @@ int main(){
               farm::task(*w,sites,crop,w->tick)==farm::Task::none,"exhausted soil blocks planting");
         const auto previous_food=stock.food;
         const auto before=crop.nutrients.restored;
-        w->tick=5400;stock.water=0;
+        w->tick=6000;stock.water=0;
         farm::recover_soil(*w,sites,crop,build::field);
         check(crop.nutrients.restored==before,"dry field cannot recover");
         stock.water=60;
         for(unsigned n=0;n<4;++n) {
-            w->tick=6000+600*n;
+            w->tick=6600+600*n;
             farm::recover_soil(*w,sites,crop,build::field);
             farm::recover_soil(*w,sites,crop,build::field);
         }

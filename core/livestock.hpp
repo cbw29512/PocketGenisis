@@ -5,6 +5,12 @@
 #include "crop_loss.hpp"
 #include "wildlife.hpp"
 #include "livestock_fodder.hpp"
+#ifdef PG_MANURE_PROBE
+#if !defined(PG_SOIL_FERTILITY_PROBE)
+#error "Manure requires the soil fertility profile"
+#endif
+#include "manure_store.hpp"
+#endif
 
 namespace genesis::livestock {
 inline constexpr unsigned capacity=8,breeding_floor=3;
@@ -16,6 +22,9 @@ struct State {
     std::uint64_t meat_produced{},last_pulse{};
     std::uint64_t supplied_food{},supplied_water{};
     Fodder fodder{};
+#ifdef PG_MANURE_PROBE
+    manure::Store organic{};
+#endif
 };
 inline bool valid(const State& s) noexcept {
     std::uint64_t meat=0;
@@ -24,7 +33,11 @@ inline bool valid(const State& s) noexcept {
         if(g.count>capacity||g.captured+g.births!=g.count+g.deaths+g.harvested) return false;
         meat+=g.harvested*wildlife::yield[species[i]];
     }
-    return meat==s.meat_produced&&s.resources.food==s.resources.water&&valid(s.fodder);
+    return meat==s.meat_produced&&s.resources.food==s.resources.water&&valid(s.fodder)
+#ifdef PG_MANURE_PROBE
+        &&manure::valid(s.organic)&&s.organic.feed<=s.resources.food
+#endif
+        ;
 }
 inline unsigned population(const State& s) noexcept {
     unsigned n=0;for(const auto& g:s.groups)n+=g.count;return n;
@@ -117,6 +130,11 @@ inline void pulse(World& w,const construction::State& sites,State& s,
     for(auto& g:s.groups) {
         // Existing wildlife graze debits food and water, no new resource system.
         const auto surviving=feed(g.count);
+#ifdef PG_MANURE_PROBE
+        // Only actually fed existing animals contribute. Births and
+        // capture do not create manure independently of consumption.
+        manure::record_feed(s.organic,surviving);
+#endif
         g.deaths+=g.count-surviving;g.count=static_cast<std::uint16_t>(surviving);
         if(w.tick%cadence.breeding==0) {
             // Do not spend winter reserves on extra births while ordinary

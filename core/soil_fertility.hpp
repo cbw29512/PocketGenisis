@@ -7,9 +7,16 @@ inline constexpr std::uint64_t recovery_interval=600;
 struct State {
     std::uint8_t fertility{capacity};
     std::uint64_t spent{},restored{},last_recovery{};
+#ifdef PG_MANURE_PROBE
+    std::uint64_t amended{};
+#endif
 };
 inline bool valid(const State& s) noexcept {
-    return s.fertility<=capacity&&capacity+s.restored==s.spent+s.fertility;
+    return s.fertility<=capacity&&capacity+s.restored
+#ifdef PG_MANURE_PROBE
+        +s.amended
+#endif
+        ==s.spent+s.fertility;
 }
 inline bool can_plant(const State& s) noexcept {return s.fertility>=minimum_to_plant&&s.fertility<=capacity;}
 inline bool plant(State& s) noexcept {

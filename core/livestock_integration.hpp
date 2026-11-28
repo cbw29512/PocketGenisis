@@ -1,13 +1,34 @@
 #pragma once
 #include "livestock_planning.hpp"
 #include "wildlife_food.hpp"
+#ifdef PG_MANURE_PROBE
+#include "manure_work.hpp"
+#endif
 
 namespace genesis::livestock {
 struct Work : multi_field::Work {
     const wildlife::Wildlife& wild;
     const State& animals;
     mutable std::uint64_t handler{};
+#ifdef PG_MANURE_PROBE
+    mutable std::uint64_t soil_worker{};
+    mutable manure::Task soil_task{};
+#endif
     bool operator()(const World& w,Citizen& c) const noexcept {
+#ifdef PG_MANURE_PROBE
+        if(soil_worker) return false;
+        // Keep storage, construction and research priority. A depleted
+        // field can attract a fertilizer worker before another planting.
+        if(!soil_worker&&!handler&&!chosen&&
+           !storage::ReserveWork{research,sites,reserve,cadence}(w,c)&&
+           !research.job.active&&construction::active(sites)<0) {
+            manure::Task task{};
+            if(manure::seek(w,research,sites,farms,animals.organic,c,task)) {
+                if(task!=manure::Task::none) {soil_worker=c.id;soil_task=task;}
+                return true;
+            }
+        }
+#endif
         if(productive(w,c)) return true;
         if(research.job.active||construction::active(sites)>=0) return false;
         if(!handler&&!chosen) {
@@ -35,6 +56,13 @@ inline bool step_with_renewal(World& w,discovery::State& research,construction::
     if(policy.handler&&!policy.chosen&&!busy&&!research.job.active&&construction::active(sites)<0&&
        re.kind==discovery::EventKind::none&&ce.kind==construction::EventKind::none&&deposits==reserve.deposited)
         work(w,research,sites,wild,animals,w.founders[policy.handler-1],true);
+#ifdef PG_MANURE_PROBE
+    if(policy.soil_worker&&!policy.handler&&!policy.chosen&&!busy&&
+       !research.job.active&&construction::active(sites)<0&&
+       re.kind==discovery::EventKind::none&&ce.kind==construction::EventKind::none&&deposits==reserve.deposited)
+        manure::work(w,research,sites,farms,animals.organic,
+                     w.founders[policy.soil_worker-1],policy.soil_task);
+#endif
     pulse(w,sites,animals,wildlife::sustainable_candidate,true);
     wildlife::advance(w,wild,ecology,wildlife::predator_candidate,false);
     crop_loss::evaluate_fields(w,sites,farms);

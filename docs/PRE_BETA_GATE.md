@@ -58,3 +58,5 @@ PX-24/PX-25: finite underground endowment and maximum depth tracked under materi
 CI 46093443337 passed paired freshwater balance; no guaranteed survival requirement. PX-26–31 approved extensions tracked; optional soil candidate and accounting tests pending. Advanced mechanics staged. All release gates open.
 
 PX-32 owner-confirmed interdependence: integrated acceptance requires causal shared resource transactions and explicit technology dependencies, costs and environmental effects; verify representative livestock/feed/manure/soil/crop cycles, resource scarcity, depletion, and other supported coupled mechanisms without guaranteeing positive outcomes. PX-26 staged soil improvement methods tracked. Existing initial beta boundary retained. Soil CI pending; no new runtime in this documentation change.
+
+PX-26/PX-32 optional manure chain candidate implemented with real source feed, learned handling, bounded carrying, actual application and conserved ledgers. CI pending; prior soil run canceled, replacement queued. Natural adoption, integrated persistent state, device timing and remaining PB gates still open.
