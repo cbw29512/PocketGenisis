@@ -6,8 +6,10 @@ class PersistentView {
     GenesisPanel lcd_;
     Inspection inspection_;
     bool ready_{};
+    std::uint8_t applied_brightness_{128};
     std::uint32_t last_frame_{};
 public:
+    void save_status(const SaveStatus& saved) noexcept {inspection_.save_status(saved);}
     void begin(){
         if(!lcd_.init())throw std::runtime_error("LCD initialization failed");
         lcd_.setBrightness(128);
@@ -29,6 +31,10 @@ public:
         if(!ready_)return;
         const auto now=millis();
         const bool touched=inspection_.poll(now);
+        if(applied_brightness_!=inspection_.brightness()){
+            applied_brightness_=inspection_.brightness();
+            lcd_.setBrightness(applied_brightness_);
+        }
         if(!force&&!touched&&std::uint32_t(now-last_frame_)<1000)return;
         const auto start=esp_timer_get_time();
         draw(lcd_,state);
