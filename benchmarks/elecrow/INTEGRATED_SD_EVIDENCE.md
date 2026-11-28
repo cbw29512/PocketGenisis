@@ -28,3 +28,6 @@ After restoring generation 6 at tick 300, same UUID and population 2, automatic 
 |8|1|420|3325626|
 |9|0|480|3327054|
 All three reported PSRAM free 8038027, internal free 310900, stack watermark 59296. UUID unchanged. Post-recovery continuation and alternating checkpoint writes passed. Eight completed automatic writes observed in total. This is short-run evidence only; peak memory, active-write interruption, deterministic replay, larger populations and soak remain open. Preserve the disposable world and pinned firmware; no official founding.
+
+## Combined persistent observer — owner hardware evidence
+Candidate 0c07803, build/upload SUCCESS 14.535s, all flash hashes verified, static RAM 24972/327680 and flash 718473/3145728. COM3 WORLD_AUTOSAVED generation=20 slot=1 tick=1132 population=2 psram_free=7269827 internal_free=296940, UUID 595cd572864b4544b42b78941b281581, stack watermark 62004, save time 3382802us. Owner explicitly confirmed visible map and tapping citizens opened their statistics. Pass: existing identity retained across upgrade, visible world, touch inspection, automatic save while graphical firmware active. Full combined power-on recovery log, long-run testing, peak memory and interrupted-write recovery remain open. Preserve this known-good firmware candidate.
