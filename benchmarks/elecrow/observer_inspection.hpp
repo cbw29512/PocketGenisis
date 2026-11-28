@@ -38,9 +38,9 @@ public:
         if(p.x<0||p.x>=800||p.y<0||p.y>=480) {
             Serial.println("TOUCH outside native bounds");return false;
         }
-        // Always available small founder finder controls.
-        if(p.x>=656&&p.y<36) selected_=p.x<728?1:2;
-        else if(selected_&&p.x<300&&p.y<176) selected_=0;
+        // No permanent HUD or reserved button area: every visible map
+        // position is inspectable unless the temporary panel covers it.
+        if(selected_&&p.x<300&&p.y<176) selected_=0;
         else {
             selected_=0;int best=25*25;
             for(std::size_t i=0;i<count_;++i) {
@@ -59,19 +59,20 @@ public:
         };
         for(const auto& c:s.world.founders) add(c);
         for(std::size_t i=0;i<s.world.descendant_count;++i) add(s.world.descendants[i]);
-        const auto black=rgb(12,17,22),white=rgb(245,245,235),gold=rgb(255,205,45);
+        // An unselected observer draws nothing over the civilization.
+        if(!selected_) return;
+        const auto black=rgb(12,17,22),white=rgb(245,245,235);
         lcd.startWrite();
-        lcd.fillRect(656,0,144,36,black);
-        lcd.drawRect(656,0,72,36,gold);lcd.drawRect(728,0,72,36,gold);
-        lcd.setTextSize(2);lcd.setTextColor(gold,black);
-        lcd.setCursor(666,10);lcd.print("F1");lcd.setCursor(738,10);lcd.print("F2");
+        lcd.setTextSize(2);lcd.setTextColor(white,black);
         if(selected_) {
             const auto* c=live_citizen(s.world,selected_);
             lcd.fillRect(0,0,300,176,black);lcd.drawRect(0,0,300,176,white);
             lcd.setCursor(8,8);lcd.setTextColor(white,black);
             if(!c) lcd.print("No longer living");
             else {
-                lcd.printf("Pixel %llu",static_cast<unsigned long long>(c->id));
+                if(c->id==1||c->id==2)
+                    lcd.printf("Founder %llu",static_cast<unsigned long long>(c->id));
+                else lcd.printf("Pixel %llu",static_cast<unsigned long long>(c->id));
                 lcd.setTextSize(1);
                 lcd.setCursor(8,34);lcd.printf("Position %u,%u  Health %u",unsigned(c->x),unsigned(c->y),unsigned(c->health));
                 lcd.setCursor(8,50);lcd.printf("Hunger %u  Thirst %u  Fatigue %u",unsigned(c->hunger),unsigned(c->thirst),unsigned(c->fatigue));

@@ -8,6 +8,24 @@ namespace genesis::observer {
 inline void citizen(GenesisPanel& lcd,const Citizen& c,bool founder) noexcept {
     if(c.x>=width||c.y>=height) return;
     const int x=c.x*tile_px,y=c.y*tile_px;
+#ifdef PG_OBSERVER_TOUCH_PROBE
+    if(founder) {
+        // 16x16 visual footprint centered on the authoritative 8x8 tile.
+        // Clip to the framebuffer at map edges; never relocate the citizen.
+        // Distinct gold/amber tunics identify the two immortal founders
+        // without permanent text, rings, finder buttons or a HUD.
+        const int left=x-4,top=y-4;
+        const auto outline=rgb(23,24,20);
+        const auto tunic=c.id==1?rgb(255,215,54):rgb(255,164,48);
+        lcd.fillRect(left,top,16,16,outline);
+        lcd.drawRect(left+1,top+1,14,14,rgb(255,242,170));
+        lcd.fillRect(left+5,top+3,6,4,rgb(255,222,168));
+        lcd.fillRect(left+3,top+7,10,5,tunic);
+        lcd.fillRect(left+4,top+12,3,2,rgb(238,218,135));
+        lcd.fillRect(left+9,top+12,3,2,rgb(238,218,135));
+        return;
+    }
+#endif
     lcd.fillRect(x+2,y+1,4,6,rgb(20,26,25));
     lcd.fillRect(x+3,y+1,2,2,rgb(255,222,168));
     lcd.fillRect(x+2,y+3,4,3,founder?rgb(255,205,45):rgb(242,240,216));
@@ -38,22 +56,6 @@ inline void draw(GenesisPanel& lcd,const integrated::State& s) noexcept {
     }
     for(std::size_t i=0;i<s.world.descendant_count;++i) citizen(lcd,s.world.descendants[i],false);
     for(const auto& founder:s.world.founders) citizen(lcd,founder,true);
-#ifdef PG_OBSERVER_TOUCH_PROBE
-    // Oversized contrast rings deliberately extend beyond the tiny sprite.
-    // Clamp the label inside the display; keep actual citizen coordinates.
-    for(const auto& c:s.world.founders) {
-        const int x=c.x*tile_px+4,y=c.y*tile_px+4;
-        lcd.drawCircle(x,y,10,rgb(0,0,0));
-        lcd.drawCircle(x,y,9,rgb(255,255,255));
-        lcd.drawCircle(x,y,8,rgb(255,205,45));
-        const int lx=std::clamp(x+11,0,770),ly=std::clamp(y-12,0,465);
-        lcd.fillRect(lx,ly,24,13,rgb(0,0,0));
-        lcd.setTextSize(1);
-        lcd.setTextColor(rgb(255,230,90),rgb(0,0,0));
-        lcd.setCursor(lx+2,ly+2);
-        lcd.printf("F%u",unsigned(c.id));
-    }
-#endif
     lcd.endWrite();
 }
 }
