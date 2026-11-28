@@ -32,20 +32,21 @@ inline void citizen(GenesisPanel& lcd,const Citizen& c,bool founder) noexcept {
     lcd.drawPixel(x+2,y+6,rgb(30,30,30));
     lcd.drawPixel(x+5,y+6,rgb(30,30,30));
 }
+inline void draw_tile(GenesisPanel& lcd,const integrated::State& s,std::size_t i) noexcept {
+    const int x=int(i%width)*tile_px,y=int(i/width)*tile_px;
+    const auto t=view(s,i);
+    lcd.fillRect(x,y,tile_px,tile_px,t.ground);
+    if(t.tree) {
+        lcd.fillRect(x+3,y+5,2,2,rgb(96,72,42));
+        lcd.fillRect(x+2,y+1,4,4,rgb(25,68,36));
+    }
+    if(t.fish) lcd.fillRect(x+1,y+5,3,1,rgb(157,222,235));
+    if(t.prey) lcd.fillRect(x+4,y+5,3,2,rgb(232,212,166));
+    if(t.predator) lcd.fillRect(x+5,y+1,2,2,rgb(192,65,49));
+}
 inline void draw(GenesisPanel& lcd,const integrated::State& s) noexcept {
     lcd.startWrite();
-    for(std::size_t i=0;i<s.world.tiles.size();++i) {
-        const int x=int(i%width)*tile_px,y=int(i/width)*tile_px;
-        const auto t=view(s,i);
-        lcd.fillRect(x,y,tile_px,tile_px,t.ground);
-        if(t.tree) {
-            lcd.fillRect(x+3,y+5,2,2,rgb(96,72,42));
-            lcd.fillRect(x+2,y+1,4,4,rgb(25,68,36));
-        }
-        if(t.fish) lcd.fillRect(x+1,y+5,3,1,rgb(157,222,235));
-        if(t.prey) lcd.fillRect(x+4,y+5,3,2,rgb(232,212,166));
-        if(t.predator) lcd.fillRect(x+5,y+1,2,2,rgb(192,65,49));
-    }
+    for(std::size_t i=0;i<s.world.tiles.size();++i)draw_tile(lcd,s,i);
     for(unsigned k=0;k<construction::site_count;++k) {
         const auto& site=s.sites.sites[k];
         if(site.stage==construction::Stage::empty||site.tile>=s.world.tiles.size()) continue;
