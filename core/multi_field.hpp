@@ -97,16 +97,16 @@ struct Work {
     }
 };
 // Extended work policies retain the existing selected crop transaction.
-template<class Policy>
-inline bool step_with_policy(World& w,discovery::State& research,construction::State& sites,
-                 storage::State& reserve,cooking::State& cooked,shelter::State& sheltered,
+template<class Policy,class Food>
+inline bool step_with_food_policy(World& w,discovery::State& research,construction::State& sites,
+                 storage::State& reserve,shelter::State& sheltered,
                  State& farms,irrigation::State& water,
                  Production& p,discovery::Event& re,construction::Event& ce,std::uint64_t cadence,
-                 const Policy& policy) noexcept {
+                 const Policy& policy,const Food& food) noexcept {
     const bool busy=research.job.active||construction::active(sites)>=0;
     const auto deposits=reserve.deposited;
     if(!storage::step_with_policies(w,research,sites,reserve,p,re,ce,cadence,
-        cooking::MealPolicy{research,sites,reserve,cooked},shelter::Recovery{sites,sheltered},
+        food,shelter::Recovery{sites,sheltered},
         policy,agriculture::Renewal{sites})) return false;
     if(policy.chosen&&!busy&&!research.job.active&&construction::active(sites)<0&&
        re.kind==discovery::EventKind::none&&ce.kind==construction::EventKind::none&&deposits==reserve.deposited) {
@@ -116,6 +116,15 @@ inline bool step_with_policy(World& w,discovery::State& research,construction::S
     }
     irrigation::transfer(w,sites,water);
     return true;
+}
+template<class Policy>
+inline bool step_with_policy(World& w,discovery::State& research,construction::State& sites,
+                 storage::State& reserve,cooking::State& cooked,shelter::State& sheltered,
+                 State& farms,irrigation::State& water,
+                 Production& p,discovery::Event& re,construction::Event& ce,std::uint64_t cadence,
+                 const Policy& policy) noexcept {
+    return step_with_food_policy(w,research,sites,reserve,sheltered,farms,water,p,re,ce,cadence,
+                                 policy,cooking::MealPolicy{research,sites,reserve,cooked});
 }
 inline bool step(World& w,discovery::State& research,construction::State& sites,
                  storage::State& reserve,cooking::State& cooked,shelter::State& sheltered,

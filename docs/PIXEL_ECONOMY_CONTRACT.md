@@ -14,3 +14,5 @@ Immediate order: repair failed construction recovery regression without weakenin
 
 ## Environmental feedback
 Owner-approved direction: [PIXEL_DRIVES_CONTRACT.md](PIXEL_DRIVES_CONTRACT.md). Local scarcity, low population, crowding, hazards and prosperity influence personal motivations and action scores; all actual survival/reproductive/resource constraints remain. No imposed global population target or scripted migration.
+
+PX-11 first implementation: use actual local stored meat preferentially, otherwise eligible adult self-hunts when local plants <=24 (provisional). Integrate before vegetation consumption via default-safe food hook; bounded local food search includes prey/meat, ordinary travel, hydration/care and cooking maintained. Disable duplicate legacy hunting after survival in combined profile. Measure meat-created/consumed/spoiled/remaining conservation with managed yields. New CI pending; broader food-source telemetry, learned hunting, terrain and calibration remain open.

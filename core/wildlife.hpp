@@ -33,7 +33,7 @@ struct Wildlife {
     std::array<std::uint8_t,std::size_t(width)*height> developed;
 };
 struct Totals {
-    std::uint64_t births{}, deaths{}, hunted{}, meals{}, food{}, water{}, predation{}, spoiled{}, migrated{}, displaced_deaths{};
+    std::uint64_t births{}, deaths{}, hunted{}, meals{}, food{}, water{}, predation{}, spoiled{}, migrated{}, displaced_deaths{},meat_created{};
 };
 inline void initialize(Wildlife& state,std::uint64_t seed) noexcept {
     Rng rng{seed^0x57494c444c494645ULL};
@@ -108,17 +108,22 @@ inline void pulse_species(WildlifeTile& tile,Tile& resources,bool breeding,
 inline void pulse(WildlifeTile& tile,Tile& resources,bool breeding,Totals& out) noexcept {
     pulse_species(tile,resources,breeding,breeding,out);
 }
-inline void hunt(Citizen& c,WildlifeTile& tile,std::uint64_t tick,Totals& out,bool developed=false) noexcept {
-    if(!c.health||c.action!=Action::idle||c.hunger<24||life_stage(c,tick)!=LifeStage::adult) return;
-    if(!tile.meat&&!developed) {
+// One shared meat transaction for old benchmark hunting and the new food
+// policy. Consume existing meat before taking another living prey animal.
+inline bool take_meat(WildlifeTile& tile,Totals& out,bool allow_hunt) noexcept {
+    if(!tile.meat&&allow_hunt) {
         for(std::size_t k=0;k<wolf;++k) {
             if(!tile.count[k]||unsigned(tile.meat)+yield[k]>meat_limit) continue;
-            --tile.count[k];tile.meat+=yield[k];++out.hunted;++out.deaths;
+            --tile.count[k];tile.meat+=yield[k];out.meat_created+=yield[k];++out.hunted;++out.deaths;
             break;
         }
     }
-    if(tile.meat) {
-        --tile.meat;++out.meals;
+    if(!tile.meat) return false;
+    --tile.meat;++out.meals;return true;
+}
+inline void hunt(Citizen& c,WildlifeTile& tile,std::uint64_t tick,Totals& out,bool developed=false) noexcept {
+    if(!c.health||c.action!=Action::idle||c.hunger<24||life_stage(c,tick)!=LifeStage::adult) return;
+    if(take_meat(tile,out,!developed)) {
         c.hunger=static_cast<std::uint8_t>(c.hunger-12);
         c.action=Action::eat;
     }
@@ -127,14 +132,16 @@ inline void hunt(Citizen& c,WildlifeTile& tile,std::uint64_t tick,Totals& out,bo
 #include "wildlife_movement.hpp"
 namespace genesis::wildlife {
 // Caller must first complete a validated human tick. No new RNG draws.
-inline void advance(World& w,Wildlife& state,Totals& out,Cadence cadence=original_cadence) noexcept {
+inline void advance(World& w,Wildlife& state,Totals& out,Cadence cadence=original_cadence,bool legacy_hunting=true) noexcept {
     if(!valid_cadence(cadence)||!w.tick) return;
     auto act=[&](Citizen& c) noexcept {
         const auto i=std::size_t(c.y)*width+c.x;
         hunt(c,state.tiles[i],w.tick,out,state.developed[i]!=0);
     };
-    for(auto& c:w.founders) act(c);
-    for(std::size_t i=0;i<w.descendant_count;++i) act(w.descendants[i]);
+    if(legacy_hunting) {
+        for(auto& c:w.founders) act(c);
+        for(std::size_t i=0;i<w.descendant_count;++i) act(w.descendants[i]);
+    }
     if(w.tick%60) return;
     migrate(w,state,out,cadence.prey_avoidance);
     for(std::size_t i=0;i<state.tiles.size();++i) {

@@ -149,3 +149,5 @@ Livestock State adds uint64 supplied_food and supplied_water cumulative adjacent
 Combined livestock profile: agriculture::State adds uint64 distributed, actual existing plot stock sent to adjacent non-field tiles; no new food production or stage/time changes. Shared resource_transfer::move preserves bounded stock. No canonical save changes.
 
 Proposed Pixel drives (not serialized or implemented yet): retain existing hunger/thirst and traits; evaluate additional bounded uint8 fatigue, reproductive motivation, social need, curiosity, comfort, ambition. Derived local context (crowding, food, risk, weather) is transient unless persistent memory is justified; no duplicate health/needs. See PIXEL_DRIVES_CONTRACT.md. Canonical migration and measured memory/performance required before admission.
+
+Wildlife Totals adds uint64 meat_created, actual wild prey yield only; managed yield remains livestock::State::meat_produced. Existing meals/spoiled/remaining meat used for integrated conservation. No new Pixel state or canonical save encoding in this increment.

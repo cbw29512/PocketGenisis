@@ -14,6 +14,12 @@ inline void move_toward(Citizen& c,int x,int y) noexcept {
 struct NoDiscretionaryWork {
     bool operator()(const World&,const Citizen&) const noexcept {return false;}
 };
+// Default policy preserves the existing resource search. Alternate edible
+// sources can participate in the same bounded nearest-tile query.
+template<class Food>
+inline ResourceTarget seek_food(const World& w,const Citizen& c,const Food&) noexcept {
+    return find_resource(w,c.x,c.y,false);
+}
 template<class Work,class Food=NoReserveFood>
 inline void act_survival_with_work(World& w,Citizen& f,Citizen* dependent,const Work& work,const Food& reserve_food={}) noexcept {
     accrue_needs(f);
@@ -23,13 +29,13 @@ inline void act_survival_with_work(World& w,Citizen& f,Citizen* dependent,const 
     const bool travel=founder_can_travel(f,w.tick);
     if(urgent) {
         if(consume_with_reserve(w,f,f,water,reserve_food)) return;
-        auto target=find_resource(w,f.x,f.y,water);
+        auto target=water?find_resource(w,f.x,f.y,true):seek_food(w,f,reserve_food);
         if(target.found&&travel) { move_toward(f,target.x,target.y);return; }
         // A missing primary resource must not prevent meeting another urgent need.
         const bool secondary_urgent=(water?f.hunger:f.thirst)>=12;
         if(secondary_urgent) {
             if(consume_with_reserve(w,f,f,!water,reserve_food)) return;
-            target=find_resource(w,f.x,f.y,!water);
+            target=!water?find_resource(w,f.x,f.y,true):seek_food(w,f,reserve_food);
             if(target.found&&travel) { move_toward(f,target.x,target.y);return; }
         }
         if(founder&&travel) {

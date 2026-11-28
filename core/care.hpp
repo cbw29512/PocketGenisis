@@ -41,9 +41,16 @@ struct NoReserveFood {
     bool operator()(World&,Citizen&,const Citizen&) const noexcept {return false;}
     void after_food(World&,Citizen&,const Citizen&) const noexcept {}
 };
+// Optional food choice before vegetation. The default preserves all legacy
+// policies; a specialized policy may use actual alternate local food.
+template<class Food>
+inline bool preferred_food(World&,Citizen&,const Citizen&,const Food&) noexcept {return false;}
 template<class Food>
 inline bool consume_with_reserve(World& w,Citizen& recipient,const Citizen& provider,
                                  bool water,const Food& reserve) noexcept {
+    if(!water&&preferred_food(w,recipient,provider,reserve)) {
+        reserve.after_food(w,recipient,provider);return true;
+    }
     if(!consume_resource(w,recipient,provider.x,provider.y,water)&&
        (water||!reserve(w,recipient,provider))) return false;
     // Exactly one successful food debit precedes any optional cooking benefit.

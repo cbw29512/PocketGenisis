@@ -91,10 +91,15 @@ int main(){
         }
         check(wildlife::valid(*wild)&&valid_population(*w)&&
               initial+ecology.births==wildlife::population(*wild)+ecology.deaths+herd::captures(animals),"wild transfer accounting");
+        std::uint64_t remaining_meat=0;
+        for(const auto& t:wild->tiles) remaining_meat+=t.meat;
+        check(ecology.meat_created+animals.meat_produced==remaining_meat+ecology.meals+ecology.spoiled,"combined meat conservation");
         std::cout<<"LIVESTOCK_ECOLOGY initial="<<initial<<" births="<<ecology.births
                  <<" deaths="<<ecology.deaths<<" shortage="
                  <<ecology.deaths-ecology.predation-ecology.hunted-ecology.displaced_deaths
                  <<" predation="<<ecology.predation<<" hunted="<<ecology.hunted
+                 <<" meals="<<ecology.meals<<" hunted_yield="<<ecology.meat_created
+                 <<" meat_remaining="<<remaining_meat<<" spoiled="<<ecology.spoiled
                  <<" displaced="<<ecology.displaced_deaths<<" food="<<ecology.food
                  <<" water="<<ecology.water<<" managed_births="<<animals.groups[0].births+animals.groups[1].births
                  <<" managed_deaths="<<animals.groups[0].deaths+animals.groups[1].deaths<<'\n';

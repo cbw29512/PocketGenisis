@@ -10,7 +10,8 @@ struct ResourceTarget {
     bool found{};
 };
 // Open terrain only: impassable tiles will require a pathfinding contract.
-inline ResourceTarget find_resource(const World& w, int x, int y, bool water) noexcept {
+template<class Available>
+inline ResourceTarget find_local_resource(const World& w,int x,int y,const Available& available) noexcept {
     if(x<0 || x>=width || y<0 || y>=height) return {};
     // Nearest nonempty tile wins; stable row-major order breaks ties.
     // Searching successive rings also allows crossing a depleted local tile.
@@ -22,12 +23,17 @@ inline ResourceTarget find_resource(const World& w, int x, int y, bool water) no
             for(int side=0;side<(dx==0?1:2);++side) {
                 const int xx=x+(side==0?-dx:dx);
                 if(xx<0 || xx>=width) continue;
-                const auto& t=w.tiles[static_cast<std::size_t>(yy)*width+static_cast<std::size_t>(xx)];
-                if((water?t.water:t.food)>0) return {xx,yy,true};
+                const auto i=static_cast<std::size_t>(yy)*width+static_cast<std::size_t>(xx);
+                if(available(i,w.tiles[i])) return {xx,yy,true};
             }
         }
     }
     return {};
+}
+inline ResourceTarget find_resource(const World& w,int x,int y,bool water) noexcept {
+    return find_local_resource(w,x,y,[water](std::size_t,const Tile& t) noexcept {
+        return (water?t.water:t.food)>0;
+    });
 }
 // Only desperate founders use this bounded fallback after local search fails.
 inline ResourceTarget find_distant_resource(const World& w,int x,int y,bool water) noexcept {

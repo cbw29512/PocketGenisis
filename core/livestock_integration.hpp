@@ -1,5 +1,6 @@
 #pragma once
 #include "livestock_planning.hpp"
+#include "wildlife_food.hpp"
 
 namespace genesis::livestock {
 struct Work : multi_field::Work {
@@ -26,13 +27,14 @@ inline bool step(World& w,discovery::State& research,construction::State& sites,
     const bool busy=research.job.active||construction::active(sites)>=0;
     const auto deposits=reserve.deposited;
     const Work policy{{research,sites,reserve,farms,home,cadence},wild,animals};
-    if(!multi_field::step_with_policy(w,research,sites,reserve,cooked,sheltered,farms,water,p,re,ce,cadence,policy)) return false;
+    const wildlife::MealPolicy food{{research,sites,reserve,cooked},wild,ecology};
+    if(!multi_field::step_with_food_policy(w,research,sites,reserve,sheltered,farms,water,p,re,ce,cadence,policy,food)) return false;
     mark_development(w,sites,wild);
     if(policy.handler&&!policy.chosen&&!busy&&!research.job.active&&construction::active(sites)<0&&
        re.kind==discovery::EventKind::none&&ce.kind==construction::EventKind::none&&deposits==reserve.deposited)
         work(w,research,sites,wild,animals,w.founders[policy.handler-1]);
     pulse(w,sites,animals,wildlife::sustainable_candidate);
-    wildlife::advance(w,wild,ecology,wildlife::predator_candidate);
+    wildlife::advance(w,wild,ecology,wildlife::predator_candidate,false);
     crop_loss::evaluate_fields(w,sites,farms);
     return true;
 }
