@@ -25,15 +25,17 @@ inline TileView view(const integrated::State& s,std::size_t i) noexcept {
         case terrain_probe::Biome::dryland:color=rgb(176,143,77);break;
         case terrain_probe::Biome::highland:color=rgb(116,114,111);break;
     }
-    // The drainage proxy is potential habitat, not an actual water volume.
-    if(wet) color=stocks.water>=12?rgb(45,105,161):rgb(93,117,126);
+    // Legacy maps contain potential wet habitat, not water depth. Keep
+    // the underlying land visibly walkable; actual water surfaces will
+    // use the same authoritative surface map as movement in a new ruleset.
+    if(wet) color=stocks.water>=12?rgb(79,137,112):rgb(104,131,105);
     else if(stocks.food<12&&terrain.biome!=terrain_probe::Biome::highland)
         color=rgb(133,118,75);
     bool prey=false;
     for(std::size_t k=0;k<wildlife::wolf;++k) prey=prey||animals[k]!=0;
     return {color,wet,s.fish.cells[i].fish!=0,prey,
             animals[wildlife::wolf]!=0||animals[wildlife::bear]!=0,
-            !wet&&terrain.biome==terrain_probe::Biome::forest&&stocks.wood>=20};
+            terrain.biome==terrain_probe::Biome::forest&&stocks.wood>=20};
 }
 // Visual marker colors are keyed to actual construction kinds, never hidden ore.
 inline constexpr std::uint16_t site_color(construction::Kind k) noexcept {
