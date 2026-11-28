@@ -1,5 +1,5 @@
 #pragma once
-#include "livestock.hpp"
+#include "livestock_planning.hpp"
 
 namespace genesis::livestock {
 struct Work : multi_field::Work {
@@ -7,10 +7,15 @@ struct Work : multi_field::Work {
     const State& animals;
     mutable std::uint64_t handler{};
     bool operator()(const World& w,Citizen& c) const noexcept {
-        if(multi_field::Work::operator()(w,c)) return true;
-        if(handler||chosen||research.job.active||construction::active(sites)>=0) return false;
-        if(choose(w,research,sites,wild,animals,c).task==Task::none) return false;
-        handler=c.id;return true;
+        if(productive(w,c)) return true;
+        if(research.job.active||construction::active(sites)>=0) return false;
+        if(!handler&&!chosen) {
+            if(choose(w,research,sites,wild,animals,c).task!=Task::none) {
+                handler=c.id;return true;
+            }
+            if(seek_work(w,research,sites,wild,animals,c)) return true;
+        }
+        return locality(w,c);
     }
 };
 inline bool step(World& w,discovery::State& research,construction::State& sites,

@@ -46,6 +46,7 @@ int main(){
         check(herd::work(*w,knowledge,sites,*wild,animals,a)==herd::Task::capture&&
               herd::work(*w,knowledge,sites,*wild,animals,a)==herd::Task::capture&&
               source.count[wildlife::cattle]==0&&herd::population(animals)==2,"conserved wild capture");
+        w->tiles[build::location(a)].food=w->tiles[build::location(a)].water=herd::supply_reserve;
         check(herd::work(*w,knowledge,sites,*wild,animals,a)==herd::Task::none,"no free animals");
         w->tick=600;herd::pulse(*w,sites,animals);
         check(animals.groups[0].count==3&&stock.food==47&&stock.water==47&&herd::valid(animals),"resource limited birth");
@@ -69,6 +70,23 @@ int main(){
             discovery::Event re{};build::Event ce{};
             check(herd::step(*w,knowledge,sites,reserve,cooked,sheltered,home,farms,water,*wild,ecology,animals,p,re,ce,discovery::probe_cadence),"real integrated tick");
             check(herd::valid(animals)&&multi_field::valid(farms)&&storage::valid(reserve),"local conservation");
+            if(ce.kind!=build::EventKind::none) std::cout<<"LIVESTOCK_BUILD tick="<<w->tick
+                <<" type="<<unsigned(ce.type)<<" event="<<unsigned(ce.kind)<<" tile="<<ce.tile<<'\n';
+            if(w->tick%10800==0) {
+                const auto& plot=sites.sites[build::field];const auto& crop=farms.crops[0];
+                const auto& stock=w->tiles[plot.tile];
+                const auto& pen=sites.sites[build::enclosure];
+                const auto& pen_stock=w->tiles[pen.tile];
+                std::cout<<"LIVESTOCK_QUARTER tick="<<w->tick<<" field="<<unsigned(plot.stage)
+                    <<" plants="<<crop.plants<<" tended="<<crop.tended<<" stage="<<unsigned(crop.stage)
+                    <<" crop_losses="<<crop.drought_losses+crop.spoilage_losses
+                    <<" food="<<stock.food<<" water="<<stock.water
+                    <<" distance1="<<std::abs(int(w->founders[0].x)-int(plot.tile%width))+std::abs(int(w->founders[0].y)-int(plot.tile/width))
+                    <<" distance2="<<std::abs(int(w->founders[1].x)-int(plot.tile%width))+std::abs(int(w->founders[1].y)-int(plot.tile/width))
+                    <<" pen="<<unsigned(pen.stage)<<" pen_food="<<pen_stock.food<<" pen_water="<<pen_stock.water
+                    <<" supplied_food="<<animals.supplied_food<<" supplied_water="<<animals.supplied_water
+                    <<" managed="<<herd::population(animals)<<'\n';
+            }
         }
         check(wildlife::valid(*wild)&&valid_population(*w)&&
               initial+ecology.births==wildlife::population(*wild)+ecology.deaths+herd::captures(animals),"wild transfer accounting");

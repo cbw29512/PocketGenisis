@@ -13,6 +13,7 @@ struct State {
     std::array<Group,species.size()> groups{};
     wildlife::Totals resources{}; // reuse grazing counters; no wild population changes here
     std::uint64_t meat_produced{},last_pulse{};
+    std::uint64_t supplied_food{},supplied_water{};
 };
 inline bool valid(const State& s) noexcept {
     std::uint64_t meat=0;
@@ -39,7 +40,8 @@ inline void mark_development(const World& w,const construction::State& sites,wil
         if(site.stage==construction::Stage::complete&&site.tile<w.tiles.size())
             wild.developed[site.tile]=1;
 }
-enum class Task : std::uint8_t {none,capture,harvest};
+inline constexpr unsigned supply_target=80,supply_batch=4,supply_reserve=24;
+enum class Task : std::uint8_t {none,capture,harvest,supply_food,supply_water};
 struct Choice {Task task{};unsigned group{};};
 inline Choice choose(const World& w,const discovery::State& knowledge,const construction::State& sites,
                      const wildlife::Wildlife& wild,const State& s,const Citizen& c) noexcept {
@@ -56,12 +58,30 @@ inline Choice choose(const World& w,const discovery::State& knowledge,const cons
         for(unsigned i=0;i<species.size();++i)
             if(s.groups[i].count>breeding_floor&&wild.tiles[pen].meat+wildlife::yield[species[i]]<=wildlife::meat_limit)
                 return {Task::harvest,i};
+    // A handler at an undeveloped adjacent source can deliver a small
+    // amount into the pen; never withdraw from an existing field or reserve.
+    if(population(s)&&!wild.developed[tile]&&construction::channel_adjacent(tile,pen)) {
+        const auto& from=w.tiles[tile];const auto& to=w.tiles[pen];
+        if(to.food<supply_target&&from.food>supply_reserve) return {Task::supply_food,0};
+        if(to.water<supply_target&&from.water>supply_reserve) return {Task::supply_water,0};
+    }
     return {};
 }
 inline Task work(World& w,const discovery::State& knowledge,const construction::State& sites,
                  wildlife::Wildlife& wild,State& s,Citizen& c) noexcept {
     const auto choice=choose(w,knowledge,sites,wild,s,c);
     if(choice.task==Task::none) return Task::none;
+    if(choice.task==Task::supply_food||choice.task==Task::supply_water) {
+        auto& from=w.tiles[construction::location(c)];
+        auto& to=w.tiles[sites.sites[construction::enclosure].tile];
+        const bool food=choice.task==Task::supply_food;
+        auto& source=food?from.food:from.water;auto& dest=food?to.food:to.water;
+        const auto moved=std::min({supply_batch,unsigned(source-supply_reserve),
+                                   unsigned(supply_target-dest)});
+        source-=moved;dest+=moved;
+        (food?s.supplied_food:s.supplied_water)+=moved;
+        return choice.task;
+    }
     auto& g=s.groups[choice.group];const auto k=species[choice.group];
     if(choice.task==Task::capture) {
         --wild.tiles[construction::location(c)].count[k];++g.count;++g.captured;

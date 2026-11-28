@@ -30,7 +30,7 @@ struct Work {
     std::uint64_t cadence;
     mutable std::uint64_t chosen{};
     mutable unsigned selected{};
-    bool operator()(const World& w,Citizen& c) const noexcept {
+    bool productive(const World& w,Citizen& c) const noexcept {
         if(storage::ReserveWork{research,sites,reserve,cadence}(w,c)) return true;
         if(research.job.active||construction::active(sites)>=0) {
 #ifdef PG_IRRIGATION_PROBE
@@ -59,6 +59,11 @@ struct Work {
                 }
             }
         }
+        return false;
+    }
+    // Separate work from idle locality so other actual economic tasks
+    // can precede optional wandering/return-home without copying crop logic.
+    bool locality(const World& w,Citizen& c) const noexcept {
         if(agriculture::farmer(research,c)&&c.hunger<=8&&c.thirst<=8) {
             int best=settlement::home_radius+1,near=-1;
             for(unsigned i=0;i<construction::field_count;++i) {
@@ -74,6 +79,11 @@ struct Work {
             }
         }
         return settlement::return_home(w,sites,c,home);
+    }
+    bool operator()(const World& w,Citizen& c) const noexcept {
+        if(productive(w,c)) return true;
+        if(research.job.active||construction::active(sites)>=0) return false;
+        return locality(w,c);
     }
 };
 // Extended work policies retain the existing selected crop transaction.

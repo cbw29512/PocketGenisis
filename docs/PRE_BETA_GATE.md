@@ -19,3 +19,5 @@ Prioritize actual source changes and tests, not just documentation. Close PB-01/
 Wildlife cadence candidate 600/3600 vs original 60/600; actual stock-renewal mismatch reviewed. Comparative seasonal conservation tests and species/death diagnostics added. See WILDLIFE_BALANCE_CONTRACT.md. CI and outcome comparison pending; PB-01 remains open.
 
 PB-01 baseline comparative cadence CI 46087239903 succeeded. Combined ecology recovered to 12460 but predation remains high and pen/capture absent. Predator reproduction and local avoidance refinement implemented; CI pending. PB-01 still open.
+
+PB-01 predator CI 46087693295 passed with reduced predation and actual capture/breeding, but managed extinction and zero harvests. Local supply/movement revision added with diagnostics; CI pending. Sustainable livestock, farming and fishing remain open.
