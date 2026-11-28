@@ -11,7 +11,11 @@ enum Stream : std::size_t { terrain, traits, environment, decisions, reproductio
 struct Tile {
     std::uint16_t food{}, wood{}, water{}, stone{};
 };
-enum class Action : std::uint8_t { idle, move, eat, drink, care };
+enum class Action : std::uint8_t { idle, move, eat, drink, care
+#ifdef PG_FATIGUE_PROBE
+    ,rest
+#endif
+};
 enum class Purpose : std::uint8_t { none, gatherer, builder, inventor };
 enum class LifeStage : std::uint8_t { infant, child, adolescent, adult, elder };
 enum class BirthOutcome : std::uint8_t { normal, complicated, fatal };
@@ -25,6 +29,9 @@ struct Citizen {
     std::uint16_t x{}, y{};
     std::array<std::uint8_t, 6> personality{};
     std::uint8_t hunger{}, thirst{};
+#ifdef PG_FATIGUE_PROBE
+    std::uint8_t fatigue{}, rest_intent{};
+#endif
     Action action{Action::idle};
     std::uint64_t parent1{}, parent2{}, birth_tick{};
     std::uint64_t guardian_id{}, guardian_since_tick{};

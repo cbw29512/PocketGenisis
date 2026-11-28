@@ -5,7 +5,12 @@
 namespace genesis {
 inline bool valid_agent(const Citizen& c) noexcept {
     if(c.x>=width || c.y>=height || c.hunger>100 || c.thirst>100 || c.health>100 ||
+#ifdef PG_FATIGUE_PROBE
+       c.fatigue>100||c.rest_intent>1||
+       static_cast<unsigned>(c.action)>static_cast<unsigned>(Action::rest)||
+#else
        static_cast<unsigned>(c.action)>static_cast<unsigned>(Action::care)||
+#endif
        static_cast<unsigned>(c.birth_outcome)>static_cast<unsigned>(BirthOutcome::fatal)) return false;
     if(!valid_diseases(c)) return false;
     for(auto trait:c.personality) if(trait>100) return false;

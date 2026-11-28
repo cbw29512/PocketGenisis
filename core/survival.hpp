@@ -1,6 +1,9 @@
 #pragma once
 #include "founder_recovery.hpp"
 #include "resource_search.hpp"
+#ifdef PG_FATIGUE_PROBE
+#include "fatigue.hpp"
+#endif
 #include <algorithm>
 
 namespace genesis {
@@ -23,6 +26,9 @@ inline ResourceTarget seek_food(const World& w,const Citizen& c,const Food&) noe
 template<class Work,class Food=NoReserveFood>
 inline void act_survival_with_work(World& w,Citizen& f,Citizen* dependent,const Work& work,const Food& reserve_food={}) noexcept {
     accrue_needs(f);
+#ifdef PG_FATIGUE_PROBE
+    fatigue::accrue(f,w.tick);
+#endif
     const bool urgent=urgent_need(f);
     const bool water=f.thirst>=f.hunger;
     const bool founder=is_founder(f);
@@ -47,8 +53,19 @@ inline void act_survival_with_work(World& w,Citizen& f,Citizen* dependent,const 
         return;
     }
     // A critically weakened founder rests unless survival requires crawling.
-    if(founder_incapacitated(f)) return;
+    if(founder_incapacitated(f)) {
+#ifdef PG_FATIGUE_PROBE
+        fatigue::rest(f);
+#endif
+        return;
+    }
     if(give_care(w,f,dependent,reserve_food)) return;
+#ifdef PG_FATIGUE_PROBE
+    // A weakened partner's emergency assistance still precedes rest.
+    // Rest has its own action, preventing idle-only research, construction
+    // and economic transactions from being credited during sleep.
+    if(!fatigue::partner_needs_help(w,f)&&fatigue::rest(f)) return;
+#endif
     // Reunite founders only after survival and care; never force conception.
     if(founder) {
         const auto& other=w.founders[f.id==1?1:0];

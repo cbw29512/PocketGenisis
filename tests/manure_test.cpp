@@ -18,7 +18,8 @@ int main(){
         auto w=std::make_unique<World>();initialize(*w,42);
         auto wild=std::make_unique<wildlife::Wildlife>();
         auto& a=w->founders[0];auto& b=w->founders[1];
-        const auto pen=build::location(a),field=pen+2;
+        const auto pen=build::location(a);
+        const auto field=static_cast<std::uint16_t>(pen+2);
         discovery::State knowledge{};build::State sites{};multi_field::State farms{};
         livestock::State animals{};
         for(unsigned k=0;k<build::site_count;++k) {
