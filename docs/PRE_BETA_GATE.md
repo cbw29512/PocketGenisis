@@ -52,3 +52,5 @@ PX-14 optional freshwater habitat and fish conservation candidate integrated wit
 CI 46092755205 passed weather and actual integrated fishing (53 caught,576 surviving from1898 initial), but aquatic population decline warrants calibration. Added optional seasonal feeding/migration candidate and separate mortality accounting; controlled and comparative seed-year tests pending CI. No beta readiness claim.
 
 Owner confirms ecological collapse/depletion is allowed. PB-01/PB-06 validation must assess causal constraints and conservation, not mandatory positive species totals or guaranteed recovery. See MVP ecological depletion and extinction rule. All gates remain open.
+
+PX-24/PX-25: finite underground endowment and maximum depth tracked under material progression; optional late science restoration of non-fish animals tracked in roadmap, with preserved material and actual research prerequisites. Globally exhausted fish remain extinct. No forced recovery, no advanced-science requirement for initial beta. All current release gates remain open.
