@@ -15,10 +15,15 @@ class Inspection {
     std::uint64_t selected_{};
     bool ready_{},pressed_{};
 #ifdef PG_PERSISTENT_OBSERVER
-    bool overview_{};
+    DisplaySettings settings_{};
+    SaveStatus saved_{};
 #endif
     std::uint32_t last_poll_{};
 public:
+#ifdef PG_PERSISTENT_OBSERVER
+    void save_status(const SaveStatus& saved) noexcept {saved_=saved;}
+    std::uint8_t brightness() const noexcept {return settings_.brightness;}
+#endif
     void begin() noexcept {
         auto cfg=touch_.config();
         cfg.i2c_port=1;cfg.pin_sda=19;cfg.pin_scl=20;
@@ -45,8 +50,8 @@ public:
             Serial.println("TOUCH outside native bounds");return false;
         }
 #ifdef PG_PERSISTENT_OBSERVER
-        if(overview_){overview_=false;return true;}
-        if(globe_hit(p.x,p.y)){overview_=true;selected_=0;return true;}
+        if(settings_.overview)return settings_.touch(p.x,p.y);
+        if(globe_hit(p.x,p.y)){settings_.overview=true;selected_=0;return true;}
 #endif
         // Outside the small globe target, map positions remain inspectable
         // unless the temporary citizen panel covers them.
@@ -70,7 +75,7 @@ public:
         for(const auto& c:s.world.founders) add(c);
         for(std::size_t i=0;i<s.world.descendant_count;++i) add(s.world.descendants[i]);
 #ifdef PG_PERSISTENT_OBSERVER
-        if(overview_){draw_summary(lcd,summarize(s));return;}
+        if(settings_.overview){draw_summary(lcd,summarize(s),settings_,saved_);return;}
         draw_world_button(lcd);
 #endif
         // An unselected observer draws nothing over the civilization.
