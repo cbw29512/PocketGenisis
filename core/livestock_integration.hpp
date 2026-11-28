@@ -11,10 +11,10 @@ struct Work : multi_field::Work {
         if(productive(w,c)) return true;
         if(research.job.active||construction::active(sites)>=0) return false;
         if(!handler&&!chosen) {
-            if(choose(w,research,sites,wild,animals,c).task!=Task::none) {
+            if(choose(w,research,sites,wild,animals,c,true).task!=Task::none) {
                 handler=c.id;return true;
             }
-            if(seek_work(w,research,sites,wild,animals,c)) return true;
+            if(seek_work(w,research,sites,wild,animals,c,true)) return true;
         }
         return locality(w,c);
     }
@@ -32,8 +32,8 @@ inline bool step(World& w,discovery::State& research,construction::State& sites,
     mark_development(w,sites,wild);
     if(policy.handler&&!policy.chosen&&!busy&&!research.job.active&&construction::active(sites)<0&&
        re.kind==discovery::EventKind::none&&ce.kind==construction::EventKind::none&&deposits==reserve.deposited)
-        work(w,research,sites,wild,animals,w.founders[policy.handler-1]);
-    pulse(w,sites,animals,wildlife::sustainable_candidate);
+        work(w,research,sites,wild,animals,w.founders[policy.handler-1],true);
+    pulse(w,sites,animals,wildlife::sustainable_candidate,true);
     wildlife::advance(w,wild,ecology,wildlife::predator_candidate,false);
     crop_loss::evaluate_fields(w,sites,farms);
     return true;

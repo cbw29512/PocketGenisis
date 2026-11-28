@@ -6,7 +6,7 @@ namespace genesis::livestock {
 // Movement is ordinary, one tile at a time; no remote animal or food transfer.
 inline bool seek_work(const World& w,const discovery::State& knowledge,
                       const construction::State& sites,const wildlife::Wildlife& wild,
-                      const State& s,Citizen& c) noexcept {
+                      const State& s,Citizen& c,bool winter_reserve=false) noexcept {
     if(!ready_pen(w,sites)||!is_founder(c)||!discovery::available(c)||
        c.hunger>8||c.thirst>8||!(knowledge.known[c.id-1]&discovery::tech_bit(discovery::husbandry))) return false;
     const auto pen=sites.sites[construction::enclosure].tile;
@@ -19,10 +19,10 @@ inline bool seek_work(const World& w,const discovery::State& knowledge,
         const int d=std::abs(int(c.x)-x)+std::abs(int(c.y)-y);
         if(!d) continue;
         Citizen probe=c;probe.x=static_cast<std::uint16_t>(x);probe.y=static_cast<std::uint16_t>(y);
-        const auto task=choose(w,knowledge,sites,wild,s,probe).task;
+        const auto task=choose(w,knowledge,sites,wild,s,probe,winter_reserve).task;
         if(task==Task::none) continue;
         // Capture/harvest before supplies, then shortest distance and stable tile.
-        const unsigned rank=task==Task::capture?0:task==Task::harvest?1:2;
+        const unsigned rank=task==Task::capture?0:task==Task::harvest?1:task==Task::store_fodder?3:2;
         const auto tile=construction::location(probe);
         if(rank<priority||(rank==priority&&(d<best||(d==best&&tile<target)))) {
             priority=rank;best=d;target=tile;

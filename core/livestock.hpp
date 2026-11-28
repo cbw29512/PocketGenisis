@@ -4,7 +4,7 @@
 #endif
 #include "crop_loss.hpp"
 #include "wildlife.hpp"
-#include "resource_transfer.hpp"
+#include "livestock_fodder.hpp"
 
 namespace genesis::livestock {
 inline constexpr unsigned capacity=8,breeding_floor=3;
@@ -15,6 +15,7 @@ struct State {
     wildlife::Totals resources{}; // reuse grazing counters; no wild population changes here
     std::uint64_t meat_produced{},last_pulse{};
     std::uint64_t supplied_food{},supplied_water{};
+    Fodder fodder{};
 };
 inline bool valid(const State& s) noexcept {
     std::uint64_t meat=0;
@@ -23,7 +24,7 @@ inline bool valid(const State& s) noexcept {
         if(g.count>capacity||g.captured+g.births!=g.count+g.deaths+g.harvested) return false;
         meat+=g.harvested*wildlife::yield[species[i]];
     }
-    return meat==s.meat_produced&&s.resources.food==s.resources.water;
+    return meat==s.meat_produced&&s.resources.food==s.resources.water&&valid(s.fodder);
 }
 inline unsigned population(const State& s) noexcept {
     unsigned n=0;for(const auto& g:s.groups)n+=g.count;return n;
@@ -42,10 +43,10 @@ inline void mark_development(const World& w,const construction::State& sites,wil
             wild.developed[site.tile]=1;
 }
 inline constexpr unsigned supply_target=80,supply_batch=4,supply_reserve=24;
-enum class Task : std::uint8_t {none,capture,harvest,supply_food,supply_water};
+enum class Task : std::uint8_t {none,capture,harvest,supply_food,supply_water,store_fodder};
 struct Choice {Task task{};unsigned group{};};
 inline Choice choose(const World& w,const discovery::State& knowledge,const construction::State& sites,
-                     const wildlife::Wildlife& wild,const State& s,const Citizen& c) noexcept {
+                     const wildlife::Wildlife& wild,const State& s,const Citizen& c,bool winter_reserve=false) noexcept {
     if(!ready_pen(w,sites)||!is_founder(c)||!discovery::available(c)||
        !(knowledge.known[c.id-1]&discovery::tech_bit(discovery::husbandry))) return {};
     const auto pen=sites.sites[construction::enclosure].tile;
@@ -66,12 +67,23 @@ inline Choice choose(const World& w,const discovery::State& knowledge,const cons
         if(to.food<supply_target&&from.food>supply_reserve) return {Task::supply_food,0};
         if(to.water<supply_target&&from.water>supply_reserve) return {Task::supply_water,0};
     }
+    // Stockpile before winter, including a small initial reserve at a
+    // completed but empty pen. Winter deliveries require living animals.
+    if(winter_reserve&&(population(s)||season(w)==1||season(w)==2)&&
+       !wild.developed[tile]&&construction::channel_adjacent(tile,pen)&&
+       s.fodder.balance<fodder_target(population(s))&&w.tiles[tile].food>supply_reserve)
+        return {Task::store_fodder,0};
     return {};
 }
 inline Task work(World& w,const discovery::State& knowledge,const construction::State& sites,
-                 wildlife::Wildlife& wild,State& s,Citizen& c) noexcept {
-    const auto choice=choose(w,knowledge,sites,wild,s,c);
+                 wildlife::Wildlife& wild,State& s,Citizen& c,bool winter_reserve=false) noexcept {
+    const auto choice=choose(w,knowledge,sites,wild,s,c,winter_reserve);
     if(choice.task==Task::none) return Task::none;
+    if(choice.task==Task::store_fodder) {
+        if(!deposit_fodder(s.fodder,w.tiles[construction::location(c)],population(s),
+                           supply_reserve,supply_batch)) return Task::none;
+        return choice.task;
+    }
     if(choice.task==Task::supply_food||choice.task==Task::supply_water) {
         auto& from=w.tiles[construction::location(c)];
         auto& to=w.tiles[sites.sites[construction::enclosure].tile];
@@ -93,17 +105,24 @@ inline Task work(World& w,const discovery::State& knowledge,const construction::
     return choice.task;
 }
 inline void pulse(World& w,const construction::State& sites,State& s,
-                  wildlife::Cadence cadence=wildlife::original_cadence) noexcept {
+                  wildlife::Cadence cadence=wildlife::original_cadence,bool winter_reserve=false) noexcept {
     if(!wildlife::valid_cadence(cadence)||!w.tick||w.tick%cadence.feeding||
        w.tick<=s.last_pulse||!ready_pen(w,sites)) return;
     auto& stock=w.tiles[sites.sites[construction::enclosure].tile];
     s.last_pulse=w.tick;
+    const auto feed=[&](unsigned n) noexcept {
+        return winter_reserve?feed_with_fodder(stock,n,s.fodder,s.resources):
+                              wildlife::graze(stock,n,s.resources);
+    };
     for(auto& g:s.groups) {
         // Existing wildlife graze debits food and water, no new resource system.
-        const auto surviving=wildlife::graze(stock,g.count,s.resources);
+        const auto surviving=feed(g.count);
         g.deaths+=g.count-surviving;g.count=static_cast<std::uint16_t>(surviving);
         if(w.tick%cadence.breeding==0) {
-            const auto born=wildlife::graze(stock,wildlife::offspring_request(surviving,capacity),s.resources);
+            // Do not spend winter reserves on extra births while ordinary
+            // food is scarce; preserve the breeding population first.
+            const auto wanted=wildlife::offspring_request(surviving,capacity);
+            const auto born=wildlife::graze(stock,wanted,s.resources);
             g.count+=born;g.births+=born;
         }
     }

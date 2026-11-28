@@ -86,6 +86,8 @@ int main(){
                     <<" distance2="<<std::abs(int(w->founders[1].x)-int(plot.tile%width))+std::abs(int(w->founders[1].y)-int(plot.tile/width))
                     <<" pen="<<unsigned(pen.stage)<<" pen_food="<<pen_stock.food<<" pen_water="<<pen_stock.water
                     <<" supplied_food="<<animals.supplied_food<<" supplied_water="<<animals.supplied_water
+                    <<" fodder="<<animals.fodder.balance<<" fodder_deposited="<<animals.fodder.deposited
+                    <<" fodder_released="<<animals.fodder.released
                     <<" managed="<<herd::population(animals)<<'\n';
             }
         }

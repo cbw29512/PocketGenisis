@@ -38,3 +38,5 @@ MVP.md now contains PX-01–PX-18 acceptance items for approved Pixel needs, env
 PX-13 construction recovery: CI 46089679569 failed completion. Shared active-builder return path added, controlled real-tick displaced builder regression and final diagnostics. New CI pending; no pre-beta gate closed.
 
 PX-13 CI 46090056563 passed, including natural enclosure recovery and 26 harvests. Herd extinct and hunted0. See ECOSYSTEM_AUDIT.md for integrated gaps. PX-11 authoritative survival meat/prey option and conservation tests added, CI pending. All PB gates open.
+
+PX-11 CI 46090442973 passed, actual natural hunting157 and meat meals426 with 26 harvests; meat conservation verified. PX-14 dedicated winter fodder reserve candidate and regression added, CI pending; sustainable herds and multi-seed balance still open.
