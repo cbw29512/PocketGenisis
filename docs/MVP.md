@@ -94,3 +94,6 @@ Candidate real-world elapsed targets: fire/primitive tools 1–2 days, shelter/h
 
 ## Pre-beta installation rule (owner direction)
 Complete a functioning integrated autonomous world before installing the user-facing beta. Follow [PRE_BETA_GATE.md](PRE_BETA_GATE.md); individual disposable probes do not constitute beta readiness. Preserve physical qualification and separate official founding approval. No claim of complete advanced-era progression without actual mechanics and owner scope agreement.
+
+## Pixels and meaningful economic progression
+Owner terminology: inhabitants are Pixels (Founders are the immortal original Pixels). Build need-driven gathering, hunting before learned agriculture, settlement and complementary food/resource economies, not scripted unlocks. See [PIXEL_ECONOMY_CONTRACT.md](PIXEL_ECONOMY_CONTRACT.md). Existing internal Citizen identities and persistence contracts unchanged.

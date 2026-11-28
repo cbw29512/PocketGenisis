@@ -27,7 +27,7 @@ int main(){
         sites.sites[build::hut].stage=build::Stage::complete;sites.sites[build::hut].tile=tile-1;
         sites.sites[build::field].stage=build::Stage::complete;sites.sites[build::field].tile=tile-2;
         w->descendant_count=1;w->next_citizen_id=4;
-        auto& child=w->descendants[0];child.id=3;child.parent1=1;child.parent2=2;child.x=a.x;child.y=a.y;
+        auto& child=w->descendants[0];child.id=3;child.parent1=1;child.parent2=2;child.x=a.x;child.y=a.y;child.birth_tick=1;
         auto& stock=w->tiles[tile];stock.food=stock.water=stock.wood=stock.stone=100;
         auto event=build::advance(*w,knowledge,sites);
         check(event.kind==build::EventKind::started&&event.type==build::enclosure&&stock.wood==94&&stock.stone==98,"initial paid work");
@@ -58,6 +58,7 @@ int main(){
               pen.work==5&&pen.started==started&&!pen.finished&&stock.wood==0&&stock.stone==0,"qualified handoff retains labor and materials");
         // Real authoritative ticks finish the remaining work.
         a.hunger=0;a.thirst=0;
+        check(valid_population(*w),"valid controlled family before real ticks");
         Production p{};
         for(unsigned i=0;i<240&&pen.stage!=build::Stage::complete;++i) {
             discovery::Event re{};build::Event ce{};

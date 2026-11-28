@@ -1,5 +1,5 @@
 # Pocket Genesis
-Two immortal lives. An endless civilization.
+Two immortal Pixels. An endless civilization.
 
 **Central design principle: Two identical devices, the same laws, different random seeds — dramatically different civilizations.** We create the laws; inhabitants create their history.
 
@@ -21,3 +21,5 @@ Host-only disposable-world checkpoints are implemented and tested under `storage
 - [Open-source reuse policy and candidate register](docs/OPEN_SOURCE_REUSE.md)
 
 - [Integrated world pre-beta readiness gates](docs/PRE_BETA_GATE.md) — not ready for beta installation yet.
+
+- [Pixels and need-driven economic progression](docs/PIXEL_ECONOMY_CONTRACT.md)
