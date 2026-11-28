@@ -24,6 +24,8 @@ public:
 #ifdef PG_PERSISTENT_OBSERVER
     void save_status(const SaveStatus& saved) noexcept {saved_=saved;}
     std::uint8_t brightness() const noexcept {return settings_.brightness;}
+    unsigned ticks_per_second() const noexcept {return settings_.ticks_per_second();}
+    bool take_reset() noexcept {return settings_.take_reset();}
     bool overview_open() const noexcept {return settings_.overview;}
     bool citizen_open() const noexcept {return selected_!=0;}
     void invalidate_summary() noexcept {summary_painter_.invalidate();}
