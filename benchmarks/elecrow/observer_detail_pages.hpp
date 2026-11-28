@@ -33,11 +33,11 @@ void deaths_page(const integrated::State& state,unsigned page,const Line& line){
     line(8,420,90,27,"Newest first %u/%u",page+1,unsigned(death_pages(p.deaths)));
     for(unsigned i=0;i<deaths_per_page;++i){
         const auto* d=death_at(state.world,page,i);
-        const int y=112+int(i)*30;
+        const int y=104+int(i)*32;
         if(d){
             const auto age=d->death_tick>=d->citizen.birth_tick?d->death_tick-d->citizen.birth_tick:0;
             line(9+i*2,420,y,27,"Pixel %llu",(unsigned long long)d->citizen.id);
-            line(10+i*2,420,y+15,27,"%s %lluy%llum",cause_label(d->cause),
+            line(10+i*2,420,y+16,27,"%s %lluy%llum",cause_label(d->cause),
                 (unsigned long long)(age/ticks_per_year),
                 (unsigned long long)(age%ticks_per_year/(ticks_per_year/12)));
         }else{
@@ -54,8 +54,11 @@ void progress_page(const integrated::State& state,const Line& line){
     for(unsigned i=0;i<discovery::tech_count;++i){
         const auto& record=state.knowledge.first[i];
         // Do not expose undiscovered technologies as achievements.
-        if(record.founder)line(2+row,48,112+int(row)*20,30,"%s Y%llu",
-            discovery::rules[i].name,(unsigned long long)(record.tick/ticks_per_year+1)),++row;
+        if(record.founder){
+            line(2+row,48,112+int(row)*20,30,"%s Y%llu F%u",
+                discovery::rules[i].name,(unsigned long long)(record.tick/ticks_per_year+1),unsigned(record.founder));
+            ++row;
+        }
     }
     if(!row)line(2,48,112,30,"None yet");
     std::array<unsigned,construction::kind_count> counts{};
