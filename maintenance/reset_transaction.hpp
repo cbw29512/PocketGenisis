@@ -24,14 +24,14 @@ ResetResult execute_reset(Adapter& io,ResetPermit& permit,const std::string& con
     try{
         if(permit.consumed)throw std::runtime_error("reset confirmation already consumed");
         permit.consumed=true;
-        if(!paused||permit.identity.empty()||confirmation!=permit.confirmation)
+        if(!paused||permit.identity.empty()||confirmation!="DELETE POCKET GENESIS "+permit.identity||confirmation!=permit.confirmation)
             throw std::runtime_error("reset confirmation refused");
         // The marker is bound to the old identity. A changed card/world is not erased.
         if(io.identity()!=permit.identity)throw std::runtime_error("world identity changed");
         if(io.pending())throw std::runtime_error("existing reset must be resumed explicitly");
         started=true;io.begin_reset(permit.identity);
-        if(!io.pending())throw std::runtime_error("reset marker not durable");
-        io.erase_world_files();
+        if(!io.pending()||io.reset_identity()!=permit.identity)throw std::runtime_error("reset marker not durable or identity mismatch");
+        io.erase_world_files(permit.identity);
         if(!io.world_absent())throw std::runtime_error("world deletion incomplete");
         io.finish_reset();
         if(io.pending())throw std::runtime_error("reset marker not cleared");
@@ -47,8 +47,9 @@ ResetResult resume_reset(Adapter& io,const std::string& confirmation,bool paused
         const auto identity=io.reset_identity();
         if(identity.empty()||confirmation!="DELETE POCKET GENESIS "+identity)
             return {ResetStatus::refused,"reset confirmation refused"};
-        // Adapter must refuse a foreign namespace even if the marker survived.
-        io.erase_world_files();
+        // If the directory still exists, the adapter must verify its identity
+        // before deletion; missing identity is allowed only for a proven empty shell.
+        if(!io.world_absent())io.erase_world_files(identity);
         if(!io.world_absent())throw std::runtime_error("world deletion incomplete");
         io.finish_reset();
         if(io.pending())throw std::runtime_error("reset marker not cleared");
