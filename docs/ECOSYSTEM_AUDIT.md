@@ -1,0 +1,35 @@
+# Living ecosystem audit — c8a024e / CI 46090056563
+Verdict: NOT beta-ready. Existing host tests pass; one-year seed42 combined world produced 26 harvests, 4 captures, 4 managed births, 6 managed deaths, 10 meat units, 35 food supplied, 10485 wild animals and 4 living Pixels. Actual enclosure started 18849, abandoned 19462, resumed 20069 and completed 20096. Controlled resumed construction completed with work30, health100, food/water94. All managed animals absent at end-year; zero wild hunts. These observations establish individual and combined progress, not ecological sustainability.
+
+| MVP coverage | Evidence | Remaining blocker |
+|---|---|---|
+| PX-01/02 identity, needs | Existing Citizen/Pixel identities, hunger/thirst, survival, care | Public observer and full needs inspection missing |
+| PX-03–09 drives and local feedback | Design approved; lifecycle/disease/resource pressure slices exist | Fatigue/rest, reproductive/social/crowding/curiosity motivations and actual contextual selection not integrated |
+| PX-10 geography | Pinned terrain generator host-tested separately | Distinct biomes, hydrology, ore, weather and terrain travel/renewal integrated into actual world |
+| PX-11 food and hunting | Existing wildlife hunt ran only after survival, threshold24 vs urgent12; zero natural hunts | Make actual alternate food choice during survival, then evaluate natural runs and learned hunting |
+| PX-12 wildlife | Predation and consumption calibration improves first-year survival | Strong winter shortage, low wolf count, multi-seed/multi-year survival and habitat recovery unverified |
+| PX-13 construction/farming | 26 harvests and natural resumed enclosure verified | Dependence on two founders, seasonal scarcity, full maintenance/decay |
+| PX-14 livestock/fish | Real capture/birth/supply/harvest, but herd extinct | Winter feed, actual meat use, milk/eggs/protection, aquatic habitat/fish |
+| PX-15 knowledge/roles | Eight discovery probe entries | Actual mortal knowledge/learning and remaining initial technology, role-driven work; later roadmap |
+| PX-16–18 | Partial host and older device probes | Unified saved state, replay/reload, 32-seed and long-horizon gates, observer target, physical soak |
+
+Existing current maps initialize food/wood/water 60–100 across all tiles; seasonal stock regeneration uniform outside cultivated plots. This is a specific root cause of insufficient geographic differentiation. Do not mistake the FastNoiseLite sidecar for integrated terrain. Existing economy work is mostly founder-specific; descendants have common survival/lifecycle but not the full economic job/knowledge system. One-year tests cannot demonstrate adult descendants or multi-generation adaptation. 
+Next implementation in this revision: PX-11 alternate local food policy, existing meat before new prey, provisional local vegetation threshold24 for self-hunting by eligible healthy adults; actual stored meat may feed dependent care. Keep urgent hydration, real shared satisfaction/cooking, bounded nearest search, no new RNG or per-agent state. Old standalone profiles retain previous hunting behavior; combined wildlife pulse disables its post-survival hunt to avoid duplicate action. Count harvested wild meat, meals, spoilage and remaining meat plus managed meat and require conservation. New tests and CI pending. No guarantee of hunting/farming coexistence; later balance across fixed seeds, winter survival, terrain and drives. Use existing internal mechanics; prior external ecosystem references are desktop/individual-model mismatches, no external code required. No beta or official world.
+
+CI 46090442973 at dd031e9: controlled hunting and natural combined hunt157/meals426, crops26, wild10512, meat conserved. Managed animals still extinct by year-end. Next candidate actual separately stored fodder, cap192 and seasonal preparation, releases only real feed deficit supported by water; controlled winter comparison and natural quarterly diagnostics pending. No beta readiness claim.
+
+CI 46091151689: controlled winter reserve passed, natural seed42 eight managed animals surviving, crops25, wild10820, fodder126, released0. Natural drawdown and sustained multi-seed balance remain open. Geography candidate now maps differentiated initial food/wood/water/stone and finite hidden mineral deposits separately; no integrated terrain renewal/extraction or new official world. PX-19–22 track forestry and mineral economy.
+
+CI 46091527200 passed mineral geography candidate; 24KB map, seed42 has all eight deposit types. New optional combined terrain renewal uses real biome stock differences throughout ticks, existing food/wildlife/farm/livestock mechanics, controlled and two seed-year tests. CI pending. Evaluate founder viability, crop and herd outcomes against prior baseline; no assumptions that geographical scarcity improves all outcomes. No official save/device changes.
+
+CI 46091929332 passed integrated terrain two seed-years: wild12840/10005, hunts195/184, harvests55/58, managed6/6, founders health100. Next regional weather optional renewal modifier with deterministic cache, paired controlled and natural comparisons pending. Full ecosystem still not beta-ready; hydrology, fishing, forestry/mining, drives and unified persistence open.
+
+Freshwater candidate adds optional local habitat/fish/forage transactions to terrain/weather ecology, controlled and natural annual tests pending. No full hydrology, fish migration, gear or production integration.
+
+CI 46092755205 passed: natural fish catch53, final576, severe fish loss; combined crops60 managed8. Weather paired results passed. New optional cold-season feeding and threatened local migration candidate, separate food/water death diagnostics, paired seeds0/42. CI pending; full hydrology and long-term stability still open.
+
+CI 46093443337 passed freshwater balanced seed0/42 surviving2364/2296 caught0/164. Permanent extinction retained. PX-26 optional fertility-linked farming/fallow candidate, tests pending. PX-27–31 tracked; no beta readiness.
+
+CI 46095278474 passed all 66 host test programs. Soil seed42 crops12, fertility64, managed6, fish2399; controlled manure chain passed; fatigue-enabled seed42 crops12, managed0, manure applied0, fish2429, rest2678. Reproductive feedback passed separate paired tests low9/high58. Audit follow-up combines reproductive/fatigue/soil/manure/terrain/weather/fish in one regression, pending CI, without asserting positive herd or population quotas. See READINESS_AUDIT_20261127.md for updated project-wide blockers.
+
+CI 46095940535 passed 67 programs, baseline balanced founding 32 distinct worlds in45 attempts (max3). New optional connected drainage candidate and actual fish recolonization integrated with all latest drives and ecology in two annual tests, pending CI. No full hydrology or release certification; existing scope retained.

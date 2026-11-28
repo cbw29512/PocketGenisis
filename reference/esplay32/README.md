@@ -1,0 +1,3 @@
+# Isolated upstream hardware reference
+Source: https://github.com/aerodynamics-py/ESPLAY32/tree/b73b5705ea62534eb59303721ccb815825629967
+Files copied unchanged: src/LGFX_Config.h, platformio.ini (renamed to .reference to avoid accidental builds), LICENSE. MIT copyright retained. Not compiled, not a verified Pocket Genesis board driver. Upstream targets CrowPanel 7-inch ESP32-S3-WROOM-1-N4R8, 800x480 RGB, GT911 and LovyanGFX. Confirm exact PCB/module/pins, boot mode and storage before selecting this configuration. GPIO0 is a boot strap; do not apply candidate configuration blindly. Pin dependencies and verify their licenses before integrating. No upstream binary or secrets included.

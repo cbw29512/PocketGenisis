@@ -21,3 +21,163 @@ Exactly two immortal founder identities. No reused IDs, negative resources, inva
 
 ## Seed and replay contract
 Persist canonical seed, RNG algorithm/version, complete state for each named random stream, generator version, initial settings, rules version and tick. Derive independent streams using a documented stable algorithm (terrain, traits, environment, decisions, reproduction, research); no wall clock or device ID in simulation RNG after initialization. Generate a fresh seed on new-world initialization unless explicitly supplied for testing. Save/reload preserves streams exactly. Canonical state comparison excludes external metadata but includes all simulation-relevant state and event payloads; stable iteration and fixed-point units prevent platform drift. Stream algorithm and fixtures must be finalized before implementation.
+
+### Increment 5 implementation subset
+Citizen adds parent_ids, birth_tick and stable purpose enum (0 none, 1 gatherer, 2 builder, 3 inventor); life stage derived from age at current tick, founders always adult. World holds founder-pair due_tick (0 means no gestation), descendant_count and next_citizen_id. This bounded active population is not yet an archive or portable save representation; later death handling must decouple next ID from active count and preserve parent references. See CORE_CONTRACT.md for provisional rules.
+
+### Increment 6 implementation subset
+Citizen health (0–100), lifespan_years (60–80 for descendants, provisional fixture default 70; ignored for founders). Death record stores the complete citizen snapshot, death_tick and stable cause enum (1 starvation, 2 dehydration, 3 old_age). Active descendants and archive are disjoint; monotonically issued IDs, with no gaps or reuse. Fixed provisional lifetime capacity 512 reserves archival space before conception; permanent on-disk archive remains a release blocker.
+
+### Resilience and exceptional-project contract (design, not implemented)
+Hazard catalog: stable hazard ID, trigger, region, baseline probability in integer basis points, duration, exposure, effect primitives, mitigation rules and rules version. Mitigation uses measurable local capability, condition, coverage, knowledge and stock; clamp probabilities and effects; no era-wide multiplier. Persist active hazard instance IDs, start/end ticks, affected region, resolved effects and associated event IDs when implemented.
+Exceptional projects extend Building (not a separate construction engine): project kind/catalog ID, site, proposal tick, proposer/contributors, prerequisites, reserved/consumed stock, labor progress, condition, completion tick, milestone event ID. A natural landmark references a stable terrain region and discovery event, not a construction record. History records actual event transitions exactly once; loss of a building or knowledge must not erase milestone history. Final fixed-point formulae, enum IDs, ranges and replay fixtures must precede implementation.
+
+### Increment 7 implementation subset
+Replace founder_due_tick with Pregnancy {parent1, parent2, due_tick} (all zero when idle); lost_gestations is a saturating cumulative counter, not a substitute for the eventual event journal. Genealogy permits any valid pair of mortal parents (or the founder pair). Parent identity precedes child ID, birth chronology is validated, and death archives retain references. One concurrent gestation is a provisional host implementation limit.
+
+### Exceptional encounter pacing (design only)
+Encounter catalog: stable type ID, rarity tier, contextual eligibility and candidate weights, effects, rules version; opportunity state: simulation-tick cadence, last evaluated opportunity, last generated rare-or-higher encounter tick (nullable), dedicated versioned RNG stream/state or explicitly isolated substream. Persist any active instance and its event identity. Use integer weights and bounded probability draws, stable order, no elapsed-wall-time catch-up, and no retries on render/reboot. No guarantee of rare events. Generated encounter pacing is distinct from the physical discovery of preexisting deposits, historical milestones, normal hazards and earned achievements. Final IDs, rates and cooldowns require tests and approval.
+
+### Founding event and discovery influence (design only)
+World origin record: origin_catalog_id/version, immutable founding_event_id, applied_at_tick=0, affected entity IDs, effect payload, initialization transaction state. Persist with world UUID and journal; no fallback recreation on failed load. Origin stream/substream derivation must preserve existing stream identities or explicitly version the rules. Discovery influence record: source discovery/event ID, target catalog ID, required active capability/resource/artifact, bounded fixed-point weight modifier or eligibility predicate, scope, optional expiration/consumption, rules version. Derive active modifiers from actual valid world state, not an accumulated global luck value. Deduplicate by source and target; use stable order, explicit caps and independent no-event outcome. Store enough provenance for deterministic replay and historical inspection. Final numeric rates, effect identifiers and fixtures precede code.
+
+### Exceptional milestone presentation (design only)
+Extend Event with stable significance tier, catalog/version, location/entity references, causal_event_ids, observed effect summary fields and optional follow-up event links. Distinguish known facts from potential outcomes and undiscovered data. UI presentation cursor/acknowledgement/quiet-mode preferences are separate from canonical simulation state and RNG. Derive announcement styling from tier; retain journal records when transient UI queue is full. Reopening a historical event must not apply effects, advance RNG or duplicate event IDs. No new simulation primitive solely for a visual effect.
+
+### Shared world effects (design only)
+Effect definition: stable effect_kind_id, target attribute/transaction primitive, operator and fixed-point magnitude, scope, eligibility/maintenance predicate, duration policy, stacking group, bounds and rules version. Active effect instance: stable effect_instance_id, source event/entity/discovery ID, affected target or region, start_tick, optional end_tick, condition/source reference, lifecycle status and applied transaction marker if applicable. Derive effective parameters from authoritative base state plus eligible effects using versioned deterministic order, deduplication and caps. Persist source links, duration and state; no observer/renderer RNG; no reapplying one-shot effects on load. Historical event records remain after active effects end. Avoid redundant modifiers for existing authoritative resource, health and knowledge state. Final operators, units, caps, IDs and fixtures must be specified before implementation.
+
+### Increment 8 implementation subset
+Append Action enum care=4; previous 0–3 values unchanged. Infant dependency derived from birth tick and parent IDs. Care requests are transient per-tick state, not new save fields. The infant's eat/drink records one consumed unit; parent's care is not an additional consumption. No independent infant foraging. Orphan adoption/households and final care balance pending.
+
+### Approved long-term state boundaries (design only)
+World dimensions/geometry immutable after founding; exploration visibility independent of actual geography. Founders retain personally acquired stable knowledge IDs without forgetting; teaching remains an explicit causal transaction, and temporary incapacitation prevents action. Separate observer archive from in-world records/knowledge. Building lifecycle extends ruined -> physically gone with historical identity retained, tile occupancy released atomically, and no duplicate material recovery. Future Society record: stable society ID, member/settlement references, territory claims, predecessor IDs, diplomatic relations and history; only actual bounded territory. Future Culture record: stable culture/language IDs, procedural naming seed/version, learned/inherited vocabulary or symbols, beliefs with provenance and distinct factual event references. Observer preferences (sound, view, inspection) never mutate canonical simulation. Final schemas, enum IDs, algorithms and test fixtures before implementing these staged features.
+
+### Increment 9 implementation subset
+No serialized state addition. Founder reunion is derived from existing IDs, coordinates and urgent needs; fallback resource selection uses actual stocks and stable row-major ordering. No new action enum, no forced reproduction. Algorithm change requires a rules-version increment before official saves exist.
+
+### Increment 10 implementation subset
+Supersedes increment 7's single gestation state: World.pregnancies[128] plus pregnancy_count, active prefix ordered by nondecreasing due_tick and stable insertion order, remaining slots all zero. Distinct live parents per pregnancy and no overlapping participants; pending gestations reserve active and lifetime history capacity. Cancellation does not issue citizen ID. Stable ordered delivery preserves monotonic IDs. This provisional RAM representation is not canonical serialization; versioned migration required before official saves.
+
+### Increment 11 implementation subset
+Orphan status is derived from two biological parent IDs and absence of both from the living population; archive identities are preserved. Temporary local carers use the existing transient CareRequests index and care action. No guardian field, new saved state or genealogical mutation. Persistent adoption/household schema deferred.
+
+### Increment 12 implementation subset
+Citizen.guardian_id and guardian_since_tick store latest successful adoptive-care relationship independently of biological parent IDs. Zero pair means no recorded guardian. Guardian can refer to a valid archived person; retain through maturation and death, replace only after guardian dies and another local carer actually provides care during infancy. Assignment chronology and adult age checked at the relationship's start; both biological parents must have died by that tick. Preserve prior guardian transitions in the eventual durable journal (not yet implemented). This is a provisional state addition, not a finalized save format.
+
+### Increment 13 implementation subset
+Append health_events stream index 6; persist state with other RNG streams in future checkpoint format. Citizen.birth_outcome: normal 0, complicated 1, fatal 2. Founders must be normal; fatal cannot be live and corresponds exactly to archived DeathCause childbirth=4 at birth_tick. Complicated provenance persists through recovery. Fatal newborn consumes a lifetime identity and archives immediately, not an active population slot; prenatal gestation loss remains distinct. Provisional state/rules changes require versioned migration before official saves.
+
+### Increment 14 implementation subset
+Append RNG streams immunity_traits=7 and disease_events=8. Two fixed catalog slots, stable order; each Citizen has resistance 0–100, illness and immunity remaining 60-tick pulses, mutually exclusive and bounded by catalog. Resistance inherited with variation; acquired immunity not inherited. DeathCause disease=5 requires active illness in archived snapshot. Persist all state in future versioned encoding; never serialize raw C++ memory. Rates, durations and catalog are provisional.
+
+### Increment 15 implementation subset
+Internal binary PGCP format v1/rules 14: header magic uint32 0x50434750, format/rules uint16 each, generation uint64, world payload, trailing CRC32 uint32. All fields little-endian, counts uint16 checked against current capacities, enum underlying uint8. Fixed map dimensions, RNG/disease slot order and payload field order bound to version. Payload: seed, tick, next citizen ID, lost gestations, RNG states, all tile stocks, founders, active descendants, death records and pregnancies. See storage/checkpoint_fields.hpp for exact order. Maximum encoded size 128 KiB. Unused slots omitted, restored to defaults. Separate disposable checkpoint format from eventual canonical JSON export and durable external archive. Seed alone is not a unique world identifier; UUID and migration remain mandatory before official founding.
+
+### Increment 16 — maintenance state
+Maintenance context is outside simulation: trusted transport, authentication, exclusive paused state; one-use reset permit binds exact checkpoint bytes, generation and confirmation. Host prototype uses seed+generation+tick as disposable identity only. Production must bind UUID, archive/journal manifest, verified independent backup receipt, session identity/expiry, new UUID and transaction/activation status; do not serialize credentials in world saves or use simulation RNG for security. No changes to canonical world fields in this increment.
+
+### Increment 17 implementation subset
+No new saved fields. Disease-phase alive and infectious snapshots plus local neighbor and infectious-contact counts are transient, derived from existing coordinates and health. Acute food/water stress is derived from current needs, not a new chronic nutritional state. Checkpoint format 1 retains layout; rules revision 15 supersedes 14. Prior rules checkpoints require explicit migration and are not silently accepted; no official world exists. Future chronic nutrition, shelter occupancy/capacity, sanitation, water contamination and age-specific disease severity need explicit schema and calibrated validation before implementation.
+
+### Increment 18 implementation subset
+No serialized fields change. Stable uint64 citizen identity remains authoritative. Transient live slot 0/1 refers to a founder; slot 2 onward refers to the ID-sorted active descendant position; live_capacity (256) denotes missing. Care and gestation scratch tables now use live slots, never lifetime IDs. Resolve IDs by binary search before indexing; discard slots after each phase before active-array compaction. Historical validation and the provisional lifetime ceiling are unchanged. No checkpoint version change for this internal refactor.
+
+### Increment 19 — death archive segment prototype
+PGHS version 1, little-endian magic uint32 0x53484750, format/rules uint16, seed uint64, first death ordinal uint64, count uint16 (1–64), records encoded using existing citizen field visitor plus death_tick uint64 and cause uint8, trailing CRC32. Ordinals are zero-based positions in death chronology, not citizen IDs; reject overflow. Isolated per-world host directory and seed provide disposable identity only; production UUID, ordered manifest, global duplicate/gap detection, cross-segment genealogy validation, archive lookup and checkpoint-bound commit watermark remain mandatory. Current World and PGCP format/rules unchanged.
+
+### Increment 20 — external history identity view
+No new serialized fields. Host reference index maps stable uint64 citizen IDs to immutable death snapshots loaded from a caller-supplied declared prefix length. Require continuous ordinal batches, no partial final segment, matching seed, unique identity and strictly ordered (death_tick, citizen ID). Combined view joins external prefix, resident death tail and live descendants; enforce exact assigned identity coverage 3..next_citizen_id-1 without allocating an array sized by the highest ID. Shared PersonRecord resolves biological parents and guardians using identical chronology rules in both validators. Host map still consumes O(total history) memory and declared count is not yet bound to checkpoint generation. No authority to retire records; checkpoint watermark and device-sized index pending.
+
+### Increment 21 — checkpoint-bound retirement prototype
+Separate host-only PGAW magic uint32 0x57414750, version uint16 1, rules uint16 15, generation uint64, committed external death ordinal count uint64, existing field-wise World payload (resident tail only), CRC32. Two alternating slots in a separate isolated directory, never mix with PGCP. The external prefix plus resident tail and living IDs must cover all issued identities exactly; the index is rebuilt from declared prefix and validated on each load. Previous checkpoint preserves full prior tail. Prototype only permits exact same-tick retirement, not simulation advancement or official migration. UUID and bounded-memory lookup pending.
+
+### Increment 22 — bounded advancement
+PGAW payload/version unchanged; consecutive generations may represent exact retirement at equal tick or deterministic advancement at unchanged external prefix, with 1–3600 ticks per advancement. No persisted slot indices. next_citizen_id remains monotonic uint64; reserve remaining IDs for active pregnancies and refuse conception at exhaustion. Existing temporary resident live/death reservation remains bounded; cumulative external identities are not counted against resident capacity.
+
+### Increment 23 — automatic host cycle
+No saved schema or rules changes. CycleAction advanced/retired/resumed_retirement and returned retired count are transient host diagnostics. Each call loads authoritative checkpoint and returns a single verified new generation. Maximum 600 ticks per advancing call; full batch size 64; pending segment exact record count determines retry size. Device timer, persistent UUID and independent backup remain separate gates.
+
+### Increment 24 — derived disk identity rows
+No authoritative schema/version changes. Scratch file has fixed canonical death-record fields plus CRC32 per row, position (citizen_id-3)*encoded_row_width, little endian via existing visitor. All-zero sparse row indicates no archived identity; scratch size derived from next ID after validating count and maximum resident remainder. This is disposable derived data, not an independent archive. PGHS segments and PGAW committed prefix remain authoritative. Only one lookup row is borrowed until next find; visit uses separate local row. Future persistent FAT32 index requires a verified manifest, storage allocation and power-loss recovery.
+
+### Increment 25 — transient replay lineage
+No persisted field changes. ArchiveState uses disk-derived history instead of lifetime RAM map. ReplayLineage stores initial next ID, seed, committed prefix count, last death record, up to history_capacity resident IDs, and at most three external references per resident identity. Direct references only; new parents and guardians originate from living citizens. Cache scoped to one closed replay and discarded at end. Full checkpoint audits remain authoritative.
+
+### Increment 26 — storage budget
+No persisted schema changes. Host StorageBudget ceiling, available bytes and filesystem block size are transient operational metadata, never simulation inputs. Checked arithmetic estimates four simultaneous derived scratch files (allow up to history_capacity future IDs), two max checkpoints, one max segment allowance per batch, metadata slack and 1 MiB emergency margin. Caller ceiling only lowers actual reported available bytes.
+
+### Increment 27 — founder incapacitation
+No added fields; status derived from founder ID and existing health <=20. Crawl window derived from tick modulo 4. Existing Action idle/move/eat/drink/care covers recovery and assistance; no second health state. Rules revision 16, same binary layout; older disposable rules rejected until explicit migration.
+
+### Increment 28 — parental health
+Append parental_health_events RNG stream (index 9), preserving all existing stream indices and initial states. DeathCause parental_childbirth=6 (adult or elder mortal parent); newborn childbirth=4 unchanged. No new citizen fields or gestational sex assignment. Rules revision 17; serialized world gains one uint64 RNG state. Shared validation enforces health, age and newborn provenance; not a durable record of nonfatal injuries, which awaits event journal.
+
+### Disposable discovery state
+See DISCOVERY_CONTRACT.md for nonpersistent founder masks, first discovery records, one work-in-progress experiment, counters and last opportunity. Uses existing research RNG; no canonical World layout or checkpoint revision change. Production integration requires explicit versioned persistence, validation and replay.
+
+### Disposable construction state
+Three prototype blueprint records (stage, tile index, owner slot, work, started/finished/last work ticks). No canonical save changes. See CONSTRUCTION_CONTRACT.md. Future production requires unique structure IDs, durable history and variable capacity; no assumption of a three-building world.
+
+### Disposable food store
+Separate state: bounded balance (unsigned, 0..64), deposited/withdrawn/spoiled uint64 counters. Conservation as documented in STORAGE_CONTRACT.md. No canonical World layout changes. Existing food and hunger units shared. No persistent reserve yet.
+
+Storage prototype adds uint64 assisted counter (subset of withdrawn). Recipient and provider share existing hunger consumption logic; no new canonical saved fields.
+
+Disposable cooking state: uint64 meals, wood consumed, additional hunger relief counters. No canonical World fields. See COOKING_CONTRACT.md.
+
+Disposable shelter state: uint64 cumulative extra recovery grants. Recovery slots are temporary per tick, not saved. See SHELTER_CONTRACT.md.
+
+Disposable settlement state: uint64 homeward steps and arrivals; derive initial home from completed hut tile, no canonical residency fields. See SETTLEMENT_CONTRACT.md.
+
+Housing probe adds eight Site records under PG_HOUSING_PROBE only. Blueprint kind derived from slot; extra records all huts. No canonical saved state or new citizen fields. Existing profiles retain three-site layout. See HOUSING_CONTRACT.md.
+
+Agriculture profile only: append Farming research catalog entry and prepared field blueprint/site; separate crop stage, last work tick, uint64 plants/tended/water/harvests/food counters. No canonical state change. See AGRICULTURE_CONTRACT.md.
+
+Irrigation profile only: appended Irrigation technology and channel blueprint/site, uint64 last transfer tick, successful transfers and cumulative water moved. Water remains in ordinary tile stocks. See IRRIGATION_CONTRACT.md.
+
+Multi-field profile only: three additional Site slots after extra huts; array of four existing agriculture::State records indexed by field ordinal. No canonical saved fields. See MULTI_FIELD_CONTRACT.md.
+
+Crop-loss profile only: per-field uint64 drought_losses, spoilage_losses, lost_water, dry_since. Lost water is a cumulative record of already spent water, not an additional debit. See CROP_LOSS_CONTRACT.md. Earlier profiles unchanged.
+
+Livestock profile only: appended husbandry tech/enclosure site, two managed Group records with count/capture/birth/death/harvest counters, shared grazing totals, meat_produced and last_pulse. Existing Wildlife tile/developed sidecar remains separate. See LIVESTOCK_CONTRACT.md. No canonical save changes.
+
+Terrain evaluation sidecar only: 6000 three-byte cells (uint8 elevation, uint8 moisture, uint8 biome enum), generated once from isolated seed, not yet in canonical save. See TERRAIN_PROBE_CONTRACT.md.
+
+Livestock State adds uint64 supplied_food and supplied_water cumulative adjacent handoffs (not new production); no canonical serialization yet. See LIVESTOCK_CONTRACT.md.
+
+Combined livestock profile: agriculture::State adds uint64 distributed, actual existing plot stock sent to adjacent non-field tiles; no new food production or stage/time changes. Shared resource_transfer::move preserves bounded stock. No canonical save changes.
+
+Proposed Pixel drives (not serialized or implemented yet): retain existing hunger/thirst and traits; evaluate additional bounded uint8 fatigue, reproductive motivation, social need, curiosity, comfort, ambition. Derived local context (crowding, food, risk, weather) is transient unless persistent memory is justified; no duplicate health/needs. See PIXEL_DRIVES_CONTRACT.md. Canonical migration and measured memory/performance required before admission.
+
+Wildlife Totals adds uint64 meat_created, actual wild prey yield only; managed yield remains livestock::State::meat_produced. Existing meals/spoiled/remaining meat used for integrated conservation. No new Pixel state or canonical save encoding in this increment.
+
+Combined livestock candidate adds Fodder {uint16 balance; uint64 deposited,released}; cap192; deposited=released+balance. Real stock transfers only; separate from human food and wild meat. No canonical serialization yet.
+
+Proposed terrain resource sidecar (isolated host candidate): Deposit {uint16 remaining; uint8 Mineral kind; uint8 discovered}; 4 bytes ×6000=24000 bytes, none/clay/copper/tin/iron/coal/gold/silver/gem. Finite stock, discovered initially zero, no mineral renewal. Existing Tile stocks scaled by biome only at explicit initialization. Future standing biomass/harvested stock and inventories must avoid duplicate accounting; persist actual generated and depleted state with versioned migration. Not canonical yet.
+
+Regional weather candidate: derived Cache stores seed, cached epoch uint64, 60 uint8 region conditions; exact reconstruction from versioned rule/seed/tick, no canonical new weather RNG/timer. Existing tile stocks record actual weather-dependent production. See REGIONAL_WEATHER_CONTRACT.md. Not yet serialized/integrated in production.
+
+Freshwater candidate: Cell uint8 habitat,fish,forage ×6000=18000 bytes plus uint64 initial,births,deaths,caught,forage_initial,forage_grown,forage_eaten,last_pulse. Actual grouped fish, no canonical save change.
+
+Freshwater balance candidate extends optional State counters with uint64 water_deaths,food_deaths,migrated; deaths=sum of water and food deaths; actual migration is internal transfer not births/deaths. No additional cell fields or canonical serialization. Cold-season feeding rule optional and versioned before release.
+
+Proposed PX-24 layered geology (not implemented): bounded creation-time deposit records per tile/depth tier, mineral kind, finite remaining stock, discovery/access metadata, terminal depth and immutable generation version; memory budget and exact layout pending. No unlocking creates stock; ledger initial=endowment remaining+extracted (account any explicitly modeled losses). Proposed PX-25 advanced science: bounded preserved-specimen records with species identity, provenance, viability, collection/preservation history, actual storage and use, restoration lineage/event; fish excluded from global restoration. No current canonical field or biological reconstruction claim.
+
+Optional PG_SOIL_FERTILITY_PROBE per field: soil::State uint8 fertility initial100, uint64 spent,restored,last_recovery; 100+restored=spent+fertility, spent=8*plants. Actual variable food production delta. Future land-linked canonical fertility needed to prevent rebuilding reset. PX-27–31 proposed only, schemas pending.
+
+Optional PG_MANURE_PROBE adds soil::State amended uint64 and manure::Store uint16 balance, uint8 carried[2], uint64 feed,produced,applied,lost. Derived source feed/2=produced; produced=balance+carried+applied+lost. Soil ledger initial+restored+amended=spent+fertility. Appended soil_amendment tech; no canonical serialization yet.
+
+Optional PG_FATIGUE_PROBE: Citizen gains uint8 fatigue (0..100) and uint8 rest_intent (0/1); Action::rest appended to existing enum in probe only. Newborn default zero; stable identity survives active-array compaction. Two logical bytes; actual struct alignment/size measured by host test, target pending. No save format admission; add versioned encoding, archive/renderer coverage before release.
+
+Optional PG_REPRODUCTIVE_DRIVE_PROBE: Citizen uint8 reproductive_drive 0..100, newborn zero. One logical byte; actual alignment measured in candidate test. Derived local TileCounts snapshot only at conception opportunity; no new persistent map or RNG stream. No canonical save/renderer admission.
+
+Audit follow-up: legacy checkpoint_fields.hpp intentionally rejects PG_FATIGUE_PROBE and PG_REPRODUCTIVE_DRIVE_PROBE at compilation because those Citizen fields are not encoded. Add versioned explicit fields, migration and full replay tests before removing this guard. Other probe sidecars are still outside canonical state and must not be treated as persistent production saves.
+
+PX-33 creation-only Selection: requested_seed uint64, accepted_seed uint64, attempts unsigned, report and accepted flag. Derived report has biome counts, mineral units, provisioned species groups, water/fish quadrant counts and founder pair selection. Future versioned metadata persists accepted/requested seed and generation version; report is transient. No new hot-tick or canonical save fields admitted yet.
+
+Optional hydrology::State Cell{uint16 downstream (65535 sentinel), area, runoff}, 6000 cells, 36,000 bytes. Creation scratch uint16 linked bucket per tile plus 256 heads. Integer derived catchment metadata, not extra water inventory. Persist/version network with physical terrain if adopted; no canonical encoding or target qualification yet.
+
+PB-04 integrated::State groups existing authoritative candidate subsystem fields and founding selection, initial_wild conservation baseline. Simulation privately owns the state plus derived regional weather cache, last-tick Observation, one-shot creation attempt/ready lifecycle flags. No new resource mechanics; no serialized layout implied by C++ struct. Future canonical codec must encode each authoritative field explicitly and bind cadence/rules version, UUID and history. Existing legacy codec rejects unsupported drive profile.
+
+PB-05 PGCI v1/rules1 separate integrated host format: magic/version/rules/generation, explicit resident world fields including fatigue/rest_intent/reproductive_drive, terrain/mineral/drainage/wildlife/fish ledgers, knowledge/construction/reserve/cooking/shelter/settlement/crop/soil/irrigation/livestock/manure ledgers, founding selection/report, initial_wild, immutable bound research cadence, production and last events, CRC32. Counts and tile indices fixed width; flags canonical byte0/1; unsigned schema requires32 bits. 512KiB encoded-size ceiling for current resident profile only. No raw struct or legacy format alteration. UUID, external lineage/history, transactional disk and migration remain pending. Cache derived from seed/tick, not serialized.

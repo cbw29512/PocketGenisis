@@ -1,0 +1,76 @@
+# Pre-beta world readiness — owner direction, 2026-11-27
+Status: NOT READY. The owner wants a functioning world before installing a beta on the Elecrow. Feature probes are evidence, not a release. Work in the existing development PR; keep disposable internal host/target builds separate from an installable beta and the future official world. Do not request installation of another individual feature as a beta, create an official world, or silently replace a save. Physical qualification on an explicitly disposable test world and owner approval still required; cannot be certified remotely. Preserve existing MVP and long-term space-exploration mission. This gate does not silently redefine the previously approved scope to require every advanced-era feature for initial beta; disclose any unimplemented progression path and obtain owner agreement before calling the world ready.
+
+## Ordered pre-beta acceptance checklist
+Each item remains open until integrated evidence meets its exit criteria. Checkboxes are release-level, not counts of isolated tests.
+- [ ] PB-01 Ecology and food: sustainable multi-seed wildlife and purposeful actual capture; hunting/fishing, managed breeding, production/storage/irrigation, local scarcity, mortality and recovery. Latest integrated livestock CI 46086311647 passed, but seed42 reports enclosure=1, captures=0, managed=0, wild=21, harvests=41, living=4. Investigate extreme wildlife depletion using measured food/water/birth/death balances, no global rescue or animal spawning. Controlled capture alone is insufficient.
+- [ ] PB-02 Terrain and environment: pinned FastNoiseLite candidate verified host CI 46086512400, 16 distinct fingerprints, 18000 bytes, seed42 fingerprint 1438896075697618609. Qualify actual target and cross-platform generation; integrate integer terrain, water and real resource/ore placement, weather and seasonal effects into a single authoritative world. No regeneration of an established map during load. Lowlands are not automatically rivers or oceans.
+- [ ] PB-03 Civilization and knowledge: complete agreed MVP technology catalog (including pottery, sanitation, teaching/records), construction and decay, mortal knowledge and role assignment, functional skills and transmission/loss, ordinary historical milestones and approved founding/wonder/rarity mechanics; no scripted invention deadlines. Document genuine advancement dependencies and unresolved later-age/space paths. No late-era progress faked by cosmetic labels.
+- [ ] PB-04 Unified runtime: one authoritative simulation entry point and state owner including all accepted mechanics (terrain, weather, wildlife, managed livestock, research, sites, reserves, farm/irrigation/risk, human lifecycle and history); no production dependence on mutually exclusive disposable probe layouts. Reuse existing transactions, stable ordering and default-safe APIs. Deterministic whole-state/event comparison across same-seed runs, observe-only rendering cannot alter results.
+- [ ] PB-05 Persistence and lifetime continuity: explicit versioned encoding of every authoritative field and RNG, stable world UUID, bounded persistent history and genealogy, real capacity admission, tested save/restart/export/import/recovery. Reuse verified host archive/disk-index work; extend rather than restart. Above-512 actual life progression, power-interruption/corrupt-state recovery and no silent reset. No claimed physical durability without FAT32/device evidence.
+- [ ] PB-06 Integrated validation and calibration: fixed >=32-seed suite including controlled same-map cohorts, multi-generation births/maturity/deaths and recovery from collapse, ecological and production accounting, meaningful divergence, same-seed full-state/event replay with checkpoint/reload. Run agreed long accelerated gates including five real years equivalent (not five simulated years), document failures, performance and limits. Provisional pacing must be measured rather than guaranteed; no tuning to seed42 alone.
+- [ ] PB-07 Observer display and installable firmware: evaluate PixelRoot32 and other suitable reuse, verify exact board/panel/touch pins, actual full-screen world, read-only citizen/history/tech overlays, day/night/seasonal visuals. Real target build, memory and tick/frame measurements, offline boot, safe update/backup/USB recovery. Test disposable build without calling it beta-ready.
+- [ ] PB-08 Release candidate approval: reconcile preceding evidence on one exact candidate commit, provide build/recovery instructions and known limits. Obtain explicit owner go-ahead before installing beta; physical 72-hour unattended soak/power interruption, supported capacity and storage wear are existing mandatory hardware qualification gates before official founding. Beta uses a disposable world; official world requires separate approval after hardware acceptance.
+
+## Work sequencing
+Prioritize actual source changes and tests, not just documentation. Close PB-01/PB-02 and consolidate the combined simulation while extending remaining MVP mechanics; tackle storage and renderer independently if a dependency blocks another item. Avoid accumulating sidecars without a shared state/persistence plan. Review source/CI and open-source reuse policy each run. Mark precise subtask verification in MASTER_TRACKER; do not label a release-level gate complete from a host smoke alone. No forced milestones, no Tab5 work, no livestream before the approved world. 
+
+### PB-01 active increment
+Wildlife cadence candidate 600/3600 vs original 60/600; actual stock-renewal mismatch reviewed. Comparative seasonal conservation tests and species/death diagnostics added. See WILDLIFE_BALANCE_CONTRACT.md. CI and outcome comparison pending; PB-01 remains open.
+
+PB-01 baseline comparative cadence CI 46087239903 succeeded. Combined ecology recovered to 12460 but predation remains high and pen/capture absent. Predator reproduction and local avoidance refinement implemented; CI pending. PB-01 still open.
+
+PB-01 predator CI 46087693295 passed with reduced predation and actual capture/breeding, but managed extinction and zero harvests. Local supply/movement revision added with diagnostics; CI pending. Sustainable livestock, farming and fishing remain open.
+
+PB-01 supply CI 46087927287 passed but natural run still no harvest/delivery. Field food98 exceeds planting limit92; founders outside previous eight-tile work radius. Added real surplus distribution, shared resource transfer and longer known-workplace return, controlled tests. CI pending. PB-01 remains open.
+
+PB-01 CI 46088259498 passed; actual livestock capture/birth/food delivery/meat production improved but end-year managed extinction and no crops. Split planting requirements from future harvest capacity and preserve return to viable ripe fields in combined profile, full-stock controlled and real-tick tests. New CI pending; gate remains open.
+
+PB-01 planting correction CI 46088508146 passed (26 combined harvests); enclosure abandonment blocked livestock. Actual resumable paid construction and qualified local takeover implemented; CI pending. Gate remains open.
+
+PB-01 construction resume CI 46088804865 failed on invalid synthetic child (birth_tick=0). Fixture corrected, new CI pending; no validator relaxation. Owner-approved Pixels terminology and needs-driven food/economy progression in PIXEL_ECONOMY_CONTRACT.md. Next fix actual survival hunting access and evaluate natural coexistence.
+
+Pixel motivation feedback: [PIXEL_DRIVES_CONTRACT.md](PIXEL_DRIVES_CONTRACT.md) informs PB-01/PB-03/PB-06. Add bounded needs/local-context policies with real action constraints and deterministic comparison before release. Corrected construction resume CI 46089019770 still failed actual completion; unresolved, not verified.
+
+### Explicit MVP cross-reference
+MVP.md now contains PX-01–PX-18 acceptance items for approved Pixel needs, environmental feedback, population balance, purposeful exploration, food economy, invention, efficiency, replay and release. MASTER_TRACKER.md tracks their evidence. PB-01/PB-02/PB-03 and integrated PB-04–PB-08 gates remain open; no scope or roadmap deletion. Construction completion failure remains the first blocker.
+
+PX-13 construction recovery: CI 46089679569 failed completion. Shared active-builder return path added, controlled real-tick displaced builder regression and final diagnostics. New CI pending; no pre-beta gate closed.
+
+PX-13 CI 46090056563 passed, including natural enclosure recovery and 26 harvests. Herd extinct and hunted0. See ECOSYSTEM_AUDIT.md for integrated gaps. PX-11 authoritative survival meat/prey option and conservation tests added, CI pending. All PB gates open.
+
+PX-11 CI 46090442973 passed, actual natural hunting157 and meat meals426 with 26 harvests; meat conservation verified. PX-14 dedicated winter fodder reserve candidate and regression added, CI pending; sustainable herds and multi-seed balance still open.
+
+PX-14 CI 46091151689 passed, natural herd8 at year-end, fodder126 accumulated but not drawn (controlled release passed), crops25 wild10820. No full sustainability certification. PX-19–22 extend terrain/resource and knowledge gates with actual forestry, finite geological deposits, mining and processing. Isolated geography candidate added; CI/device/integration pending. Existing initial-release boundary preserved.
+
+PX-20 CI 46091527200 passed finite geology prototype. PX-10 optional combined terrain ecology: actual initial stocks and biome renewal policy, no mineral regeneration, existing farming/livestock/hunting integrated through same tick. Two unforced seed-year tests and controlled conservation added; CI pending. No beta readiness or terrain target certification.
+
+PX-10 terrain ecology CI 46091929332 passed both seeds (55/58 harvests,6/6 managed survivors, founders health100). PX-09 optional regional weather changes real renewable growth; controlled replay and paired weather comparisons added, CI pending. All PB gates remain open.
+
+PX-14 optional freshwater habitat and fish conservation candidate integrated with terrain/weather survival; CI pending. Not full river/lake routing or fishing technology. All gates open.
+
+CI 46092755205 passed weather and actual integrated fishing (53 caught,576 surviving from1898 initial), but aquatic population decline warrants calibration. Added optional seasonal feeding/migration candidate and separate mortality accounting; controlled and comparative seed-year tests pending CI. No beta readiness claim.
+
+Owner confirms ecological collapse/depletion is allowed. PB-01/PB-06 validation must assess causal constraints and conservation, not mandatory positive species totals or guaranteed recovery. See MVP ecological depletion and extinction rule. All gates remain open.
+
+PX-24/PX-25: finite underground endowment and maximum depth tracked under material progression; optional late science restoration of non-fish animals tracked in roadmap, with preserved material and actual research prerequisites. Globally exhausted fish remain extinct. No forced recovery, no advanced-science requirement for initial beta. All current release gates remain open.
+
+CI 46093443337 passed paired freshwater balance; no guaranteed survival requirement. PX-26–31 approved extensions tracked; optional soil candidate and accounting tests pending. Advanced mechanics staged. All release gates open.
+
+PX-32 owner-confirmed interdependence: integrated acceptance requires causal shared resource transactions and explicit technology dependencies, costs and environmental effects; verify representative livestock/feed/manure/soil/crop cycles, resource scarcity, depletion, and other supported coupled mechanisms without guaranteeing positive outcomes. PX-26 staged soil improvement methods tracked. Existing initial beta boundary retained. Soil CI pending; no new runtime in this documentation change.
+
+PX-26/PX-32 optional manure chain candidate implemented with real source feed, learned handling, bounded carrying, actual application and conserved ledgers. CI pending; prior soil run canceled, replacement queued. Natural adoption, integrated persistent state, device timing and remaining PB gates still open.
+
+PX-03 optional fatigue/rest candidate integrated into shared survival, controlled priority and same-seed annual combined test pending. No canonical state, render or hardware admission. Existing soil/manure CI queued at review; fix manure fixture type error. All gates open.
+
+PX-04/PX-07 optional local reproductive drive candidate preserves existing gestation/capacity and bounded chance; controlled and replay tests added. Prior fatigue CI in progress at review. No full population regulation, compatibility, save or device certification. All gates open.
+
+Audit 408ffe3 / CI 46095278474: 66/66 host programs passed, including controlled soil/manure/fatigue/reproductive feedback. Combined fatigue seed42 managed0 and natural manure0; reproductive previously separate. Audit follow-up prevents unsupported drive save encoding and expands combined regression, CI pending. All 8 release gates remain open; see READINESS_AUDIT_20261127.md. Do not create official world.
+
+CI 46095539828 passed 66 host programs including combined reproductive/fatigue/ecology replay. PX-33 balanced procedural admission now explicitly required under PB-02/PB-06. First optional candidate validates actual initial resource diversity, viable founder pairs, bounded deterministic selection and refusal; CI pending. Need true connected waters, habitat and accessibility, sufficient finite technology endowment, calibrated multi-seed and device evidence. No post-creation reseeding or guaranteed outcome. All gates remain open.
+
+CI 46095940535 passed 67/67 host programs; PX-33 baseline 32 distinct accepted worlds in45 attempts max3. Optional PX-10/14/33 drainage and connected fish migration/recolonization candidate adds two populated terminal sinks to initial qualification. Controlled/two annual integrated tests pending CI; flat routing, real water quantities/flows, accessibility, full connected seed suite, persistence and target qualification remain open. No new requirements or closed PB gates.
+
+Cleanup 1: CI 46096428872 passed 68 host programs including connected ecology seed0/42 with surviving managed animals6/4. PB-04 integrated state owner and one-shot creation/step path candidate replaces manually assembled annual hydrology caller; boundary accounting and 32 connected seed regression pending. No canonical codec or device admission; all PB gates open, scope fixed at33.
+
+Cleanup 2 CI 46096947105 passed69 programs, 32/32 connected starting worlds and integrated owner/conservation. PGCI integrated host checkpoint candidate now encodes all current integrated resident fields explicitly and restores into fresh owner; replay/corruption tests pending. No full PB-05 closure: durable filesystem, UUID, external history, migration and target remain open. All eight gates open, 33 requirements unchanged.
