@@ -1,5 +1,8 @@
 #pragma once
 #include "observer_render.hpp"
+#ifdef PG_PERSISTENT_OBSERVER
+#include "observer_summary.hpp"
+#endif
 #include <lgfx/v1/touch/Touch_GT911.hpp>
 namespace genesis::observer {
 // Only observer state: selected stable ID and last rendered hit targets.
@@ -11,6 +14,9 @@ class Inspection {
     std::size_t count_{};
     std::uint64_t selected_{};
     bool ready_{},pressed_{};
+#ifdef PG_PERSISTENT_OBSERVER
+    bool overview_{};
+#endif
     std::uint32_t last_poll_{};
 public:
     void begin() noexcept {
@@ -38,6 +44,10 @@ public:
         if(p.x<0||p.x>=800||p.y<0||p.y>=480) {
             Serial.println("TOUCH outside native bounds");return false;
         }
+#ifdef PG_PERSISTENT_OBSERVER
+        if(overview_){overview_=false;return true;}
+        if(p.x>=680&&p.y<40){overview_=true;selected_=0;return true;}
+#endif
         // No permanent HUD or reserved button area: every visible map
         // position is inspectable unless the temporary panel covers it.
         if(selected_&&p.x<300&&p.y<176) selected_=0;
@@ -59,6 +69,10 @@ public:
         };
         for(const auto& c:s.world.founders) add(c);
         for(std::size_t i=0;i<s.world.descendant_count;++i) add(s.world.descendants[i]);
+#ifdef PG_PERSISTENT_OBSERVER
+        if(overview_){draw_summary(lcd,summarize(s));return;}
+        draw_world_button(lcd);
+#endif
         // An unselected observer draws nothing over the civilization.
         if(!selected_) return;
         const auto black=rgb(12,17,22),white=rgb(245,245,235);
