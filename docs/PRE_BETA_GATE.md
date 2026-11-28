@@ -31,3 +31,6 @@ PB-01 planting correction CI 46088508146 passed (26 combined harvests); enclosur
 PB-01 construction resume CI 46088804865 failed on invalid synthetic child (birth_tick=0). Fixture corrected, new CI pending; no validator relaxation. Owner-approved Pixels terminology and needs-driven food/economy progression in PIXEL_ECONOMY_CONTRACT.md. Next fix actual survival hunting access and evaluate natural coexistence.
 
 Pixel motivation feedback: [PIXEL_DRIVES_CONTRACT.md](PIXEL_DRIVES_CONTRACT.md) informs PB-01/PB-03/PB-06. Add bounded needs/local-context policies with real action constraints and deterministic comparison before release. Corrected construction resume CI 46089019770 still failed actual completion; unresolved, not verified.
+
+### Explicit MVP cross-reference
+MVP.md now contains PX-01–PX-18 acceptance items for approved Pixel needs, environmental feedback, population balance, purposeful exploration, food economy, invention, efficiency, replay and release. MASTER_TRACKER.md tracks their evidence. PB-01/PB-02/PB-03 and integrated PB-04–PB-08 gates remain open; no scope or roadmap deletion. Construction completion failure remains the first blocker.

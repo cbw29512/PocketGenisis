@@ -208,3 +208,20 @@ PB-01 full-field CI 46088508146 passed: controlled harvests=3; combined harvests
 Construction resume CI 46088804865 failed at authoritative resumed construction tick. Population validator requires descendant birth_tick>0; controlled child fixture omitted it. Set child.birth_tick=1 and add explicit valid_population check before real ticks; do not weaken validator or alter runtime in this fix. New CI pending. Owner names people Pixels and requires meaningful movement, resource collection, hunting then farming and later systems through actual incentives. Added PIXEL_ECONOMY_CONTRACT.md; immediate next implementation authoritative hunting: post-survival hunger>=24 idle guard conflicts with survival at>=12. Preserve actual meat/prey accounting, hydration/care, local travel and deterministic testing. No beta release or official world change.
 
 Construction resume corrected-fixture CI 46089019770 failed later at actual completed resumed enclosure; authoritative validation no longer the failing assertion. Need diagnose actual progress/needs/movement and correct recovery test or runtime based on evidence. Owner approves needs-driven Pixels and local environment/event feedback, sparse population reproductive motivation and crowding-driven exploration. Added PIXEL_DRIVES_CONTRACT.md, proposed schema, MVP and gate references; no runtime changes. No global quota/forced reproduction/exodus, no guarantee of numerical tuning. Resolve construction failure, authoritative hunting, then integrate drives incrementally with existing spatial and needs logic.
+
+## Pixel acceptance tracking (MVP PX-01 through PX-18)
+The numbered checkboxes in MVP.md are the scope authority. Keep each ID open until integrated evidence meets its acceptance condition. Record exact commits, CI runs, natural-run metrics, failures and hardware proof in this tracker; do not infer completion from documentation or controlled fixtures. Current baseline at dfc58a5:
+| MVP IDs | Status | Evidence / remaining work |
+|---|---|---|
+| PX-01 | Approved, partial | Public terminology contract recorded; observer UI not implemented. |
+| PX-02 | Partial | Existing needs/consumption/care host slices; meat and hunting survival admission missing. |
+| PX-03–PX-06 | Approved, implementation pending | Fatigue/sleep, reproduction drive, individual motivations, contextual decision policy and calibration required; reuse current survival/traits. |
+| PX-07–PX-09 | Approved, implementation pending | Existing lifecycle, disease and local resource pressure partial; new low-population/crowding/event feedback not implemented. |
+| PX-10 | Partial | Bounded resource search and pinned terrain host probe; actual differentiated terrain/water/ore/habitat integration missing. |
+| PX-11 | Partial, hunting blocker | Gather/consume exists; integrated reports zero hunts; implement actual survival meat/prey choices. |
+| PX-12 | Partial | CI 46087239903/46087693295 improved one-year wildlife survival/predation; long-run/multi-seed stability not certified. |
+| PX-13 | Blocked/partial | CI 46088508146 natural 26 harvests; construction recovery completion failed CI 46089019770. |
+| PX-14 | Partial | Previous runs captured 4, produced 11 births and 42 meat, delivered 77 food, but managed extinction; natural coexistence, winter feed, fishing and meat use open. Milk/eggs and predator protection follow-on tracked. |
+| PX-15 | Partial | Initial research and construction probes; remaining agreed early technologies and actual needs-driven learning/roles incomplete; later-era roadmap unchanged. |
+| PX-16–PX-18 | Open | Integrated state, full replay, durable storage, fixed seed suite, hardware and owner gates remain open. |
+New approved requirements must receive explicit MVP acceptance IDs and corresponding tracker entries before implementation; preserve prior approved requirements and distinguish roadmap from initial release. No new runtime change in this tracking update.
