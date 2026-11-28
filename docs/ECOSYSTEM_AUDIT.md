@@ -27,3 +27,5 @@ CI 46091929332 passed integrated terrain two seed-years: wild12840/10005, hunts1
 Freshwater candidate adds optional local habitat/fish/forage transactions to terrain/weather ecology, controlled and natural annual tests pending. No full hydrology, fish migration, gear or production integration.
 
 CI 46092755205 passed: natural fish catch53, final576, severe fish loss; combined crops60 managed8. Weather paired results passed. New optional cold-season feeding and threatened local migration candidate, separate food/water death diagnostics, paired seeds0/42. CI pending; full hydrology and long-term stability still open.
+
+CI 46093443337 passed freshwater balanced seed0/42 surviving2364/2296 caught0/164. Permanent extinction retained. PX-26 optional fertility-linked farming/fallow candidate, tests pending. PX-27–31 tracked; no beta readiness.

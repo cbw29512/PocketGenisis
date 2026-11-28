@@ -3,6 +3,9 @@
 #error "Agriculture is an isolated probe profile"
 #endif
 #include "settlement.hpp"
+#ifdef PG_SOIL_FERTILITY_PROBE
+#include "soil_fertility.hpp"
+#endif
 #ifdef PG_LIVESTOCK_PROBE
 #include "farm_distribution.hpp"
 #endif
@@ -17,6 +20,9 @@ inline constexpr int tending_radius=3;
 struct State {
     std::uint8_t stage{};
     std::uint64_t last_work{},plants{},tended{},water{},harvests{},food{};
+#ifdef PG_SOIL_FERTILITY_PROBE
+    soil::State nutrients{};
+#endif
 #ifdef PG_CROP_LOSS_PROBE
     std::uint64_t drought_losses{},spoilage_losses{},lost_water{},dry_since{};
 #endif
@@ -24,6 +30,20 @@ struct State {
     std::uint64_t distributed{}; // actual existing food moved; not harvested yield
 #endif
 };
+inline unsigned expected_yield(const State& s) noexcept {
+#ifdef PG_SOIL_FERTILITY_PROBE
+    return soil::yield(s.nutrients);
+#else
+    (void)s;return harvest_yield;
+#endif
+}
+inline bool can_plant_soil(const State& s) noexcept {
+#ifdef PG_SOIL_FERTILITY_PROBE
+    return soil::can_plant(s.nutrients);
+#else
+    (void)s;return true;
+#endif
+}
 inline bool valid(const State& s) noexcept {
 #ifdef PG_CROP_LOSS_PROBE
     const auto losses=s.drought_losses+s.spoilage_losses;
@@ -35,7 +55,12 @@ inline bool valid(const State& s) noexcept {
 #endif
     return s.stage<=4&&s.plants==s.harvests+(s.stage!=0)+losses&&
         s.water==s.harvests*4+s.stage+lost&&s.tended==s.harvests*3+(s.stage?s.stage-1:0)+lost-losses&&
+#ifdef PG_SOIL_FERTILITY_PROBE
+        soil::valid(s.nutrients)&&s.nutrients.spent==s.plants*soil::plant_cost&&
+        s.food>=s.harvests*2&&s.food<=s.harvests*harvest_yield;
+#else
         s.food==s.harvests*harvest_yield;
+#endif
 }
 enum class Task : std::uint8_t { none,plant,tend,harvest
 #ifdef PG_LIVESTOCK_PROBE
@@ -54,17 +79,17 @@ inline Task task(const World& w,const construction::State& sites,const State& s,
     // Planting at high stock is legitimate. Prefer distribution if a
     // real neighbor needs food, but do not require room for future output.
     if(((!s.stage&&!winter)||(s.stage==4&&tick>=s.last_work&&tick-s.last_work>=work_interval))&&
-       stock.food>stock_cap-harvest_yield&&farm_distribution::destination(w,sites,plot.tile)>=0)
+       stock.food>stock_cap-expected_yield(s)&&farm_distribution::destination(w,sites,plot.tile)>=0)
         return Task::distribute;
     if(!s.stage)
-        return !winter&&stock.food>=12+seed_cost&&stock.water?Task::plant:Task::none;
+        return !winter&&can_plant_soil(s)&&stock.food>=12+seed_cost&&stock.water?Task::plant:Task::none;
 #else
     if(!s.stage)
-        return !winter&&stock.food>=12+seed_cost&&stock.food<=stock_cap-harvest_yield&&stock.water?
+        return !winter&&can_plant_soil(s)&&stock.food>=12+seed_cost&&stock.food<=stock_cap-expected_yield(s)&&stock.water?
             Task::plant:Task::none;
 #endif
     if(tick<s.last_work||tick-s.last_work<work_interval) return Task::none;
-    if(s.stage==4) return stock.food<=stock_cap-harvest_yield?Task::harvest:Task::none;
+    if(s.stage==4) return stock.food<=stock_cap-expected_yield(s)?Task::harvest:Task::none;
     return !winter&&stock.water?Task::tend:Task::none;
 }
 inline bool farmer(const discovery::State& knowledge,const Citizen& c) noexcept {
@@ -89,11 +114,15 @@ inline Task work(World& w,const discovery::State& knowledge,const construction::
     }
 #endif
     if(action==Task::plant) {
+#ifdef PG_SOIL_FERTILITY_PROBE
+        if(!soil::plant(s.nutrients)) return Task::none;
+#endif
         stock.food-=seed_cost;--stock.water;s.stage=1;++s.plants;++s.water;
     } else if(action==Task::tend) {
         --stock.water;++s.stage;++s.tended;++s.water;
     } else {
-        stock.food+=harvest_yield;s.stage=0;++s.harvests;s.food+=harvest_yield;
+        const auto yield=expected_yield(s);
+        stock.food+=yield;s.stage=0;++s.harvests;s.food+=yield;
     }
 #ifdef PG_CROP_LOSS_PROBE
     // Successful work consumes actual water or harvests the crop; drought
@@ -101,6 +130,16 @@ inline Task work(World& w,const discovery::State& knowledge,const construction::
     s.dry_since=0;
 #endif
     s.last_work=w.tick;return action;
+}
+inline void recover_soil(const World& w,const construction::State& sites,State& crop,unsigned slot) noexcept {
+#ifdef PG_SOIL_FERTILITY_PROBE
+    if(slot>=construction::site_count||construction::kind_at(slot)!=construction::field) return;
+    const auto& plot=sites.sites[slot];
+    if(plot.stage!=construction::Stage::complete||plot.tile>=w.tiles.size()) return;
+    soil::recover(crop.nutrients,w.tick,crop.last_work,!crop.stage,w.tiles[plot.tile].water);
+#else
+    (void)w;(void)sites;(void)crop;(void)slot;
+#endif
 }
 // A prepared field replaces wild food growth on exactly its own tile.
 struct Renewal {
@@ -184,8 +223,10 @@ inline bool step(World& w,discovery::State& research,construction::State& sites,
         cooking::MealPolicy{research,sites,reserve,cooked},shelter::Recovery{sites,sheltered},policy,Renewal{sites})) return false;
     if(policy.chosen&&!busy&&!research.job.active&&construction::active(sites)<0&&
         re.kind==discovery::EventKind::none&&ce.kind==construction::EventKind::none&&deposits==reserve.deposited) {
-        if(work(w,research,sites,farm,w.founders[policy.chosen-1])==Task::harvest) p.food+=harvest_yield;
+        const auto before=farm.food;
+        if(work(w,research,sites,farm,w.founders[policy.chosen-1])==Task::harvest) p.food+=farm.food-before;
     }
+    recover_soil(w,sites,farm,construction::field);
     return true;
 }
 }

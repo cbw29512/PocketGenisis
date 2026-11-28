@@ -111,10 +111,13 @@ inline bool step_with_renewal(World& w,discovery::State& research,construction::
     if(policy.chosen&&!busy&&!research.job.active&&construction::active(sites)<0&&
        re.kind==discovery::EventKind::none&&ce.kind==construction::EventKind::none&&deposits==reserve.deposited) {
         const auto i=policy.selected;
+        const auto before=farms.crops[i].food;
         if(agriculture::work(w,research,sites,farms.crops[i],w.founders[policy.chosen-1],
-           construction::field_slot(i))==agriculture::Task::harvest) p.food+=agriculture::harvest_yield;
+           construction::field_slot(i))==agriculture::Task::harvest) p.food+=farms.crops[i].food-before;
     }
     irrigation::transfer(w,sites,water);
+    for(unsigned i=0;i<construction::field_count;++i)
+        agriculture::recover_soil(w,sites,farms.crops[i],construction::field_slot(i));
     return true;
 }
 template<class Policy,class Food>
